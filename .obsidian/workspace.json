@@ -1,0 +1,211 @@
+{
+  "main": {
+    "id": "34892eaee0827050",
+    "type": "split",
+    "children": [
+      {
+        "id": "abd2b0a7f6d3a75f",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "8931f006233ca92c",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "README.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "README"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "4f51575678701645",
+    "type": "split",
+    "children": [
+      {
+        "id": "dd5e9f1486e5fcfd",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "05069129fc134394",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Files"
+            }
+          },
+          {
+            "id": "802409b99d4cb74d",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Search"
+            }
+          },
+          {
+            "id": "8ac1a89a0777e452",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Bookmarks"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 200
+  },
+  "right": {
+    "id": "d80913c06cd6961f",
+    "type": "split",
+    "children": [
+      {
+        "id": "f1bb224058556542",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "d94e6b8e7508b724",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "README.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Backlinks for README"
+            }
+          },
+          {
+            "id": "c80cbe20d06c5649",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "README.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Outgoing links from README"
+            }
+          },
+          {
+            "id": "393decbb672461fd",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Tags"
+            }
+          },
+          {
+            "id": "9edd2b5fbda1da79",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "README.md",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Outline of README"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false
+    }
+  },
+  "active": "8931f006233ca92c",
+  "lastOpenFiles": [
+    "design/fonts/fonts.md",
+    "design/branding/Logo/Photoshop Saves/psBE83.tmp",
+    "design/branding/Logo/Photoshop Saves/logo-box.psd",
+    "design/branding/Logo/version1-landscape.png",
+    "design/colours/colours.md",
+    "README.md",
+    "design/README.md",
+    "design/branding/Logo/with_shield.png",
+    "design/branding/Logo/Photoshop Saves/Version2-before_shield.psd",
+    "design/branding/Logo/geenrated-logo.png",
+    "design/branding/Logo/geenrated-logo.png.crdownload",
+    "design/branding/Logo/Photoshop Saves/Version 1.psd",
+    "design/branding/Logo/Photoshop Saves",
+    "design/branding/Logo/New folder",
+    "design/branding/Logo/Black&White_YellowBorder_YellowHex.png",
+    "design/branding/Logo/Black&White_YellowBorder_WhiteHex.png",
+    "design/branding/Logo/Black&White_WhiteHexagon.png",
+    "design/branding/Logo/Black&White_YellowHexagon.png",
+    "design/branding/Logo/Orange_hexagon.png",
+    "design/branding/Logo",
+    "design/branding/New folder",
+    "design/branding/Orange_hexagon.png",
+    "design/branding/Orange_hexagon.png.crdownload",
+    "design/colours/colours-palette.png",
+    "colors.json.md",
+    "design/style-guide.md",
+    "design/fonts/fonts.md.md",
+    "design/colours/colours.md.md",
+    "domain.md",
+    "design/domain/domains.md.md",
+    "[[/domain.md",
+    "design/style-guide.md.md",
+    "Design & Styles/Layout.md",
+    "Design & Styles/Colours/Colours.md",
+    "Design & Styles/Fonts.md",
+    "Design & Styles/Colours.md",
+    "Design & Styles/Logo.md"
+  ]
+}
