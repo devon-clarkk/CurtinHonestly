@@ -1,0 +1,1 @@
+## This document outlines the style and design of the Curtin Review Platform
