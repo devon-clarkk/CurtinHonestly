@@ -1,0 +1,12 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/postgres
+    username: postgres
+    password: CurtinHonestly
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update   # Automatically updates schema based on your entities
+    show-sql: true       # Show SQL queries in the console
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
