@@ -24,17 +24,14 @@ import java.util.List;
 @AllArgsConstructor
 
 // Json setup
-@JsonInclude(JsonInclude.Include.NON_DEFAULT)
+//@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 
 // Unit class - Stores data for CurtinHonestly units.
 public class Unit {
-
     @Id
     @UuidGenerator
     @Column(name = "id", unique = true, updatable = false)
     private String id;
-
-
     private String code;
     private String name;
     private String description;
