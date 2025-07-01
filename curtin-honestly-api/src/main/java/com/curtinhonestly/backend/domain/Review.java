@@ -45,6 +45,8 @@ public class Review {
     @JoinColumn(name = "unit_id", nullable = false)
     private Unit unit;
 
-
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
 }
