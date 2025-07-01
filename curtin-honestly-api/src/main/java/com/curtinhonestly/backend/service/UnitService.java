@@ -23,11 +23,15 @@ public class UnitService {
         return unitRepo.findAll(PageRequest.of(page, size, Sort.by("name")));
     }
 
-    public Unit getUnit(String id) throws RuntimeException
+    public Unit getUnitById(String id) throws RuntimeException
     {
         return unitRepo.findById(id).orElseThrow(() -> new RuntimeException("Unit not found"));
     }
 
+    public Unit getUnitByCode(String code) throws RuntimeException
+    {
+        return unitRepo.findById(code).orElseThrow(() -> new RuntimeException("Unit not found"));
+    }
     public Unit createUnit(Unit unit)
     {
         log.info("Unit added");
@@ -38,4 +42,5 @@ public class UnitService {
         log.info("Unit deleted");
         unitRepo.delete(unit);
     }
+
 }

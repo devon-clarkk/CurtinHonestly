@@ -9,5 +9,5 @@ import java.util.Optional;
 @Repository
 public interface UnitRepo extends JpaRepository<Unit, String> {
     Optional<Unit> findById(String id);
-
+    Optional<Unit> findByCode(String code);
 }

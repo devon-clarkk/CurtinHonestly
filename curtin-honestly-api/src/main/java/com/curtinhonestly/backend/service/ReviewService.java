@@ -1,6 +1,7 @@
 package com.curtinhonestly.backend.service;
 
 import com.curtinhonestly.backend.domain.Review;
+import com.curtinhonestly.backend.domain.Unit;
 import com.curtinhonestly.backend.repo.ReviewRepo;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -10,6 +11,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @Slf4j
 @Transactional(rollbackOn = Exception.class)
@@ -17,7 +20,13 @@ import org.springframework.stereotype.Service;
 public class ReviewService {
 
     private final ReviewRepo reviewRepo;
+    private final UnitService unitService;
 
+    // This method maps unit CODES to internal UUID's. Allowing for clean customer facing code-based endpoints, while maintaining UUID internally for clarity and safety.
+    public List<Review> getReviewsByUnitCode(String unitCode) {
+        Unit unit = unitService.getUnitByCode(unitCode);
+        return reviewRepo.findByUnit_Id(unit.getId());
+    }
     public Page<Review> getAllReviews(int page, int size)
     {
         return reviewRepo.findAll(PageRequest.of(page, size, Sort.by("date")));
