@@ -1,0 +1,86 @@
+### Register User
+POST http://localhost:8080/auth/register
+Content-Type: application/json
+
+{
+  "email": "user@student.curtin.edu.au",
+  "password": "userpassword"
+}
+
+### Register Admin (if you have an admin registration endpoint)
+POST http://localhost:8080/auth/register
+Content-Type: application/json
+
+{
+  "email": "admin@student.curtin.edu.au",
+  "password": "adminpassword"
+}
+
+### Login as User
+POST http://localhost:8080/auth/login
+Content-Type: application/json
+
+{
+  "email": "user@student.curtin.edu.au",
+  "password": "userpassword"
+}
+
+> {%
+    client.global.set("user_token", response.body.token);
+%}
+
+### Login as Admin
+POST http://localhost:8080/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@student.curtin.edu.au",
+  "password": "adminpassword"
+}
+
+> {%
+    client.global.set("admin_token", response.body.token);
+%}
+
+### Get Units (Public - no auth needed)
+GET http://localhost:8080/units
+
+### Create Unit (Admin only)
+POST http://localhost:8080/units
+Authorization: Bearer {{admin_token}}
+Content-Type: application/json
+
+{
+  "code": "COMP3003",
+  "name": "Software Engineering",
+  "description": "Learn about software engineering practices"
+}
+
+### Create Review (User role required)
+POST http://localhost:8080/reviews
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyQHN0dWRlbnQuY3VydGluLmVkdS5hdSIsInJvbGVzIjpbIlJPTEVfVVNFUiJdLCJpYXQiOjE3NTE1NTA3MDksImV4cCI6MTc1MjE1NTUwOX0.NVm4m6RkOzYqAoxHIC6sQpV3H1jQhkEh48M0ITpxn34
+Content-Type: application/json
+
+{
+  "rating": 8,
+  "finalGrade": 85,
+  "reviewText": "IT WORKS",
+  "semesterTaken": "2024-1",
+  "professor": "Dr. Arlen",
+  "workload": 5,
+  "hasExam": true,
+  "wouldTakeAgain": true,
+  "unit": {
+    "code": "COMP2003"
+  }
+}
+
+
+### Delete Unit (Admin only)
+DELETE http://localhost:8080/units/1
+Authorization: Bearer {{admin_token}}
+
+### Delete Review (Owner or Admin)
+DELETE http://localhost:8080/reviews/1
+Authorization: Bearer {{user_token}}
+
