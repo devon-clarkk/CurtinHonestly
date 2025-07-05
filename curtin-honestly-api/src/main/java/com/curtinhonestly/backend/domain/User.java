@@ -37,7 +37,8 @@ public class User {
     private String id;
 
     @ElementCollection(fetch = FetchType.EAGER)
-    private List<String> roles = new ArrayList<>();
+    @Enumerated(EnumType.STRING)
+    private List<UserRole> roles = new ArrayList<>();
 
     @Column(unique = true, nullable = false)
     private String email;
