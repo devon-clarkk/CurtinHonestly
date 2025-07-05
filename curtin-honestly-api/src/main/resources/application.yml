@@ -10,3 +10,5 @@ spring:
       ddl-auto: update   # Automatically updates schema based on your entities
     show-sql: true       # Show SQL queries in the console
     database-platform: org.hibernate.dialect.PostgreSQLDialect
+jwt:
+  secret: tG4Mz8q7Rs2Lp9FnXKp7dWsYmYeTb4H3

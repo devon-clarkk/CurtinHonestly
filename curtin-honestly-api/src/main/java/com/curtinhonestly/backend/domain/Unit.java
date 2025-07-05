@@ -1,6 +1,6 @@
 package com.curtinhonestly.backend.domain;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -38,5 +38,6 @@ public class Unit {
     private String faculty;
 
     @OneToMany(mappedBy = "unit", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnoreProperties("unit") // Ignores the unit inside each review
     private List<Review> reviews;
 }

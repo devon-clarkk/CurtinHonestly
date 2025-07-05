@@ -1,6 +1,7 @@
 package com.curtinhonestly.backend.domain;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -43,10 +44,18 @@ public class Review {
 
     @ManyToOne
     @JoinColumn(name = "unit_id", nullable = false)
+    @JsonIgnore
     private Unit unit;
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
+    @JsonIgnore
     private User user;
 
+
+    public String getUsername() {
+        return user != null ? user.getUsername() : null;
+    }
+
 }
+

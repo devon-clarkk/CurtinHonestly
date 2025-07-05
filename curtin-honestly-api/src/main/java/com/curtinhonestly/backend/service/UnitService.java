@@ -42,5 +42,9 @@ public class UnitService {
         log.info("Unit deleted");
         unitRepo.delete(unit);
     }
+    public void deleteUnitById(String id) {
+        Unit unit = getUnitById(id);
+        deleteUnit(unit);
+    }
 
 }
