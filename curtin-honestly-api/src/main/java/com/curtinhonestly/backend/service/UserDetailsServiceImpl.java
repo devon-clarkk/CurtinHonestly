@@ -5,7 +5,6 @@ import com.curtinhonestly.backend.repo.UserRepo;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -28,8 +27,8 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         User user = userRepo.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
 
-        List<GrantedAuthority> authorities = user.getRoles().stream()
-                .map(SimpleGrantedAuthority::new)
+        List<SimpleGrantedAuthority> authorities = user.getRoles().stream()
+                .map(role -> new SimpleGrantedAuthority(role.name())) // This gives "ROLE_USER", "ROLE_ADMIN"
                 .collect(Collectors.toList());
 
         return new org.springframework.security.core.userdetails.User(
@@ -39,3 +38,4 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         );
     }
 }
+
