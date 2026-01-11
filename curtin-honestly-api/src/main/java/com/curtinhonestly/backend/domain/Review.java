@@ -33,7 +33,7 @@ public class Review {
     private String id;
 
     private int rating; // 0-10
-    private Integer finalGrade; // Optional.
+    private Integer finalGrade; // Optional
     private String reviewText;
     private String semesterTaken; // Optional
     private String professor; // Optional
