@@ -4,21 +4,17 @@
     "type": "split",
     "children": [
       {
-        "id": "abd2b0a7f6d3a75f",
+        "id": "697b95f4018e3533",
         "type": "tabs",
         "children": [
           {
-            "id": "8931f006233ca92c",
+            "id": "f1f9a7cabe2e9f07",
             "type": "leaf",
             "state": {
-              "type": "markdown",
-              "state": {
-                "file": "README.md",
-                "mode": "source",
-                "source": false
-              },
+              "type": "empty",
+              "state": {},
               "icon": "lucide-file",
-              "title": "README"
+              "title": "New tab"
             }
           }
         ]
@@ -168,8 +164,10 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "8931f006233ca92c",
+  "active": "05069129fc134394",
   "lastOpenFiles": [
+    "Untitled.canvas",
+    "README.md",
     "curtin-honestly-api/build/reports/problems/problems-report.html",
     "curtin-honestly-api/build/reports/problems",
     "curtin-honestly-api/build/reports",
@@ -180,13 +178,11 @@
     "curtin-honestly-api/src/main/java/com/curtinhonestly/backend/CurtinHonestlyApiApplication.java",
     "curtin-honestly-api/src/test/java/com/curtinhonestly/backend",
     "curtin-honestly-api/src/main/java/com/curtinhonestly/backend",
-    "curtin-honestly-api/src/test/java/com/curtinhonestly",
     "curtin-honestly-api/HELP.md",
     "curtin-honestly-api/curtin-honestly-api/HELP.md",
     "design/fonts/fonts.md",
     "design/branding/Logo/version1-landscape.png",
     "design/colours/colours.md",
-    "README.md",
     "design/README.md",
     "design/branding/Logo/with_shield.png",
     "design/branding/Logo/geenrated-logo.png",

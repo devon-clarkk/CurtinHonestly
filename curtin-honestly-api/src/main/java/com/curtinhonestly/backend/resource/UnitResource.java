@@ -2,6 +2,8 @@ package com.curtinhonestly.backend.resource;
 
 import com.curtinhonestly.backend.domain.Unit;
 import com.curtinhonestly.backend.domain.Review;
+import com.curtinhonestly.backend.dto.UnitDetailsDTO;
+import com.curtinhonestly.backend.dto.UnitSummaryDTO;
 import com.curtinhonestly.backend.service.ReviewService;
 import com.curtinhonestly.backend.service.UnitService;
 import com.curtinhonestly.backend.security.SecurityConstants;
@@ -30,14 +32,14 @@ public class UnitResource {
     }
 
     @GetMapping
-    public ResponseEntity<Page<Unit>> getUnits(@RequestParam(defaultValue = "0") int page,
-                                               @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok().body(unitService.getAllUnits(page, size));
+    public ResponseEntity<Page<UnitSummaryDTO>> getUnits(@RequestParam(defaultValue = "0") int page,
+                                                         @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(unitService.getAllUnits(page, size));
     }
 
     @GetMapping("/{code}")
-    public ResponseEntity<Unit> getUnit(@PathVariable String code) {
-        return ResponseEntity.ok().body(unitService.getUnitByCode(code));
+    public ResponseEntity<UnitDetailsDTO> getUnit(@PathVariable String code) {
+        return ResponseEntity.ok().body(unitService.getUnitDetailsDTOByCode(code));
     }
 
     @GetMapping("/{unitCode}/reviews")

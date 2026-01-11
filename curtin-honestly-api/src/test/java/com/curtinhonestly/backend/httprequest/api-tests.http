@@ -26,7 +26,8 @@ Content-Type: application/json
 }
 
 > {%
-    client.global.set("user_token", response.body.token);
+    const data = JSON.parse(response.body);
+    client.global.set("user_token", data.token);
 %}
 
 ### Login as Admin
@@ -39,11 +40,18 @@ Content-Type: application/json
 }
 
 > {%
-    client.global.set("admin_token", response.body.token);
+    const data = JSON.parse(response.body);
+    client.global.set("admin_token", data.token);
 %}
+
 
 ### Get Units (Public - no auth needed)
 GET http://localhost:8080/units
+
+
+### Get Unit (COMP2003) (Public - no auth needed)
+GET http://localhost:8080/units/COMP2003
+
 
 ### Create Unit (Admin only)
 POST http://localhost:8080/units
@@ -58,7 +66,7 @@ Content-Type: application/json
 
 ### Create Review (User role required)
 POST http://localhost:8080/reviews
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyQHN0dWRlbnQuY3VydGluLmVkdS5hdSIsInJvbGVzIjpbIlJPTEVfVVNFUiJdLCJpYXQiOjE3NTE1NTA3MDksImV4cCI6MTc1MjE1NTUwOX0.NVm4m6RkOzYqAoxHIC6sQpV3H1jQhkEh48M0ITpxn34
+Authorization: Bearer {{user_token}}
 Content-Type: application/json
 
 {
