@@ -11,14 +11,10 @@ A website where university students in Australia can leave reviews for their uni
 - **Maven / Gradle** – Dependency management
 
 ###  Frontend (React.js)
-- **React.js** – Displays unit reviews and user interface
-- **Axios** – Makes API calls to Spring Boot
-- **HTML + CSS** – Basic styling
-- **CSS Styling:** Tailwind CSS
+ - Angular 
 
 ###  API Communication
 - **Spring Boot** exposes REST endpoints (e.g., `/units`, `/reviews`)
-- **React (Axios)** calls these endpoints to fetch/display data
 
 ###  Deployment & Hosting
 - **Backend:** Undecided
@@ -36,12 +32,7 @@ A website where university students in Australia can leave reviews for their uni
 - Maven / Gradle  
 
 ### Frontend  
-- Node.js + npm (to install React)  
-- React.js  
-- Axios (for API calls)  
-- Tailwind CSS / Bootstrap (Optional for styling)  
-- Vite or Create-React-App (to set up React)  
-
+    - Angular
 ---
 
 ## Project Roadmap  
@@ -53,8 +44,3 @@ A website where university students in Australia can leave reviews for their uni
 6️. **Deploy** → Make it live for users  
 
 ---
-
-## Next Step: Start Backend Development  
-Begin by **setting up Spring Boot** and designing the **database schema**, then move to React.
-
-

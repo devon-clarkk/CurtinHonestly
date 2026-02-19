@@ -24,10 +24,21 @@ Content-Type: application/json
   "email": "user@student.curtin.edu.au",
   "password": "userpassword"
 }
-
 > {%
-    const data = JSON.parse(response.body);
-    client.global.set("user_token", data.token);
+    client.test("Save token to global variables", function() {
+        // 1. Ensure we have an object, parsing it manually if IntelliJ kept it as a string
+        let body = response.body;
+        if (typeof body === "string") {
+            body = JSON.parse(body);
+        }
+
+        // 2. Assert that the token actually exists
+        client.assert(body.token !== undefined, "Failed to find 'token' in response");
+
+        // 3. Save it and log it
+        client.global.set("user_token", body.token);
+        client.log("SUCCESS! Saved User Token: " + body.token);
+    });
 %}
 
 ### Login as Admin
@@ -59,9 +70,9 @@ Authorization: Bearer {{admin_token}}
 Content-Type: application/json
 
 {
-  "code": "COMP3003",
-  "name": "Software Engineering",
-  "description": "Learn about software engineering practices"
+  "code": "COMP3004",
+  "name": "Software Engineering 2",
+  "description": "Learn about software engineering practices v2"
 }
 
 ### Create Review (User role required)
@@ -72,14 +83,14 @@ Content-Type: application/json
 {
   "rating": 8,
   "finalGrade": 85,
-  "reviewText": "IT WORKS",
-  "semesterTaken": "2024-1",
+  "reviewText": "WERE BACK AGAIN",
+  "semesterTaken": "2024-2",
   "professor": "Dr. Arlen",
   "workload": 5,
   "hasExam": true,
   "wouldTakeAgain": true,
   "unit": {
-    "code": "COMP2003"
+    "code": "COMP3004"
   }
 }
 
