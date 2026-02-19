@@ -44,7 +44,6 @@ public class Review {
 
     @ManyToOne
     @JoinColumn(name = "unit_id", nullable = false)
-    @JsonIgnore
     private Unit unit;
 
     @ManyToOne
