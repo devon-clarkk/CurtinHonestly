@@ -23,7 +23,6 @@ public class JwtUtil {
     // Token expiration (7 days)
     private final long jwtExpirationMs = 1000 * 60 * 60 * 24 * 7;
 
-    // ✅ New: Generate token with embedded roles
     public String generateToken(String email, List<String> roles) {
         return Jwts.builder()
                 .setSubject(email)

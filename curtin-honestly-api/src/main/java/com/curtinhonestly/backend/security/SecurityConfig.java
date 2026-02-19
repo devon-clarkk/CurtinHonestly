@@ -41,16 +41,16 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
                         // Public endpoints - anyone can GET
-                        .requestMatchers(HttpMethod.GET, "/units/**", "/reviews/**", "/users/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/units", "/units/**", "/reviews", "/reviews/**", "/users", "/users/**").permitAll()
                         .requestMatchers("/auth/**").permitAll()
 
                         // Admin only endpoints - Use name() to get "ROLE_ADMIN"
                         .requestMatchers(HttpMethod.DELETE, "/units/**").hasAuthority(UserRole.ROLE_ADMIN.name())
-                        .requestMatchers(HttpMethod.POST, "/units/**").hasAuthority(UserRole.ROLE_ADMIN.name())
+                        .requestMatchers(HttpMethod.POST, "/units", "/units/**").hasAuthority(UserRole.ROLE_ADMIN.name())
                         .requestMatchers(HttpMethod.DELETE, "/users/**").hasAuthority(UserRole.ROLE_ADMIN.name())
 
                         // User endpoints - Use name() to get "ROLE_USER"
-                        .requestMatchers(HttpMethod.POST, "/reviews/**").hasAuthority(UserRole.ROLE_USER.name())
+                        .requestMatchers(HttpMethod.POST, "/reviews", "/reviews/**").hasAnyAuthority(UserRole.ROLE_USER.name(), UserRole.ROLE_ADMIN.name())
 
                         // Default
                         .anyRequest().authenticated()

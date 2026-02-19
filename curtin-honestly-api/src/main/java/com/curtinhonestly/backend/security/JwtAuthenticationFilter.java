@@ -34,30 +34,31 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         final String authHeader = request.getHeader("Authorization");
 
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            System.out.println("🔴 No Authorization header or wrong prefix");
+        if (authHeader == null || !authHeader.regionMatches(true, 0, "Bearer ", 0, 7)) {
             filterChain.doFilter(request, response);
             return;
         }
 
         try {
             final String token = authHeader.substring(7);
-            System.out.println("🟢 Token: " + token);
-
             final String username = jwtUtil.extractUsername(token);
-            System.out.println("🧑 Username from token: " + username);
 
             if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
                 if (jwtUtil.isTokenValid(token, userDetails.getUsername())) {
                     Claims claims = jwtUtil.extractAllClaims(token);
-                    List<String> roles = claims.get("roles", List.class);
-                    System.out.println("🔐 Roles from token: " + roles);
-
-                    List<SimpleGrantedAuthority> authorities = roles.stream()
-                            .map(SimpleGrantedAuthority::new)
-                            .collect(Collectors.toList());
+                    List<String> roles = (List<String>) claims.get("roles");
+                    
+                    List<SimpleGrantedAuthority> authorities;
+                    if (roles != null && !roles.isEmpty()) {
+                        authorities = roles.stream()
+                                .map(SimpleGrantedAuthority::new)
+                                .collect(Collectors.toList());
+                    } else {
+                        // Fallback to DB roles if not in token
+                        authorities = (List<SimpleGrantedAuthority>) userDetails.getAuthorities();
+                    }
 
                     UsernamePasswordAuthenticationToken authToken =
                             new UsernamePasswordAuthenticationToken(
@@ -71,9 +72,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     );
 
                     SecurityContextHolder.getContext().setAuthentication(authToken);
-                    System.out.println("✅ Authentication set for: " + username);
+                    System.out.println("Authentication set for: " + username);
                 } else {
-                    System.out.println("🔴 Token is invalid");
+                    System.out.println("Token is invalid");
                 }
             }
         } catch (Exception e) {

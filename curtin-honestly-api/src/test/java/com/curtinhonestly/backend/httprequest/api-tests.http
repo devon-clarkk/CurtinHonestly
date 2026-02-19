@@ -61,7 +61,7 @@ GET http://localhost:8080/units
 
 
 ### Get Unit (COMP2003) (Public - no auth needed)
-GET http://localhost:8080/units/COMP2003
+GET http://localhost:8080/units/COMP2002
 
 
 ### Create Unit (Admin only)
@@ -90,7 +90,7 @@ Content-Type: application/json
   "hasExam": true,
   "wouldTakeAgain": true,
   "unit": {
-    "code": "COMP3004"
+    "code": "COMP2002"
   }
 }
 
