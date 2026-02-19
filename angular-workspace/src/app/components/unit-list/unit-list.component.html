@@ -1,0 +1,28 @@
+<div class="container">
+  <h1>Unit Reviews</h1>
+  <div class="unit-grid" *ngIf="units$ | async as units; else loading">
+    <div *ngFor="let unit of units" class="unit-card">
+      <div class="unit-header">
+        <span class="unit-code">{{ unit.code }}</span>
+        <span class="unit-faculty">{{ unit.faculty }}</span>
+      </div>
+      <h2 class="unit-name">{{ unit.name }}</h2>
+      <div class="unit-stats">
+        <div class="rating">
+          <span class="stars">{{ getStars(unit.averageRating) }}</span>
+          <span class="rating-value">{{ unit.averageRating | number:'1.1-1' }}</span>
+        </div>
+        <div class="review-count">
+          {{ unit.numberOfReviews }} reviews
+        </div>
+        <div class="again-ratio" *ngIf="unit.wouldTakeAgainRatio > 0">
+          {{ unit.wouldTakeAgainRatio | percent }} would take again
+        </div>
+      </div>
+      <button class="view-details">View Details</button>
+    </div>
+  </div>
+  <ng-template #loading>
+    <div class="loading-state">Loading units...</div>
+  </ng-template>
+</div>
