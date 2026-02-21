@@ -6,6 +6,4 @@ Your selected colors:
     Secondary: #000000 - rgb(0, 0, 0) - hsl(0, 0%, 0%)
     Accent: #666666 - rgb(102, 102, 102) - hsl(0, 0%, 40%)
 
-Realtime Colors link for selected colors: https://www.realtimecolors.com/?colors=1F1F1F-FAFAFA-C09711-000000-666666&fonts=Inter-Inter
-
-Thanks for using RealtimeColors.com!
+Link for selected colors: https://www.realtimecolors.com/?colors=1F1F1F-FAFAFA-C09711-000000-666666&fonts=Inter-Inter
