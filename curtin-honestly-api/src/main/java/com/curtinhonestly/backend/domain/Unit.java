@@ -24,7 +24,6 @@ import java.util.List;
 @AllArgsConstructor
 
 // Json setup
-//@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 
 // Unit class - Stores data for CurtinHonestly units.
 public class Unit {
