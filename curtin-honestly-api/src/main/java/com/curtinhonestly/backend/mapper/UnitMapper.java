@@ -17,7 +17,7 @@ public class UnitMapper {
         // Base unit information
         dto.setName(unit.getName());
         dto.setCode(unit.getCode());
-        dto.setFaculty(unit.getFaculty());
+        dto.setFaculty(unit.getFaculty().getDisplayName());
 
 
 
@@ -37,7 +37,7 @@ public class UnitMapper {
         dto.setCode(unit.getCode());
         dto.setName(unit.getName());
         dto.setDescription(unit.getDescription());
-        dto.setFaculty(unit.getFaculty());
+        dto.setFaculty(unit.getFaculty().getDisplayName());
 
         // Review-based information
         dto.setNumberOfReviews(unit.getReviews().size());
