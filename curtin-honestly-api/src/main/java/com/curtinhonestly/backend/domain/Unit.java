@@ -38,7 +38,7 @@ public class Unit {
     @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Column(nullable = false, columnDefinition = "TEXT", length = 5000)
     private String description;
 
     @Enumerated(EnumType.STRING)

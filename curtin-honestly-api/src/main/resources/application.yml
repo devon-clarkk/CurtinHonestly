@@ -7,7 +7,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update   # Automatically updates schema based on your entities
+      ddl-auto: create
     show-sql: true       # Show SQL queries in the console
     database-platform: org.hibernate.dialect.PostgreSQLDialect
 jwt:

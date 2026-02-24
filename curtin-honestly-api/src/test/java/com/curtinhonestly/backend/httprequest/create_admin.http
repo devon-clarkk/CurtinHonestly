@@ -1,0 +1,23 @@
+### Register Admin
+POST http://localhost:8080/auth/register
+Content-Type: application/json
+
+{
+  "email": "admin@student.curtin.edu.au",
+  "password": "adminpassword"
+}
+
+### Login as Admin
+POST http://localhost:8080/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@student.curtin.edu.au",
+  "password": "adminpassword"
+}
+
+> {%
+    const data = JSON.parse(response.body);
+    client.global.set("admin_token", data.token);
+    client.log("Admin Token: " + data.token);
+%}

@@ -75,6 +75,65 @@ Content-Type: application/json
   "description": "Learn about software engineering practices v2"
 }
 
+### Create Unit with new fields (Admin only)
+# Run 'Login as Admin' above first to generate a valid token!
+POST http://localhost:8080/units
+Authorization: Bearer {{admin_token}}
+Content-Type: application/json
+
+{
+  "code": "PEEN4000",
+  "name": "Crude Oil Processing",
+  "description": "Introduction to crude oil processing, Two phase separators...",
+  "faculty": "Science and Engineering",
+  "area": "WASM: Minerals, Energy and Chemical Engineering (WASM-MECE) (1155)",
+  "fieldOfEducation": "030303 Mining Engineering",
+  "credits": 25,
+  "contactHours": 3,
+  "resultType": "Grade/Mark",
+  "tuitionPatterns": [
+    {
+      "type": "Lecture",
+      "duration": "1 x 2 hours weekly"
+    },
+    {
+      "type": "Tutorial",
+      "duration": "1 x 1 hour weekly"
+    }
+  ],
+  "prerequisiteGroups": [
+    {
+      "groupName": "Prerequisites group 1",
+      "requirement": "one",
+      "options": [
+        {
+          "code": "PEEN1000v1",
+          "title": "Introduction to Petroleum Engineering"
+        },
+        {
+          "code": "310229",
+          "title": "310229 - Introduction to Petroleum Engineering 105"
+        }
+      ]
+    },
+    {
+      "groupName": "Prerequisites group 2",
+      "requirement": "one",
+      "options": [
+        {
+          "code": "CHEM1000v1",
+          "title": "Principles and Processes in Chemistry"
+        },
+        {
+          "code": "314448",
+          "title": "314448 - Principles and Processes in Chemistry 100"
+        }
+      ]
+    }
+  ],
+  "reviews": []
+}
+
 ### Create Review (User role required)
 POST http://localhost:8080/reviews
 Authorization: Bearer {{user_token}}
@@ -102,4 +161,31 @@ Authorization: Bearer {{admin_token}}
 ### Delete Review (Owner or Admin)
 DELETE http://localhost:8080/reviews/1
 Authorization: Bearer {{user_token}}
+
+### Create Randomized Review for PEEN4000
+< {%
+    const lorem = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.";
+    request.variables.set("randomRating", Math.floor(Math.random() * 10) + 1);
+    request.variables.set("randomGrade", Math.floor(Math.random() * 101));
+    request.variables.set("randomWorkload", Math.floor(Math.random() * 5) + 1);
+    request.variables.set("randomTakeAgain", Math.random() < 0.5);
+    request.variables.set("uniqueReviewText", lorem + " [Unique ID: " + Math.random().toString(36).substring(7) + "]");
+%}
+POST http://localhost:8080/reviews
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyQHN0dWRlbnQuY3VydGluLmVkdS5hdSIsInJvbGVzIjpbIlJPTEVfVVNFUiJdLCJpYXQiOjE3NzE3NDI0NTksImV4cCI6MTc3MjM0NzI1OX0.Z6u7U-flD1XuY_haUxPiNN_clwEI95tTCeZBcLBUr1k
+Content-Type: application/json
+
+{
+  "rating": {{randomRating}},
+  "finalGrade": {{randomGrade}},
+  "reviewText": "{{uniqueReviewText}}",
+  "semesterTaken": "2025-1",
+  "professor": "Dr. Random",
+  "workload": {{randomWorkload}},
+  "hasExam": true,
+  "wouldTakeAgain": {{randomTakeAgain}},
+  "unit": {
+    "code": "PEEN4000"
+  }
+}
 
