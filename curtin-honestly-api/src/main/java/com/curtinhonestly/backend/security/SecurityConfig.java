@@ -35,7 +35,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
-        System.out.println("🔐 SecurityConfig loaded");
+        System.out.println("SecurityConfig loaded");
 
         http
                 .csrf(csrf -> csrf.disable())
