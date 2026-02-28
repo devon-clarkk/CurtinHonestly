@@ -5,6 +5,10 @@ WORKDIR /app
 COPY gradlew .
 COPY gradle gradle
 COPY build.gradle settings.gradle ./
+
+# Make the Gradle wrapper executable
+RUN chmod +x gradlew
+
 # Initial build to download dependencies only
 RUN ./gradlew build -x test --no-daemon > /dev/null 2>&1 || true
 
