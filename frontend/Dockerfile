@@ -8,7 +8,7 @@ RUN npm run build
 
 # Run stage
 FROM nginx:alpine
-COPY --from=build /app/dist/angular-workspace/browser /usr/share/nginx/html
+COPY --from=build /app/dist/frontend/browser /usr/share/nginx/html
 # Copy custom nginx config if you have one, or use default
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
