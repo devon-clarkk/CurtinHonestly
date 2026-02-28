@@ -3,8 +3,8 @@ services:
     image: postgres:16-alpine
     environment:
       POSTGRES_DB: postgres
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: CurtinHonestly
+      POSTGRES_USER: ${DATABASE_USERNAME:-postgres}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-CurtinHonestly}
     ports:
       - "5432:5432"
     volumes:
@@ -13,11 +13,12 @@ services:
   backend:
     build: ./backend
     ports:
-      - "8080:8080"
+      - "${PORT:-8080}:8080"
     environment:
-      - DATABASE_URL=jdbc:postgresql://db:5432/postgres
-      - DATABASE_USERNAME=postgres
-      - DATABASE_PASSWORD=CurtinHonestly
+      - DATABASE_URL=${DATABASE_URL:-jdbc:postgresql://db:5432/postgres}
+      - DATABASE_USERNAME=${DATABASE_USERNAME:-postgres}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD:-CurtinHonestly}
+      - JWT_SECRET=${JWT_SECRET:-tG4Mz8q7Rs2Lp9FnXKp7dWsYmYeTb4H3}
     depends_on:
       - db
 
