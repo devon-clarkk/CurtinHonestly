@@ -76,6 +76,7 @@ Content-Type: application/json
   "description": "Introduction to crude oil processing, Two phase separators...",
   "unitLink": "https://handbook.curtin.edu.au/units/unit-ug-crude-oil-processing--peen4000v1",
   "faculty": "Science and Engineering",
+  "level": "UNDERGRADUATE",
   "area": "WASM: Minerals, Energy and Chemical Engineering (WASM-MECE) (1155)",
   "fieldOfEducation": "030303 Mining Engineering",
   "credits": 25,

@@ -1,7 +1,9 @@
 package com.curtinhonestly.backend.resource;
 
+import com.curtinhonestly.backend.domain.Faculty;
 import com.curtinhonestly.backend.domain.Unit;
 import com.curtinhonestly.backend.domain.Review;
+import com.curtinhonestly.backend.domain.UnitLevel;
 import com.curtinhonestly.backend.dto.UnitDetailsDTO;
 import com.curtinhonestly.backend.dto.UnitSummaryDTO;
 import com.curtinhonestly.backend.service.ReviewService;
@@ -33,8 +35,12 @@ public class UnitResource {
 
     @GetMapping
     public ResponseEntity<Page<UnitSummaryDTO>> getUnits(@RequestParam(defaultValue = "0") int page,
-                                                         @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(unitService.getAllUnits(page, size));
+                                                         @RequestParam(defaultValue = "10") int size,
+                                                         @RequestParam(required = false) String search,
+                                                         @RequestParam(required = false) List<Faculty> faculties,
+                                                         @RequestParam(required = false) UnitLevel level,
+                                                         @RequestParam(required = false) String sortBy) {
+        return ResponseEntity.ok(unitService.getAllUnits(page, size, search, faculties, level, sortBy));
     }
 
     @GetMapping("/{code}")

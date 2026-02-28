@@ -11,6 +11,7 @@ public class UnitDetailsDTO {
     private String description;
     private String unitLink;
     private String faculty;
+    private String level;
 
     private String area;
     private String fieldOfEducation;

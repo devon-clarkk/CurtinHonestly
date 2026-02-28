@@ -48,6 +48,10 @@ public class Unit {
     @Column(nullable = false)
     private Faculty faculty;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private UnitLevel level;
+
     @Column(length = 255)
     private String area;
 
