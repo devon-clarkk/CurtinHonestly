@@ -1,0 +1,60 @@
+/* Custom Fonts Setup */
+@font-face {
+  font-family: 'RubikCustom';
+  src: url('/assets/fonts/Rubik-VariableFont_wght.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'RobotoCondensedCustom';
+  src: url('/assets/fonts/RobotoCondensed-VariableFont_wght.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'NimbusSansCustom';
+  src: url('/assets/fonts/NimbusSanL-Reg.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'NimbusSansCustom';
+  src: url('/assets/fonts/NimbusSanL-Bol.otf') format('opentype');
+  font-weight: bold;
+  font-style: normal;
+}
+
+/* Edit this file to customize the look and feel of the website! */
+:root {
+  /* Colors - You can change these hex codes to anything you like */
+  --primary-color: #f6b500;       /* Curtin Yellow */
+  --secondary-color: #000000;     /* Primary Black */
+  --background-color: #f7fafc;    /* Very light gray background */
+  --card-background: #ffffff;     /* White for cards */
+  --text-primary: #1a202c;        /* Dark gray for primary text */
+  --text-secondary: #4a5568;      /* Lighter gray for secondary text */
+  --accent-color: #ffffff;        /* Blue for buttons or highlights */
+  --border-color: #e2e8f0;        /* Light gray for borders */
+
+  /* Fonts - Using your custom fonts from the design folder */
+  --main-font: 'RobotoCondensedCustom', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  --header-font: 'RubikCustom', sans-serif;
+  --alt-font: 'NimbusSansCustom', sans-serif;
+}
+
+/* Base styles using the variables above */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--main-font);
+  background-color: var(--background-color);
+  color: var(--text-primary);
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--header-font);
+  font-weight: 700;
+}

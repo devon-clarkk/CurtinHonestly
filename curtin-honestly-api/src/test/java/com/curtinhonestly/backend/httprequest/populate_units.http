@@ -1,0 +1,419 @@
+### Login as Admin
+POST http://localhost:8080/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@student.curtin.edu.au",
+  "password": "adminpassword"
+}
+
+> {%
+    const data = JSON.parse(response.body);
+    client.global.set("admin_token", data.token);
+%}
+
+### Create PEEN4000
+POST http://localhost:8080/units
+Authorization: Bearer {{admin_token}}
+Content-Type: application/json
+
+{
+  "code": "PEEN4000",
+  "name": "Crude Oil Processing",
+  "description": "Introduction to crude oil processing, Two phase seperators, Three phase seperators, Emulsion Treatment and Dehydration, Desalting of Crude Oil, Stablization and sweetening, Storage tanks, Produced Water Treatment, Choosing a Line Size and Wall Thickness, Organizing the project, Flow Assurance, Flow in wells & pipes.",
+  "faculty": "Science and Engineering",
+  "area": "WASM: Minerals, Energy and Chemical Engineering (WASM-MECE) (1155)",
+  "fieldOfEducation": "030303 Mining Engineering",
+  "credits": 25,
+  "contactHours": 3,
+  "resultType": "Grade/Mark",
+  "tuitionPatterns": [
+    {
+      "type": "Lecture",
+      "duration": "1 x 2 hours weekly"
+    },
+    {
+      "type": "Tutorial",
+      "duration": "1 x 1 hour weekly"
+    }
+  ],
+  "prerequisiteGroups": [
+    {
+      "groupName": "Prerequisites group 1",
+      "requirement": "one",
+      "options": [
+        {
+          "code": "PEEN1000v1",
+          "title": "Introduction to Petroleum Engineering"
+        },
+        {
+          "code": "310229",
+          "title": "310229 - Introduction to Petroleum Engineering 105"
+        }
+      ]
+    },
+    {
+      "groupName": "Prerequisites group 2",
+      "requirement": "one",
+      "options": [
+        {
+          "code": "CHEM1000v1",
+          "title": "Principles and Processes in Chemistry"
+        },
+        {
+          "code": "314448",
+          "title": "314448 - Principles and Processes in Chemistry 100"
+        }
+      ]
+    }
+  ],
+  "reviews": []
+}
+
+### Create MINE1000
+POST http://localhost:8080/units
+Authorization: Bearer {{admin_token}}
+Content-Type: application/json
+
+{
+  "code": "MINE1000",
+  "name": "Maintenance, Monitoring and Well Management",
+  "description": "Minor maintenance, pipeline pigging, well management, monitoring and maintaining instrument and control systems and monitoring and maintaining electrical systems.",
+  "faculty": "Science and Engineering",
+  "area": "WASM: Minerals, Energy and Chemical Engineering (WASM-MECE) (1155)",
+  "fieldOfEducation": "030303 Mining Engineering",
+  "credits": 25,
+  "contactHours": 3,
+  "resultType": "Grade/Mark",
+  "tuitionPatterns": [
+    {
+      "type": "Lecture",
+      "duration": "1 x 2 hours weekly"
+    },
+    {
+      "type": "Tutorial",
+      "duration": "1 x 1 hour weekly"
+    }
+  ],
+  "prerequisiteGroups": [
+    {
+      "groupName": "Prerequisites group 1",
+      "requirement": "one",
+      "options": [
+        {
+          "code": "PEEN1000v1",
+          "title": "Introduction to Petroleum Engineering"
+        },
+        {
+          "code": "310229",
+          "title": "310229 - Introduction to Petroleum Engineering 105"
+        }
+      ]
+    },
+    {
+      "groupName": "Prerequisites group 2",
+      "requirement": "one",
+      "options": [
+        {
+          "code": "CHEM1000v1",
+          "title": "Principles and Processes in Chemistry"
+        },
+        {
+          "code": "314448",
+          "title": "314448 - Principles and Processes in Chemistry 100"
+        }
+      ]
+    }
+  ],
+  "reviews": []
+}
+
+### Create PRRE1000
+POST http://localhost:8080/units
+Authorization: Bearer {{admin_token}}
+Content-Type: application/json
+
+{
+  "code": "PRRE1000",
+  "name": "Equipment Operations and Bulk Fluid Storage",
+  "description": "Operation of fluid flow equipment; monitor prime movers; monitor pumping system and equipment; monitor valve systems and transfer of bulk fluids into and out of storage facilities.",
+  "faculty": "Science and Engineering",
+  "area": "WASM: Minerals, Energy and Chemical Engineering (WASM-MECE) (1155)",
+  "fieldOfEducation": "030303 Mining Engineering",
+  "credits": 25,
+  "contactHours": 3,
+  "resultType": "Grade/Mark",
+  "tuitionPatterns": [
+    {
+      "type": "Lecture",
+      "duration": "1 x 2 hours weekly"
+    },
+    {
+      "type": "Tutorial",
+      "duration": "1 x 1 hour weekly"
+    }
+  ],
+  "prerequisiteGroups": [
+    {
+      "groupName": "Prerequisites group 1",
+      "requirement": "one",
+      "options": [
+        {
+          "code": "PEEN1000v1",
+          "title": "Introduction to Petroleum Engineering"
+        },
+        {
+          "code": "310229",
+          "title": "310229 - Introduction to Petroleum Engineering 105"
+        }
+      ]
+    },
+    {
+      "groupName": "Prerequisites group 2",
+      "requirement": "one",
+      "options": [
+        {
+          "code": "CHEM1000v1",
+          "title": "Principles and Processes in Chemistry"
+        },
+        {
+          "code": "314448",
+          "title": "314448 - Principles and Processes in Chemistry 100"
+        }
+      ]
+    }
+  ],
+  "reviews": []
+}
+
+### Create PRRE1002
+POST http://localhost:8080/units
+Authorization: Bearer {{admin_token}}
+Content-Type: application/json
+
+{
+  "code": "PRRE1002",
+  "name": "Plant Shutdown, Commissioning and Cathodic Protection",
+  "description": "Plant shutdown:  identify maintenance project and plant requirements; identify tasks, timelines and resources; develop a schedule; communicate with all relevant stakeholders and monitor shutdown.  Monitor and maintain cathodic protection systems: prepareand organise operational and maintenance activities; monitor and adjust electrical equipment; conduct CP system surveys; recommission the system; analyse and utilise CP data; control hazards and respond to problems. Commission/recommission plant: contribute to the design of plant/equipment; take part in commission planning; participate in acceptance of plant equipment; commission system, evaluate results and identify modifications. Decommission plant: contribute to decommission planning; isolate and decontaminate equipment/units and inspect, test and notify completion of work.",
+  "faculty": "Science and Engineering",
+  "area": "WASM: Minerals, Energy and Chemical Engineering (WASM-MECE) (1155)",
+  "fieldOfEducation": "030303 Mining Engineering",
+  "credits": 25,
+  "contactHours": 3,
+  "resultType": "Grade/Mark",
+  "tuitionPatterns": [
+    {
+      "type": "Lecture",
+      "duration": "1 x 2 hours weekly"
+    },
+    {
+      "type": "Tutorial",
+      "duration": "1 x 1 hour weekly"
+    }
+  ],
+  "prerequisiteGroups": [
+    {
+      "groupName": "Prerequisites group 1",
+      "requirement": "one",
+      "options": [
+        {
+          "code": "PEEN1000v1",
+          "title": "Introduction to Petroleum Engineering"
+        },
+        {
+          "code": "310229",
+          "title": "310229 - Introduction to Petroleum Engineering 105"
+        }
+      ]
+    },
+    {
+      "groupName": "Prerequisites group 2",
+      "requirement": "one",
+      "options": [
+        {
+          "code": "CHEM1000v1",
+          "title": "Principles and Processes in Chemistry"
+        },
+        {
+          "code": "314448",
+          "title": "314448 - Principles and Processes in Chemistry 100"
+        }
+      ]
+    }
+  ],
+  "reviews": []
+}
+
+### Create ENGR3004
+POST http://localhost:8080/units
+Authorization: Bearer {{admin_token}}
+Content-Type: application/json
+
+{
+  "code": "ENGR3004",
+  "name": "Multiphase Flow in Porous Media",
+  "description": "This unit will provide students with a comprehensive overview of the physics of multiphase flow in porous media and their relevance and applications in various real-life situations. The unit begins with a detailed discussion of Darcy’s Law and applications, wettability, interfacial phenomenon, capillary pressure, gravity effects, relative permeabilities and residual saturations. The implications of these basic but important concepts for fluid distribution in porous media for a range of scenarios -such as oil and gas extraction and CO2 geo-sequestration, will also be discussed. The unit will then present a more detailed discussion of the dynamics of fluid flow in porous media by introducing and solving Radial Diffusivity Equation (RDE) under a series of realistic conditions relevant to the extraction/injection of fluids. Subsequently, the unit will discuss the concept of fractional flow and Buckley-Leverett Theory and elaborate on how the end results may be analytically extended and upscaled to more realistic multidimensional/heterogeneous systems. Finally, an overview of the uncertainties to consider while attempting to forecast the performance of a fluid-fluid displacement in porous media over the intermediate to long term will be presented.",
+  "faculty": "Science and Engineering",
+  "area": "WASM: Minerals, Energy and Chemical Engineering (WASM-MECE) (1155)",
+  "fieldOfEducation": "030303 Mining Engineering",
+  "credits": 25,
+  "contactHours": 3,
+  "resultType": "Grade/Mark",
+  "tuitionPatterns": [
+    {
+      "type": "Lecture",
+      "duration": "1 x 2 hours weekly"
+    },
+    {
+      "type": "Tutorial",
+      "duration": "1 x 1 hour weekly"
+    }
+  ],
+  "prerequisiteGroups": [
+    {
+      "groupName": "Prerequisites group 1",
+      "requirement": "one",
+      "options": [
+        {
+          "code": "PEEN1000v1",
+          "title": "Introduction to Petroleum Engineering"
+        },
+        {
+          "code": "310229",
+          "title": "310229 - Introduction to Petroleum Engineering 105"
+        }
+      ]
+    },
+    {
+      "groupName": "Prerequisites group 2",
+      "requirement": "one",
+      "options": [
+        {
+          "code": "CHEM1000v1",
+          "title": "Principles and Processes in Chemistry"
+        },
+        {
+          "code": "314448",
+          "title": "314448 - Principles and Processes in Chemistry 100"
+        }
+      ]
+    }
+  ],
+  "reviews": []
+}
+
+### Create ENGR4003
+POST http://localhost:8080/units
+Authorization: Bearer {{admin_token}}
+Content-Type: application/json
+
+{
+  "code": "ENGR4003",
+  "name": "Energy Production",
+  "description": "The unit provides an overview of various energy sources used to meet energy demand, their extraction and production processes, including associated technologies, the policies and regulations governing the energy sector, the challenges facing the industry, and opportunities for advancement through innovation. Additionally, students will need to address the synergy between energy production and consumption with an emphasis on the analysis and evaluation of risks and challenges from the perspective of techno-economic and social impacts.",
+  "faculty": "Science and Engineering",
+  "area": "WASM: Minerals, Energy and Chemical Engineering (WASM-MECE) (1155)",
+  "fieldOfEducation": "030303 Mining Engineering",
+  "credits": 25,
+  "contactHours": 3,
+  "resultType": "Grade/Mark",
+  "tuitionPatterns": [
+    {
+      "type": "Lecture",
+      "duration": "1 x 2 hours weekly"
+    },
+    {
+      "type": "Tutorial",
+      "duration": "1 x 1 hour weekly"
+    }
+  ],
+  "prerequisiteGroups": [
+    {
+      "groupName": "Prerequisites group 1",
+      "requirement": "one",
+      "options": [
+        {
+          "code": "PEEN1000v1",
+          "title": "Introduction to Petroleum Engineering"
+        },
+        {
+          "code": "310229",
+          "title": "310229 - Introduction to Petroleum Engineering 105"
+        }
+      ]
+    },
+    {
+      "groupName": "Prerequisites group 2",
+      "requirement": "one",
+      "options": [
+        {
+          "code": "CHEM1000v1",
+          "title": "Principles and Processes in Chemistry"
+        },
+        {
+          "code": "314448",
+          "title": "314448 - Principles and Processes in Chemistry 100"
+        }
+      ]
+    }
+  ],
+  "reviews": []
+}
+
+### Create ENEN2000
+POST http://localhost:8080/units
+Authorization: Bearer {{admin_token}}
+Content-Type: application/json
+
+{
+  "code": "ENEN2000",
+  "name": "Engineering Sustainable Development",
+  "description": "Sustainable development is about forms of progress that combine economic development, social advancement, environmental protection and is widely recognised by the public, private and civic sectors as one of the key challenges for the 21st century. Deals with the contribution of engineering to the development and implementation of sustainable solutions. Introduction to the sustainable development agenda. Practical methods and tools for development and implementation of sustainable solutions which complement generic 'good engineering and management practice'. Introduction to sustainable technology development.",
+  "faculty": "Science and Engineering",
+  "area": "WASM: Minerals, Energy and Chemical Engineering (WASM-MECE) (1155)",
+  "fieldOfEducation": "030303 Mining Engineering",
+  "credits": 25,
+  "contactHours": 3,
+  "resultType": "Grade/Mark",
+  "tuitionPatterns": [
+    {
+      "type": "Lecture",
+      "duration": "1 x 2 hours weekly"
+    },
+    {
+      "type": "Tutorial",
+      "duration": "1 x 1 hour weekly"
+    }
+  ],
+  "prerequisiteGroups": [
+    {
+      "groupName": "Prerequisites group 1",
+      "requirement": "one",
+      "options": [
+        {
+          "code": "PEEN1000v1",
+          "title": "Introduction to Petroleum Engineering"
+        },
+        {
+          "code": "310229",
+          "title": "310229 - Introduction to Petroleum Engineering 105"
+        }
+      ]
+    },
+    {
+      "groupName": "Prerequisites group 2",
+      "requirement": "one",
+      "options": [
+        {
+          "code": "CHEM1000v1",
+          "title": "Principles and Processes in Chemistry"
+        },
+        {
+          "code": "314448",
+          "title": "314448 - Principles and Processes in Chemistry 100"
+        }
+      ]
+    }
+  ],
+  "reviews": []
+}

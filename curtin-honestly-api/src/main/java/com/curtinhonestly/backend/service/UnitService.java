@@ -43,7 +43,20 @@ public class UnitService {
     }
     public Unit createUnit(Unit unit)
     {
-        log.info("Unit added");
+        if (unit.getTuitionPatterns() != null) {
+            unit.getTuitionPatterns().forEach(pattern -> pattern.setUnit(unit));
+        }
+
+        if (unit.getPrerequisiteGroups() != null) {
+            unit.getPrerequisiteGroups().forEach(group -> {
+                group.setUnit(unit);
+                if (group.getOptions() != null) {
+                    group.getOptions().forEach(option -> option.setGroup(group));
+                }
+            });
+        }
+
+        log.info("Unit added: {}", unit.getCode());
         return unitRepo.save(unit);
     }
     public void deleteUnit(Unit unit)

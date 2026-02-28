@@ -1,0 +1,356 @@
+.detail-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 40px 20px;
+}
+
+/* Header Styling */
+.detail-header {
+  margin-bottom: 40px;
+}
+
+.back-link {
+  color: var(--accent-color);
+  text-decoration: none;
+  font-weight: 500;
+  display: inline-block;
+  margin-bottom: 20px;
+}
+
+.header-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  border-bottom: 2px solid var(--primary-color);
+  padding-bottom: 20px;
+}
+
+.detail-code {
+  color: var(--accent-color);
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+.detail-name {
+  font-size: 2.5rem;
+  margin: 5px 0;
+  color: var(--secondary-color);
+}
+
+.detail-faculty {
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.big-rating {
+  display: flex;
+  align-items: center;
+  background-color: var(--card-background);
+  padding: 15px 25px;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+.big-num {
+  font-size: 3rem;
+  font-weight: bold;
+  margin-right: 15px;
+  color: var(--secondary-color);
+}
+
+.big-stars {
+  color: var(--primary-color);
+  font-size: 1.5rem;
+  display: block;
+}
+
+.total-reviews {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+/* Summary Stats Bar */
+.summary-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-bottom: 40px;
+}
+
+.stat-card {
+  background-color: var(--card-background);
+  padding: 20px;
+  border-radius: 12px;
+  text-align: center;
+  border: 1px solid var(--border-color);
+}
+
+.stat-title {
+  display: block;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  margin-bottom: 5px;
+}
+
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: var(--secondary-color);
+}
+
+/* Main Content Layout */
+.content-grid {
+  display: grid;
+  grid-template-columns: 350px 1fr;
+  gap: 40px;
+}
+
+.description-section h3, .reviews-section h3 {
+  margin-top: 0;
+  border-left: 4px solid var(--primary-color);
+  padding-left: 15px;
+  margin-bottom: 20px;
+}
+
+.description-section p {
+  line-height: 1.6;
+  color: var(--text-primary);
+}
+
+/* Review Cards */
+.review-card {
+  background-color: var(--card-background);
+  border-radius: 12px;
+  padding: 25px;
+  margin-bottom: 25px;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+
+.review-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 15px;
+}
+
+.user-name {
+  font-weight: bold;
+  display: block;
+  font-size: 1.1rem;
+}
+
+.review-meta {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.review-rating {
+  color: var(--primary-color);
+  font-size: 1.1rem;
+}
+
+.review-body {
+  margin-bottom: 20px;
+}
+
+.review-body p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.review-footer {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.footer-tag {
+  background-color: #f1f5f9;
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.footer-tag.positive {
+  background-color: #f0fff4;
+  color: #2f855a;
+}
+
+/* Loading state */
+.loading-state {
+  text-align: center;
+  padding: 100px 0;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 5px solid #edf2f7;
+  border-top: 5px solid var(--primary-color);
+  border-radius: 50%;
+  margin: 0 auto 20px auto;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .content-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .header-main {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .header-right {
+    margin-top: 20px;
+  }
+}
+
+/* Unit Info Blocks */
+.info-block {
+  margin-top: 30px;
+  background-color: var(--card-background);
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+}
+
+.info-block h3 {
+  font-size: 1.1rem;
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: var(--secondary-color);
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 10px;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.info-item.full-width {
+  grid-column: 1 / -1;
+}
+
+.label {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.value {
+  font-size: 0.95rem;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+/* Tuition Patterns */
+.pattern-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.pattern-list li {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border-color);
+  font-size: 0.9rem;
+}
+
+.pattern-list li:last-child {
+  border-bottom: none;
+}
+
+.pattern-type {
+  font-weight: 600;
+  color: var(--secondary-color);
+}
+
+.pattern-duration {
+  color: var(--text-secondary);
+}
+
+/* Prerequisites */
+.prereq-container {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.prereq-group {
+  background-color: #f8fafc;
+  padding: 10px;
+  border-radius: 6px;
+}
+
+.prereq-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.group-name {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--secondary-color);
+}
+
+.group-req {
+  font-size: 0.7rem;
+  background-color: var(--accent-color);
+  color: white;
+  padding: 2px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.prereq-options {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.prereq-options li {
+  margin-bottom: 5px;
+}
+
+.prereq-link {
+  display: block;
+  text-decoration: none;
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.prereq-link:hover {
+  background-color: #e2e8f0;
+}
+
+.prereq-link strong {
+  color: var(--primary-color);
+  margin-right: 5px;
+}

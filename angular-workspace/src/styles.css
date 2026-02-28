@@ -1,0 +1,36 @@
+/* Global styles - beginner-friendly styling using CSS variables */
+@import "./theme.css";
+
+/* Resetting some default styles */
+* {
+  box-sizing: border-box;
+}
+
+/* Base button style */
+.btn {
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+  font-family: var(--main-font);
+}
+
+.btn-primary {
+  background-color: var(--primary-color);
+  color: var(--secondary-color);
+}
+
+.btn-primary:hover {
+  filter: brightness(0.9);
+}
+
+.btn-accent {
+  background-color: var(--accent-color);
+  color: white;
+}
+
+.btn-accent:hover {
+  filter: brightness(1.1);
+}
