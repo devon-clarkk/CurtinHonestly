@@ -12,8 +12,7 @@ let production = false;
 // 3. Simple .env parser
 if (fs.existsSync(envPath)) {
   const envContent = fs.readFileSync(envPath, 'utf8');
-  const lines = envContent.split('
-');
+  const lines = envContent.split('');
 
   lines.forEach(line => {
     const [key, value] = line.split('=');
