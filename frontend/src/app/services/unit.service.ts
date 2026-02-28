@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Page, UnitSummary, UnitDetails, Review, Faculty, FacultyDisplayNames, UnitLevel, UnitLevelDisplayNames } from '../models/unit.model';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -9,7 +10,7 @@ import { Page, UnitSummary, UnitDetails, Review, Faculty, FacultyDisplayNames, U
 export class UnitService {
   private http = inject(HttpClient);
   // Tip for beginners: This is the URL where your backend is running.
-  private apiUrl = 'http://localhost:8080/units';
+  private apiUrl = `${environment.apiUrl}/units`;
 
   // Fetches a paginated list of unit summaries with optional filters and sorting
   getUnits(

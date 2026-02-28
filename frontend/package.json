@@ -3,9 +3,10 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve",
-    "build": "ng build",
-    "watch": "ng build --watch --configuration development",
+    "set-env": "node set-env.js",
+    "start": "npm run set-env && ng serve",
+    "build": "npm run set-env && ng build",
+    "watch": "npm run set-env && ng build --watch --configuration development",
     "test": "ng test",
     "serve:ssr:frontend": "node dist/frontend/server/server.mjs"
   },
