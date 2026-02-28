@@ -1,0 +1,105 @@
+<!-- Main container for the unit list -->
+<div class="list-container">
+  <div class="list-header">
+    <h1>Explore Units</h1>
+    <p>Find honest reviews from students like you.</p>
+  </div>
+
+  <!-- Filter Bar -->
+  <div class="filter-bar">
+    <div class="filter-top">
+      <div class="search-box">
+        <input 
+          type="text" 
+          [(ngModel)]="searchQuery" 
+          (ngModelChange)="onFilterChange()" 
+          placeholder="Search by code or name..."
+          class="search-input">
+      </div>
+      
+      <div class="select-group">
+        <select [(ngModel)]="selectedLevel" (change)="onFilterChange()" class="filter-select">
+          <option [ngValue]="undefined">All Levels</option>
+          <option *ngFor="let level of levels" [value]="level.value">{{ level.label }}</option>
+        </select>
+
+        <select [(ngModel)]="sortBy" (change)="onFilterChange()" class="filter-select">
+          <option *ngFor="let option of sortOptions" [value]="option.value">{{ option.label }}</option>
+        </select>
+        
+        <button class="btn-clear" (click)="resetFilters()">Clear Filters</button>
+      </div>
+    </div>
+
+    <div class="faculty-filters">
+      <span class="filter-label">Faculties:</span>
+      <div class="faculty-pills">
+        <button 
+          *ngFor="let faculty of faculties" 
+          class="faculty-pill" 
+          [class.active]="isFacultySelected(faculty.value)"
+          (click)="toggleFaculty(faculty.value)">
+          {{ faculty.label }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading state - shown while units$ is fetching data -->
+  <div *ngIf="!(units$ | async)" class="loading">
+    <div class="spinner"></div>
+    <p>Loading units...</p>
+  </div>
+
+  <!-- Empty state -->
+  <div class="empty-state" *ngIf="(units$ | async)?.length === 0">
+    <p>No units found matching your filters.</p>
+    <button class="btn btn-primary" (click)="resetFilters()">Reset All Filters</button>
+  </div>
+
+  <!-- The grid of unit cards -->
+  <div class="unit-grid" *ngIf="units$ | async as units">
+    <div *ngFor="let unit of units" class="unit-card">
+      <div class="card-header">
+        <div class="header-tags">
+          <span class="faculty-tag">{{ unit.faculty }}</span>
+          <span class="level-tag">{{ unit.level }}</span>
+        </div>
+        <span class="unit-code">{{ unit.code }}</span>
+      </div>
+      
+      <div class="card-body">
+        <h2 class="unit-name">{{ unit.name }}</h2>
+        
+        <div class="rating-box">
+          <span class="stars">
+            <ng-container *ngFor="let type of getStarArray(unit.averageRating)">
+              <span *ngIf="type === 'full'">★</span>
+              <span *ngIf="type === 'half'" class="half-star">★</span>
+              <span *ngIf="type === 'empty'">☆</span>
+            </ng-container>
+          </span>
+          <span class="rating-num">{{ unit.averageRating | number:'1.1-1' }}</span>
+        </div>
+        
+        <div class="stats-row">
+          <div class="stat">
+            <span class="stat-value">{{ unit.numberOfReviews }}</span>
+            <span class="stat-label">Reviews</span>
+          </div>
+          <div class="stat">
+            <span class="stat-value">{{ unit.wouldTakeAgainRatio | percent }}</span>
+            <span class="stat-label">Recommended</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="card-footer">
+        <!-- routerLink takes the user to the details page using the unit code -->
+        <a [routerLink]="['/units', unit.code]" class="btn btn-primary view-btn">
+          View Details & Reviews
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
