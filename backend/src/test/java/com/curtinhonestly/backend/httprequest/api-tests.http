@@ -1,0 +1,182 @@
+### Register User
+POST http://localhost:8080/auth/register
+Content-Type: application/json
+
+{
+  "email": "user@student.curtin.edu.au",
+  "password": "userpassword"
+}
+
+### Register Admin (if you have an admin registration endpoint)
+POST http://localhost:8080/auth/register
+Content-Type: application/json
+
+{
+  "email": "admin@student.curtin.edu.au",
+  "password": "adminpassword"
+}
+
+### Login as User
+POST http://localhost:8080/auth/login
+Content-Type: application/json
+
+{
+  "email": "user@student.curtin.edu.au",
+  "password": "userpassword"
+}
+> {%
+    client.test("Save token to global variables", function() {
+        // 1. Ensure we have an object, parsing it manually if IntelliJ kept it as a string
+        let body = response.body;
+        if (typeof body === "string") {
+            body = JSON.parse(body);
+        }
+
+        // 2. Assert that the token actually exists
+        client.assert(body.token !== undefined, "Failed to find 'token' in response");
+
+        // 3. Save it and log it
+        client.global.set("user_token", body.token);
+        client.log("SUCCESS! Saved User Token: " + body.token);
+    });
+%}
+
+### Login as Admin
+POST http://localhost:8080/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@student.curtin.edu.au",
+  "password": "adminpassword"
+}
+
+> {%
+    const data = JSON.parse(response.body);
+    client.global.set("admin_token", data.token);
+%}
+
+
+### Get Units (Public - no auth needed)
+GET http://localhost:8080/units
+
+
+### Get Unit (COMP2003) (Public - no auth needed)
+GET http://localhost:8080/units/COMP2002
+
+
+### Create Unit with new fields (Admin only)
+# Run 'Login as Admin' above first to generate a valid token!
+POST http://localhost:8080/units
+Authorization: Bearer {{admin_token}}
+Content-Type: application/json
+
+{
+  "code": "PEEN4000",
+  "name": "Crude Oil Processing",
+  "description": "Introduction to crude oil processing, Two phase separators...",
+  "unitLink": "https://handbook.curtin.edu.au/units/unit-ug-crude-oil-processing--peen4000v1",
+  "faculty": "Science and Engineering",
+  "level": "UNDERGRADUATE",
+  "area": "WASM: Minerals, Energy and Chemical Engineering (WASM-MECE) (1155)",
+  "fieldOfEducation": "030303 Mining Engineering",
+  "credits": 25,
+  "contactHours": 3,
+  "resultType": "Grade/Mark",
+  "tuitionPatterns": [
+    {
+      "type": "Lecture",
+      "duration": "1 x 2 hours weekly"
+    },
+    {
+      "type": "Tutorial",
+      "duration": "1 x 1 hour weekly"
+    }
+  ],
+  "prerequisiteGroups": [
+    {
+      "groupName": "Prerequisites group 1",
+      "requirement": "one",
+      "options": [
+        {
+          "code": "PEEN1000v1",
+          "title": "Introduction to Petroleum Engineering"
+        },
+        {
+          "code": "310229",
+          "title": "310229 - Introduction to Petroleum Engineering 105"
+        }
+      ]
+    },
+    {
+      "groupName": "Prerequisites group 2",
+      "requirement": "one",
+      "options": [
+        {
+          "code": "CHEM1000v1",
+          "title": "Principles and Processes in Chemistry"
+        },
+        {
+          "code": "314448",
+          "title": "314448 - Principles and Processes in Chemistry 100"
+        }
+      ]
+    }
+  ],
+  "reviews": []
+}
+
+### Create Review (User role required)
+POST http://localhost:8080/reviews
+Authorization: Bearer {{user_token}}
+Content-Type: application/json
+
+{
+  "rating": 4,
+  "finalGrade": 85,
+  "reviewText": "WERE BACK AGAIN",
+  "semesterTaken": "2024-2",
+  "professor": "Dr. Arlen",
+  "workload": 5,
+  "hasExam": true,
+  "wouldTakeAgain": true,
+  "unit": {
+    "code": "COMP2002"
+  }
+}
+
+
+### Delete Unit (Admin only)
+DELETE http://localhost:8080/units/1
+Authorization: Bearer {{admin_token}}
+
+### Delete Review (Owner or Admin)
+DELETE http://localhost:8080/reviews/1
+Authorization: Bearer {{user_token}}
+
+### Create Randomized Review for PEEN4000
+< {%
+    const lorem = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.";
+    request.variables.set("randomRating", Math.floor(Math.random() * 5) + 1);
+    request.variables.set("randomGrade", Math.floor(Math.random() * 101));
+    request.variables.set("randomWorkload", Math.floor(Math.random() * 5) + 1);
+    request.variables.set("randomTakeAgain", Math.random() < 0.5);
+    request.variables.set("uniqueReviewText", lorem + " [Unique ID: " + Math.random().toString(36).substring(7) + "]");
+%}
+POST http://localhost:8080/reviews
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyQHN0dWRlbnQuY3VydGluLmVkdS5hdSIsInJvbGVzIjpbIlJPTEVfVVNFUiJdLCJpYXQiOjE3NzE3NDI0NTksImV4cCI6MTc3MjM0NzI1OX0.Z6u7U-flD1XuY_haUxPiNN_clwEI95tTCeZBcLBUr1k
+Content-Type: application/json
+
+{
+  "rating": {{randomRating}},
+  "finalGrade": {{randomGrade}},
+  "reviewText": "{{uniqueReviewText}}",
+  "semesterTaken": "2025-1",
+  "professor": "Dr. Random",
+  "workload": {{randomWorkload}},
+  "hasExam": true,
+  "wouldTakeAgain": {{randomTakeAgain}},
+  "unit": {
+    "code": "PEEN4000"
+  }
+}
+

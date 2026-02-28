@@ -1,0 +1,62 @@
+/* Custom Fonts Setup */
+@font-face {
+  font-family: 'RubikCustom';
+  src: url('/assets/fonts/Rubik-VariableFont_wght.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'RobotoCondensedCustom';
+  src: url('/assets/fonts/RobotoCondensed-VariableFont_wght.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'NimbusSansCustom';
+  src: url('/assets/fonts/NimbusSanL-Reg.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'NimbusSansCustom';
+  src: url('/assets/fonts/NimbusSanL-Bol.otf') format('opentype');
+  font-weight: bold;
+  font-style: normal;
+}
+
+/* Edit this file to customize the look and feel of the website! */
+:root {
+  /* Colors - Based on Design Guide */
+  --primary-color: #c09711;       /* Curtin Gold */
+  --secondary-color: #000000;     /* Black Contrast */
+  --background-color: #fafafa;    /* Off-white background */
+  --card-background: #ffffff;     /* White for cards */
+  --text-primary: #1f1f1f;        /* Near-black text */
+  --text-secondary: #666666;      /* Medium gray secondary text */
+  --accent-color: #c09711;        /* Use Gold for accents/links */
+  --header-background: #f1f5f9;   /* Very light grey for banners */
+  --header-text: #1f1f1f;         /* Dark text for light header */
+  --border-color: #e2e8f0;        /* Light gray for borders */
+
+  /* Fonts - Using your custom fonts from the design folder */
+  --main-font: 'RobotoCondensedCustom', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  --header-font: 'RubikCustom', sans-serif;
+  --alt-font: 'NimbusSansCustom', sans-serif;
+}
+
+/* Base styles using the variables above */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--main-font);
+  background-color: var(--background-color);
+  color: var(--text-primary);
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--header-font);
+  font-weight: 700;
+}
