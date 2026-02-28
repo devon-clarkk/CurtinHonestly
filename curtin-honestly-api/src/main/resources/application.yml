@@ -1,14 +1,14 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/postgres
-    username: postgres
-    password: CurtinHonestly
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/postgres}
+    username: ${DATABASE_USERNAME:postgres}
+    password: ${DATABASE_PASSWORD:CurtinHonestly}
     driver-class-name: org.postgresql.Driver
 
   jpa:
     hibernate:
-      ddl-auto: create
-    show-sql: true       # Show SQL queries in the console
+      ddl-auto: update
+    show-sql: true
     database-platform: org.hibernate.dialect.PostgreSQLDialect
 jwt:
   secret: tG4Mz8q7Rs2Lp9FnXKp7dWsYmYeTb4H3
