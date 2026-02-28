@@ -1,7 +1,34 @@
+export enum Faculty {
+  BUSINESS_AND_LAW = 'BUSINESS_AND_LAW',
+  HEALTH_SCIENCES = 'HEALTH_SCIENCES',
+  HUMANITIES = 'HUMANITIES',
+  SCIENCE_AND_ENGINEERING = 'SCIENCE_AND_ENGINEERING',
+  ABORIGINAL_STUDIES = 'ABORIGINAL_STUDIES'
+}
+
+export const FacultyDisplayNames: Record<Faculty, string> = {
+  [Faculty.BUSINESS_AND_LAW]: 'Business and Law',
+  [Faculty.HEALTH_SCIENCES]: 'Health Sciences',
+  [Faculty.HUMANITIES]: 'Humanities',
+  [Faculty.SCIENCE_AND_ENGINEERING]: 'Science and Engineering',
+  [Faculty.ABORIGINAL_STUDIES]: 'Aboriginal Studies'
+};
+
+export enum UnitLevel {
+  UNDERGRADUATE = 'UNDERGRADUATE',
+  POSTGRADUATE = 'POSTGRADUATE'
+}
+
+export const UnitLevelDisplayNames: Record<UnitLevel, string> = {
+  [UnitLevel.UNDERGRADUATE]: 'Undergraduate',
+  [UnitLevel.POSTGRADUATE]: 'Postgraduate'
+};
+
 export interface UnitSummary {
   code: string;
   name: string;
   faculty: string;
+  level: string;
   numberOfReviews: number;
   averageRating: number;
   wouldTakeAgainRatio: number;
@@ -42,6 +69,7 @@ export interface UnitDetails {
   description: string;
   unitLink: string;
   faculty: string;
+  level: string;
   
   // New fields
   area: string;

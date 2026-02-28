@@ -18,6 +18,7 @@ public class UnitMapper {
         dto.setName(unit.getName() != null ? unit.getName() : "");
         dto.setCode(unit.getCode() != null ? unit.getCode() : "");
         dto.setFaculty(unit.getFaculty() != null ? unit.getFaculty().getDisplayName() : "");
+        dto.setLevel(unit.getLevel() != null ? unit.getLevel().getDisplayName() : "");
 
         List<Review> reviews = unit.getReviews() != null ? unit.getReviews() : new ArrayList<>();
 
@@ -39,6 +40,7 @@ public class UnitMapper {
         dto.setDescription(unit.getDescription() != null ? unit.getDescription() : "");
         dto.setUnitLink(unit.getUnitLink() != null ? unit.getUnitLink() : "");
         dto.setFaculty(unit.getFaculty() != null ? unit.getFaculty().getDisplayName() : "");
+        dto.setLevel(unit.getLevel() != null ? unit.getLevel().getDisplayName() : "");
 
         dto.setArea(unit.getArea());
         dto.setFieldOfEducation(unit.getFieldOfEducation());

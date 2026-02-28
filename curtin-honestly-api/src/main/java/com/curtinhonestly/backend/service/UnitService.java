@@ -1,18 +1,24 @@
 package com.curtinhonestly.backend.service;
 
+import com.curtinhonestly.backend.domain.Faculty;
 import com.curtinhonestly.backend.domain.Review;
 import com.curtinhonestly.backend.domain.Unit;
+import com.curtinhonestly.backend.domain.UnitLevel;
 import com.curtinhonestly.backend.dto.UnitDetailsDTO;
 import com.curtinhonestly.backend.dto.UnitSummaryDTO;
 import com.curtinhonestly.backend.mapper.UnitMapper;
 import com.curtinhonestly.backend.repo.UnitRepo;
+import com.curtinhonestly.backend.repo.UnitSpecification;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 @Slf4j
@@ -22,8 +28,26 @@ public class UnitService {
 
     private final UnitRepo unitRepo;
 
-    public Page<UnitSummaryDTO> getAllUnits(int page, int size) {
-        Page<Unit> units = unitRepo.findAll(PageRequest.of(page, size));
+    public Page<UnitSummaryDTO> getAllUnits(int page, int size, String search, List<Faculty> faculties, UnitLevel level, String sortBy) {
+        Sort sort = Sort.by(Sort.Direction.ASC, "code"); // Default sort
+
+        if (sortBy != null && !sortBy.isEmpty()) {
+            switch (sortBy) {
+                case "name":
+                    sort = Sort.by(Sort.Direction.ASC, "name");
+                    break;
+                case "name_desc":
+                    sort = Sort.by(Sort.Direction.DESC, "name");
+                    break;
+                case "code_desc":
+                    sort = Sort.by(Sort.Direction.DESC, "code");
+                    break;
+                // Add more cases as needed, e.g., for ratings if supported by DB columns or calculated
+            }
+        }
+
+        Specification<Unit> spec = UnitSpecification.filterUnits(search, faculties, level);
+        Page<Unit> units = unitRepo.findAll(spec, PageRequest.of(page, size, sort));
         return units.map(UnitMapper::toSummaryDTO);
     }
 

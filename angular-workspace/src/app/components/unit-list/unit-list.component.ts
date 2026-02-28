@@ -1,41 +1,85 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { UnitService } from '../../services/unit.service';
-import { UnitSummary } from '../../models/unit.model';
-import { Observable, map } from 'rxjs';
+import { UnitSummary, Faculty, UnitLevel } from '../../models/unit.model';
+import { Observable, map, BehaviorSubject, switchMap, debounceTime, distinctUntilChanged } from 'rxjs';
 
-/**
- * This component displays a grid of unit summaries fetched from the backend.
- * Beginners: We use CommonModule for basic Angular directives like *ngFor and *ngIf.
- */
 @Component({
   selector: 'app-unit-list',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, FormsModule],
   templateUrl: './unit-list.component.html',
   styleUrl: './unit-list.component.css'
 })
 export class UnitListComponent implements OnInit {
-  // Use 'inject' to get the UnitService - this is the modern way in Angular!
   private unitService = inject(UnitService);
   
-  // An Observable that will hold our list of units once they load
+  // Filter state
+  searchQuery = '';
+  selectedFaculties: Faculty[] = [];
+  selectedLevel?: UnitLevel;
+  sortBy = 'code';
+
+  // Options for dropdowns
+  faculties = this.unitService.getFaculties();
+  levels = this.unitService.getUnitLevels();
+  sortOptions = [
+    { value: 'code', label: 'Unit Code (A-Z)' },
+    { value: 'code_desc', label: 'Unit Code (Z-A)' },
+    { value: 'name', label: 'Name (A-Z)' },
+    { value: 'name_desc', label: 'Name (Z-A)' }
+  ];
+
+  // Subject to trigger refreshes
+  private filterSubject = new BehaviorSubject<void>(undefined);
+  
   units$: Observable<UnitSummary[]> | undefined;
 
-  // This runs when the component starts up
   ngOnInit(): void {
-    // We get the first page of units (0) and extract just the content array
-    this.units$ = this.unitService.getUnits(0, 12).pipe(
+    this.units$ = this.filterSubject.pipe(
+      debounceTime(300), // Small wait to avoid too many requests while typing
+      switchMap(() => this.unitService.getUnits(
+        0, 100, // Load a large first page for now
+        this.searchQuery,
+        this.selectedFaculties,
+        this.selectedLevel,
+        this.sortBy
+      )),
       map(page => page.content.map(unit => ({
         ...unit,
-        // If the backend sends 85 instead of 0.85, we divide by 100
         wouldTakeAgainRatio: unit.wouldTakeAgainRatio > 1 ? unit.wouldTakeAgainRatio / 100 : unit.wouldTakeAgainRatio
       })))
     );
   }
 
-  // A helper function to generate star icons based on rating
+  onFilterChange() {
+    this.filterSubject.next();
+  }
+
+  toggleFaculty(faculty: Faculty) {
+    const index = this.selectedFaculties.indexOf(faculty);
+    if (index > -1) {
+      this.selectedFaculties.splice(index, 1);
+    } else {
+      this.selectedFaculties.push(faculty);
+    }
+    this.onFilterChange();
+  }
+
+  isFacultySelected(faculty: Faculty): boolean {
+    return this.selectedFaculties.includes(faculty);
+  }
+
+  resetFilters() {
+    this.searchQuery = '';
+    this.selectedFaculties = [];
+    this.selectedLevel = undefined;
+    this.sortBy = 'code';
+    this.onFilterChange();
+  }
+
   getStars(rating: number): string {
     const fullStars = Math.max(0, Math.min(5, Math.round(rating || 0)));
     return '★'.repeat(fullStars) + '☆'.repeat(5 - fullStars);

@@ -5,17 +5,66 @@
     <p>Find honest reviews from students like you.</p>
   </div>
 
+  <!-- Filter Bar -->
+  <div class="filter-bar">
+    <div class="filter-top">
+      <div class="search-box">
+        <input 
+          type="text" 
+          [(ngModel)]="searchQuery" 
+          (ngModelChange)="onFilterChange()" 
+          placeholder="Search by code or name..."
+          class="search-input">
+      </div>
+      
+      <div class="select-group">
+        <select [(ngModel)]="selectedLevel" (change)="onFilterChange()" class="filter-select">
+          <option [ngValue]="undefined">All Levels</option>
+          <option *ngFor="let level of levels" [value]="level.value">{{ level.label }}</option>
+        </select>
+
+        <select [(ngModel)]="sortBy" (change)="onFilterChange()" class="filter-select">
+          <option *ngFor="let option of sortOptions" [value]="option.value">{{ option.label }}</option>
+        </select>
+        
+        <button class="btn-clear" (click)="resetFilters()">Clear Filters</button>
+      </div>
+    </div>
+
+    <div class="faculty-filters">
+      <span class="filter-label">Faculties:</span>
+      <div class="faculty-pills">
+        <button 
+          *ngFor="let faculty of faculties" 
+          class="faculty-pill" 
+          [class.active]="isFacultySelected(faculty.value)"
+          (click)="toggleFaculty(faculty.value)">
+          {{ faculty.label }}
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Loading state - shown while units$ is fetching data -->
   <div *ngIf="!(units$ | async)" class="loading">
     <div class="spinner"></div>
     <p>Loading units...</p>
   </div>
 
+  <!-- Empty state -->
+  <div class="empty-state" *ngIf="(units$ | async)?.length === 0">
+    <p>No units found matching your filters.</p>
+    <button class="btn btn-primary" (click)="resetFilters()">Reset All Filters</button>
+  </div>
+
   <!-- The grid of unit cards -->
   <div class="unit-grid" *ngIf="units$ | async as units">
     <div *ngFor="let unit of units" class="unit-card">
       <div class="card-header">
-        <span class="faculty-tag">{{ unit.faculty }}</span>
+        <div class="header-tags">
+          <span class="faculty-tag">{{ unit.faculty }}</span>
+          <span class="level-tag">{{ unit.level }}</span>
+        </div>
         <span class="unit-code">{{ unit.code }}</span>
       </div>
       
