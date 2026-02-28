@@ -26,10 +26,11 @@
 <style>
 /* Header Styling */
 .main-header {
-  background-color: var(--accent-color); /* Using accent color for header */
-  color: white;
-  padding: 40px 0;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  background-color: var(--header-background); /* Very light grey */
+  color: var(--header-text);
+  padding: 25px 0;
+  border-bottom: 1px solid var(--border-color);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
   position: sticky;
   top: 0;
   z-index: 1000;
@@ -39,40 +40,37 @@
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 20px;
-  display: grid;
-  grid-template-columns: 1fr 1fr; /* Splits header into 50% / 50% */
+  display: flex;
+  justify-content: space-between;
   align-items: center;
 }
 
 .logo {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
 }
 
 nav {
   display: flex;
-  justify-content: flex-start; /* Starts links at the very left of the 50% box */
-  padding-left: 0;
+  gap: 30px;
 }
 
 .header-logo {
-  height: 60px; /* Logo height */
+  height: 45px; /* logo height */
   width: auto;
   display: block;
 }
 
 nav a {
-  color: black;
+  color: var(--header-text); /* Dark links on light background */
   text-decoration: none;
   font-weight: 700; /* Bold */
   font-family: var(--header-font); /* Uses Rubik font */
-  font-size: 1.3rem; /* Larger text */
-  margin-right: 30px; /* Space between links */
+  font-size: 1.1rem;
 }
 
 nav a:hover {
-  color: var(--accent-color);
+  color: var(--accent-color); /* Hover effect using brand gold */
 }
 
 /* Body and Footer Styling */

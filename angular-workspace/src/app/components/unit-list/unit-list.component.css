@@ -8,16 +8,21 @@
 .list-header {
   text-align: center;
   margin-bottom: 50px;
+  background-color: var(--header-background); /* Very light grey */
+  color: var(--text-primary);
+  padding: 80px 20px;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
 }
 
 .list-header h1 {
-  font-size: 2.5rem;
-  color: var(--secondary-color);
-  margin-bottom: 10px;
+  font-size: 3rem;
+  color: var(--text-primary);
+  margin-bottom: 15px;
 }
 
 .list-header p {
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   color: var(--text-secondary);
 }
 
@@ -69,7 +74,7 @@
 
 .unit-code {
   font-weight: bold;
-  color: var(--accent-color);
+  color: var(--primary-color); /* Kept gold for visibility */
   font-size: 0.9rem;
 }
 

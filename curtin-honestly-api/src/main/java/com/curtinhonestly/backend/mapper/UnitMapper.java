@@ -37,6 +37,7 @@ public class UnitMapper {
         dto.setCode(unit.getCode() != null ? unit.getCode() : "");
         dto.setName(unit.getName() != null ? unit.getName() : "");
         dto.setDescription(unit.getDescription() != null ? unit.getDescription() : "");
+        dto.setUnitLink(unit.getUnitLink() != null ? unit.getUnitLink() : "");
         dto.setFaculty(unit.getFaculty() != null ? unit.getFaculty().getDisplayName() : "");
 
         dto.setArea(unit.getArea());

@@ -64,17 +64,6 @@ GET http://localhost:8080/units
 GET http://localhost:8080/units/COMP2002
 
 
-### Create Unit (Admin only)
-POST http://localhost:8080/units
-Authorization: Bearer {{admin_token}}
-Content-Type: application/json
-
-{
-  "code": "COMP3004",
-  "name": "Software Engineering 2",
-  "description": "Learn about software engineering practices v2"
-}
-
 ### Create Unit with new fields (Admin only)
 # Run 'Login as Admin' above first to generate a valid token!
 POST http://localhost:8080/units
@@ -85,6 +74,7 @@ Content-Type: application/json
   "code": "PEEN4000",
   "name": "Crude Oil Processing",
   "description": "Introduction to crude oil processing, Two phase separators...",
+  "unitLink": "https://handbook.curtin.edu.au/units/unit-ug-crude-oil-processing--peen4000v1",
   "faculty": "Science and Engineering",
   "area": "WASM: Minerals, Energy and Chemical Engineering (WASM-MECE) (1155)",
   "fieldOfEducation": "030303 Mining Engineering",

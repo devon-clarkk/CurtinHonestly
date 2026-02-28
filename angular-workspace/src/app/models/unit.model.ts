@@ -40,6 +40,7 @@ export interface UnitDetails {
   code: string;
   name: string;
   description: string;
+  unitLink: string;
   faculty: string;
   
   // New fields
