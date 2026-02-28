@@ -93,7 +93,8 @@
 .big-stars {
   color: var(--primary-color);
   font-size: 1.5rem;
-  display: block;
+  display: flex;
+  align-items: center;
 }
 
 .total-reviews {
@@ -180,6 +181,24 @@
 .review-rating {
   color: var(--primary-color);
   font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+}
+
+.half-star {
+  position: relative;
+  display: inline-block;
+  color: #edf2f7; /* Background for the empty half */
+}
+
+.half-star::before {
+  content: '★';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 50%;
+  overflow: hidden;
+  color: var(--primary-color);
 }
 
 .review-body {
