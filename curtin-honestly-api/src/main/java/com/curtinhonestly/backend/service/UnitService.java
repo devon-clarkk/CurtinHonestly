@@ -42,7 +42,30 @@ public class UnitService {
                 case "code_desc":
                     sort = Sort.by(Sort.Direction.DESC, "code");
                     break;
-                // Add more cases as needed, e.g., for ratings if supported by DB columns or calculated
+                case "most_reviewed":
+                    sort = Sort.by(Sort.Direction.DESC, "reviewCount");
+                    break;
+                case "least_reviewed":
+                    sort = Sort.by(Sort.Direction.ASC, "reviewCount");
+                    break;
+                case "highest_rated":
+                    sort = Sort.by(Sort.Direction.DESC, "averageRating");
+                    break;
+                case "lowest_rated":
+                    sort = Sort.by(Sort.Direction.ASC, "averageRating");
+                    break;
+                case "highest_mark":
+                    sort = Sort.by(Sort.Direction.DESC, "averageFinalGrade");
+                    break;
+                case "lowest_mark":
+                    sort = Sort.by(Sort.Direction.ASC, "averageFinalGrade");
+                    break;
+                case "lowest_workload":
+                    sort = Sort.by(Sort.Direction.ASC, "averageWorkload");
+                    break;
+                case "highest_workload":
+                    sort = Sort.by(Sort.Direction.DESC, "averageWorkload");
+                    break;
             }
         }
 

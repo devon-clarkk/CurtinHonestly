@@ -41,6 +41,7 @@ export class UnitDetailComponent implements OnInit {
 
   // Helper function to show stars
   getStars(rating: number): string {
+    // Backend now provides a 0-5 scale directly
     const fullStars = Math.max(0, Math.min(5, Math.round(rating || 0)));
     return '★'.repeat(fullStars) + '☆'.repeat(5 - fullStars);
   }

@@ -34,7 +34,7 @@ public class ReviewService {
     }
 
     public Page<Review> getPageOfReviews(int page, int size) {
-        return reviewRepo.findAll(PageRequest.of(page, size, Sort.by("date")));
+        return reviewRepo.findAll(PageRequest.of(page, size));
     }
 
     public Review getReviewById(String id) throws RuntimeException {
@@ -48,6 +48,11 @@ public class ReviewService {
         // Load User entity
         User user = userRepo.findByEmail(username)
                 .orElseThrow(() -> new RuntimeException("User not found: " + username));
+
+        // Validate rating scale (0-5)
+        if (review.getRating() < 0 || review.getRating() > 5) {
+            throw new IllegalArgumentException("Rating must be between 0 and 5");
+        }
 
         // Extract unit code from incoming Review object
         if (review.getUnit() == null || review.getUnit().getCode() == null) {

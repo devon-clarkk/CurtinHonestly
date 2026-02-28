@@ -6,26 +6,17 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.Formula;
 import org.hibernate.annotations.UuidGenerator;
 
 import java.util.List;
 
 @Entity
-
-// Map to the "units" table
 @Table(name = "units")
-
-// Lombok getters/setters
 @Getter
 @Setter
-
-// Lombok constructors
 @NoArgsConstructor
 @AllArgsConstructor
-
-// Json setup
-
-// Unit class - Stores data for CurtinHonestly units.
 public class Unit {
     @Id
     @UuidGenerator
@@ -51,6 +42,18 @@ public class Unit {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private UnitLevel level;
+
+    @Formula("(SELECT COUNT(*) FROM reviews r WHERE r.unit_id = id)")
+    private Integer reviewCount;
+
+    @Formula("(SELECT COALESCE(AVG(r.rating), 0) FROM reviews r WHERE r.unit_id = id)")
+    private Double averageRating;
+
+    @Formula("(SELECT COALESCE(AVG(r.workload), 0) FROM reviews r WHERE r.unit_id = id)")
+    private Double averageWorkload;
+
+    @Formula("(SELECT COALESCE(AVG(r.final_grade), 0) FROM reviews r WHERE r.unit_id = id)")
+    private Double averageFinalGrade;
 
     @Column(length = 255)
     private String area;

@@ -108,6 +108,7 @@ public class UnitMapper {
                 .average()
                 .orElse(0);
 
+        // Keep 1 decimal place (e.g., 4.5/5)
         return roundTo1Decimal(avg);
     }
 
