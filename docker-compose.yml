@@ -11,7 +11,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
 
   backend:
-    build: ./curtin-honestly-api
+    build: ./backend
     ports:
       - "8080:8080"
     environment:
@@ -22,7 +22,7 @@ services:
       - db
 
   frontend:
-    build: ./angular-workspace
+    build: ./frontend
     ports:
       - "80:80"
     depends_on:
