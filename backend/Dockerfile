@@ -27,5 +27,3 @@ COPY --from=build /app/build/libs/*-SNAPSHOT.jar app.jar
 
 # Optimized launch command for 512MB RAM (Render)
 ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75.0", "-Xss256k", "-jar", "app.jar"]
-
-postgresql://postgres:h-Scmzs22_HniBR@db.syzjlvvbgthzroxsotpb.supabase.co:5432/postgres
