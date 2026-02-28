@@ -32,7 +32,7 @@ public class Review {
     @UuidGenerator
     private String id;
 
-    private int rating; // 0-10
+    private int rating; // 0-5
     private Integer finalGrade; // Optional
     private String reviewText;
     private String semesterTaken; // Optional

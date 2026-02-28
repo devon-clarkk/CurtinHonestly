@@ -34,8 +34,8 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(password));
         user.setUsername(email);
 
-        // Assign ADMIN role
-        user.setRoles(Arrays.asList(UserRole.ROLE_ADMIN));
+        // Assign ADMIN and USER roles
+        user.setRoles(Arrays.asList(UserRole.ROLE_ADMIN, UserRole.ROLE_USER));
 
         return userRepo.save(user);
     }

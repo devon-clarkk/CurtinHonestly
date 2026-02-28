@@ -131,7 +131,7 @@ Authorization: Bearer {{user_token}}
 Content-Type: application/json
 
 {
-  "rating": 8,
+  "rating": 4,
   "finalGrade": 85,
   "reviewText": "WERE BACK AGAIN",
   "semesterTaken": "2024-2",
@@ -156,7 +156,7 @@ Authorization: Bearer {{user_token}}
 ### Create Randomized Review for PEEN4000
 < {%
     const lorem = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.";
-    request.variables.set("randomRating", Math.floor(Math.random() * 10) + 1);
+    request.variables.set("randomRating", Math.floor(Math.random() * 5) + 1);
     request.variables.set("randomGrade", Math.floor(Math.random() * 101));
     request.variables.set("randomWorkload", Math.floor(Math.random() * 5) + 1);
     request.variables.set("randomTakeAgain", Math.random() < 0.5);

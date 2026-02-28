@@ -29,7 +29,15 @@ export class UnitListComponent implements OnInit {
     { value: 'code', label: 'Unit Code (A-Z)' },
     { value: 'code_desc', label: 'Unit Code (Z-A)' },
     { value: 'name', label: 'Name (A-Z)' },
-    { value: 'name_desc', label: 'Name (Z-A)' }
+    { value: 'name_desc', label: 'Name (Z-A)' },
+    { value: 'most_reviewed', label: 'Most Reviewed' },
+    { value: 'least_reviewed', label: 'Least Reviewed' },
+    { value: 'highest_rated', label: 'Highest Rated' },
+    { value: 'lowest_rated', label: 'Lowest Rated' },
+    { value: 'highest_mark', label: 'Highest Avg Grade' },
+    { value: 'lowest_mark', label: 'Lowest Avg Grade' },
+    { value: 'lowest_workload', label: 'Lowest Workload' },
+    { value: 'highest_workload', label: 'Highest Workload' }
   ];
 
   // Subject to trigger refreshes
@@ -81,6 +89,7 @@ export class UnitListComponent implements OnInit {
   }
 
   getStars(rating: number): string {
+    // Backend now provides a 0-5 scale directly
     const fullStars = Math.max(0, Math.min(5, Math.round(rating || 0)));
     return '★'.repeat(fullStars) + '☆'.repeat(5 - fullStars);
   }
