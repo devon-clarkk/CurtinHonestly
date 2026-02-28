@@ -8,6 +8,12 @@
         <span class="detail-code">{{ unit.code }}</span>
         <h1 class="detail-name">{{ unit.name }}</h1>
         <p class="detail-faculty">{{ unit.faculty }}</p>
+        
+        <div class="header-actions" *ngIf="unit.unitLink">
+          <a [href]="unit.unitLink" target="_blank" class="btn btn-handbook">
+            View in Curtin Handbook
+          </a>
+        </div>
       </div>
       
       <div class="header-right">
@@ -68,6 +74,12 @@
           <div class="info-item full-width" *ngIf="unit.fieldOfEducation">
             <span class="label">Field of Education</span>
             <span class="value">{{ unit.fieldOfEducation }}</span>
+          </div>
+          <div class="info-item full-width" *ngIf="unit.unitLink">
+            <span class="label">Handbook</span>
+            <a [href]="unit.unitLink" target="_blank" class="handbook-link">
+              View Official Handbook Page &rarr;
+            </a>
           </div>
         </div>
       </div>

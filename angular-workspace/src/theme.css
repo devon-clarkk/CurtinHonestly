@@ -29,14 +29,16 @@
 
 /* Edit this file to customize the look and feel of the website! */
 :root {
-  /* Colors - You can change these hex codes to anything you like */
-  --primary-color: #f6b500;       /* Curtin Yellow */
-  --secondary-color: #000000;     /* Primary Black */
-  --background-color: #f7fafc;    /* Very light gray background */
+  /* Colors - Based on Design Guide */
+  --primary-color: #c09711;       /* Curtin Gold */
+  --secondary-color: #000000;     /* Black Contrast */
+  --background-color: #fafafa;    /* Off-white background */
   --card-background: #ffffff;     /* White for cards */
-  --text-primary: #1a202c;        /* Dark gray for primary text */
-  --text-secondary: #4a5568;      /* Lighter gray for secondary text */
-  --accent-color: #ffffff;        /* Blue for buttons or highlights */
+  --text-primary: #1f1f1f;        /* Near-black text */
+  --text-secondary: #666666;      /* Medium gray secondary text */
+  --accent-color: #c09711;        /* Use Gold for accents/links */
+  --header-background: #f1f5f9;   /* Very light grey for banners */
+  --header-text: #1f1f1f;         /* Dark text for light header */
   --border-color: #e2e8f0;        /* Light gray for borders */
 
   /* Fonts - Using your custom fonts from the design folder */

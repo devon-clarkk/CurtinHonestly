@@ -9,6 +9,7 @@ public class UnitDetailsDTO {
     private String code;
     private String name;
     private String description;
+    private String unitLink;
     private String faculty;
 
     private String area;

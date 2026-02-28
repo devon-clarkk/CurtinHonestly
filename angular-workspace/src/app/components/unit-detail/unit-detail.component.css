@@ -10,7 +10,7 @@
 }
 
 .back-link {
-  color: var(--accent-color);
+  color: var(--primary-color);
   text-decoration: none;
   font-weight: 500;
   display: inline-block;
@@ -26,7 +26,7 @@
 }
 
 .detail-code {
-  color: var(--accent-color);
+  color: var(--primary-color);
   font-weight: bold;
   font-size: 1.1rem;
 }
@@ -41,6 +41,37 @@
   color: var(--text-secondary);
   font-size: 1.1rem;
   margin: 0;
+}
+
+.header-left {
+  /* Reverted to original left-aligned state */
+}
+
+.header-actions {
+  margin-top: 10px;
+}
+
+.btn-handbook {
+  display: inline-block;
+  background: none;
+  color: var(--text-secondary); /* Same color as faculty text */
+  border: none;
+  padding: 0;
+  text-decoration: underline;
+  font-weight: normal;
+  font-family: var(--main-font);
+  font-size: 1.1rem; /* Same as faculty text */
+  transition: color 0.2s ease;
+  cursor: pointer;
+}
+
+.btn-handbook:hover {
+  background: none;
+  color: var(--primary-color);
+}
+
+.btn-icon {
+  font-size: 1.2rem;
 }
 
 .big-rating {
@@ -353,4 +384,26 @@
 .prereq-link strong {
   color: var(--primary-color);
   margin-right: 5px;
+}
+
+/* Handbook Link */
+.handbook-link {
+  display: inline-block;
+  margin-top: 5px;
+  color: var(--primary-color);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 8px 12px;
+  background-color: #f1f5f9;
+  border-radius: 6px;
+  transition: all 0.2s;
+  border: 1px solid var(--border-color);
+}
+
+.handbook-link:hover {
+  background-color: var(--primary-color);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }

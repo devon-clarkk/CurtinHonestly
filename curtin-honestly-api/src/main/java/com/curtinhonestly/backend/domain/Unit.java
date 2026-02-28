@@ -41,6 +41,9 @@ public class Unit {
     @Column(nullable = false, columnDefinition = "TEXT", length = 5000)
     private String description;
 
+    @Column(name = "unit_link", length = 500)
+    private String unitLink;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Faculty faculty;
