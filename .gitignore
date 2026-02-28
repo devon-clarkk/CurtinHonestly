@@ -1,0 +1,83 @@
+# OS Specific
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# IDEs and Editors
+.idea/
+*.iws
+*.iml
+*.ipr
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/mcp.json
+*.sublime-workspace
+.project
+.classpath
+.settings/
+.factorypath
+.history/
+.c9/
+/nbproject/private/
+/nbbuild/
+/nbdist/
+/.nb-gradle/
+.apt_generated/
+.springBeans/
+.sts4-cache/
+
+# Node.js / Angular
+node_modules/
+dist/
+tmp/
+out-tsc/
+bazel-out/
+/.angular/
+.npm
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.sass-cache/
+/coverage/
+__screenshots__/
+/typings/
+/connect.lock
+testem.log
+/libpeerconnection.log
+
+# Java / Gradle
+.gradle/
+build/
+bin/
+out/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
+!**/src/main/**/bin/
+!**/src/test/**/bin/
+!**/src/main/**/out/
+!**/src/test/**/out/
+
+# Obsidian
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
+.obsidian/last-opened-file
+.obsidian/appearance.json
+
+# Local Environment
+.env
+.env.*
+!.env.example
+http-client.env.json
+*.local
+
+# Logs
+logs/
+*.log
+
+# Miscellaneous
+HELP.md

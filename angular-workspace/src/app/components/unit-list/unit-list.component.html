@@ -1,0 +1,50 @@
+<!-- Main container for the unit list -->
+<div class="list-container">
+  <div class="list-header">
+    <h1>Explore Units</h1>
+    <p>Find honest reviews from students like you.</p>
+  </div>
+
+  <!-- Loading state - shown while units$ is fetching data -->
+  <div *ngIf="!(units$ | async)" class="loading">
+    <div class="spinner"></div>
+    <p>Loading units...</p>
+  </div>
+
+  <!-- The grid of unit cards -->
+  <div class="unit-grid" *ngIf="units$ | async as units">
+    <div *ngFor="let unit of units" class="unit-card">
+      <div class="card-header">
+        <span class="faculty-tag">{{ unit.faculty }}</span>
+        <span class="unit-code">{{ unit.code }}</span>
+      </div>
+      
+      <div class="card-body">
+        <h2 class="unit-name">{{ unit.name }}</h2>
+        
+        <div class="rating-box">
+          <span class="stars">{{ getStars(unit.averageRating) }}</span>
+          <span class="rating-num">{{ unit.averageRating | number:'1.1-1' }}</span>
+        </div>
+        
+        <div class="stats-row">
+          <div class="stat">
+            <span class="stat-value">{{ unit.numberOfReviews }}</span>
+            <span class="stat-label">Reviews</span>
+          </div>
+          <div class="stat">
+            <span class="stat-value">{{ unit.wouldTakeAgainRatio | percent }}</span>
+            <span class="stat-label">Recommended</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="card-footer">
+        <!-- routerLink takes the user to the details page using the unit code -->
+        <a [routerLink]="['/units', unit.code]" class="btn btn-primary view-btn">
+          View Details & Reviews
+        </a>
+      </div>
+    </div>
+  </div>
+</div>

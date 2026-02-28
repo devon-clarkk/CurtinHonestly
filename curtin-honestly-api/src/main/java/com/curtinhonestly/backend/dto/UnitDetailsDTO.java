@@ -11,6 +11,15 @@ public class UnitDetailsDTO {
     private String description;
     private String faculty;
 
+    private String area;
+    private String fieldOfEducation;
+    private Integer credits;
+    private Integer contactHours;
+    private String resultType;
+
+    private List<UnitTuitionPatternDTO> tuitionPatterns;
+    private List<UnitPrerequisiteGroupDTO> prerequisiteGroups;
+
     // Review dependent values (Calculated from the current reviews)
     private int numberOfReviews;
     private double averageRating;
