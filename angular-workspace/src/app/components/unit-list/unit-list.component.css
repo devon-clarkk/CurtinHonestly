@@ -255,6 +255,24 @@
   font-size: 1.2rem;
   letter-spacing: 2px;
   margin-right: 8px;
+  display: flex;
+  align-items: center;
+}
+
+.half-star {
+  position: relative;
+  display: inline-block;
+  color: #edf2f7; /* Empty star color (light grey) */
+}
+
+.half-star::before {
+  content: '★';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 50%;
+  overflow: hidden;
+  color: var(--primary-color); /* Filled star color (Gold) */
 }
 
 .rating-num {

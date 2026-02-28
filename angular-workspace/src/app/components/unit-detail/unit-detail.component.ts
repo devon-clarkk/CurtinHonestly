@@ -39,10 +39,20 @@ export class UnitDetailComponent implements OnInit {
     );
   }
 
-  // Helper function to show stars
-  getStars(rating: number): string {
-    // Backend now provides a 0-5 scale directly
-    const fullStars = Math.max(0, Math.min(5, Math.round(rating || 0)));
-    return '★'.repeat(fullStars) + '☆'.repeat(5 - fullStars);
+  getStarArray(rating: number): string[] {
+    const stars: string[] = [];
+    const fullStars = Math.floor(rating || 0);
+    const hasHalfStar = (rating || 0) % 1 >= 0.5;
+
+    for (let i = 1; i <= 5; i++) {
+      if (i <= fullStars) {
+        stars.push('full');
+      } else if (i === fullStars + 1 && hasHalfStar) {
+        stars.push('half');
+      } else {
+        stars.push('empty');
+      }
+    }
+    return stars;
   }
 }

@@ -20,7 +20,13 @@
         <div class="big-rating">
           <span class="big-num">{{ unit.averageRating | number:'1.1-1' }}</span>
           <div class="big-stars-container">
-            <span class="big-stars">{{ getStars(unit.averageRating) }}</span>
+            <span class="big-stars">
+              <ng-container *ngFor="let type of getStarArray(unit.averageRating)">
+                <span *ngIf="type === 'full'">★</span>
+                <span *ngIf="type === 'half'" class="half-star">★</span>
+                <span *ngIf="type === 'empty'">☆</span>
+              </ng-container>
+            </span>
             <span class="total-reviews">Based on {{ unit.numberOfReviews }} reviews</span>
           </div>
         </div>
@@ -132,7 +138,11 @@
             <span class="review-meta">{{ review.semesterTaken }} • Prof. {{ review.professor }}</span>
           </div>
           <div class="review-rating">
-            {{ getStars(review.rating) }}
+            <ng-container *ngFor="let type of getStarArray(review.rating)">
+              <span *ngIf="type === 'full'">★</span>
+              <span *ngIf="type === 'half'" class="half-star">★</span>
+              <span *ngIf="type === 'empty'">☆</span>
+            </ng-container>
           </div>
         </div>
         
