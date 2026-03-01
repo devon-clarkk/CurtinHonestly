@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ReviewService } from '../../services/review.service';
 import { Router } from '@angular/router';
+import { BANNED_WORDS } from '../../models/profanity-list';
 
 @Component({
   selector: 'app-add-review',
@@ -32,9 +33,36 @@ export class AddReviewComponent {
   isLoading = signal(false);
   errorMessage = signal<string | null>(null);
 
+  // Pre-compile the profanity regex once
+  private readonly profanityRegex = new RegExp(
+    `\\b(${BANNED_WORDS.map(word => this.escapeRegExp(word)).join('|')})\\b`, 
+    'i'
+  );
+
+  private escapeRegExp(string: string) {
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
+  }
+
+  private containsProfanity(text: string): boolean {
+    if (!text) return false;
+    return this.profanityRegex.test(text);
+  }
+
   onSubmit() {
     if (!this.reviewText() || this.reviewText().length < 10) {
       this.errorMessage.set('Please write at least 10 characters in your review.');
+      return;
+    }
+
+    // Validate Grade
+    if (this.finalGrade() !== null && (this.finalGrade()! < 0 || this.finalGrade()! > 100)) {
+      this.errorMessage.set('Final grade must be between 0 and 100%.');
+      return;
+    }
+
+    // Profanity Check
+    if (this.containsProfanity(this.reviewText())) {
+      this.errorMessage.set('Your review contains language that violates our community standards. Please keep it professional.');
       return;
     }
 
