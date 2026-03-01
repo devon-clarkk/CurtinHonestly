@@ -30,6 +30,10 @@ public class UnitSpecification {
                 predicates.add(criteriaBuilder.equal(root.get("level"), level));
             }
 
+            if (predicates.isEmpty()) {
+                return criteriaBuilder.conjunction();
+            }
+
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };
     }
