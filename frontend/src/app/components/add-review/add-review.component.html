@@ -1,0 +1,76 @@
+<div class="review-form-container">
+  <h3>Add a Review for {{ unitCode() }}</h3>
+  <form (ngSubmit)="onSubmit()" #reviewForm="ngForm">
+    
+    <div class="form-grid">
+      <!-- Rating Section -->
+      <div class="form-group">
+        <label for="rating">Rating (0-5 stars)</label>
+        <div class="rating-input">
+          <input type="range" id="rating" min="0" max="5" step="1" [ngModel]="rating()" (ngModelChange)="rating.set($event)" name="rating">
+          <span class="rating-value">{{ rating() }} / 5</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="workload">Workload (0-10)</label>
+        <div class="rating-input">
+          <input type="range" id="workload" min="0" max="10" step="1" [ngModel]="workload()" (ngModelChange)="workload.set($event)" name="workload">
+          <span class="rating-value">{{ workload() }} / 10</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-grid">
+      <div class="form-group">
+        <label for="semester">Semester Taken</label>
+        <select id="semester" [ngModel]="semesterTaken()" (ngModelChange)="semesterTaken.set($event)" name="semesterTaken" class="form-control">
+          <option value="Semester 1, 2026">Semester 1, 2026</option>
+          <option value="Summer, 2025/26">Summer, 2025/26</option>
+          <option value="Semester 2, 2025">Semester 2, 2025</option>
+          <option value="Semester 1, 2025">Semester 1, 2025</option>
+          <option value="Summer, 2024/25">Summer, 2024/25</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="professor">Professor (Optional)</label>
+        <input type="text" id="professor" [ngModel]="professor()" (ngModelChange)="professor.set($event)" name="professor" class="form-control" placeholder="Who taught this unit?">
+      </div>
+    </div>
+
+    <div class="form-grid">
+      <div class="form-group">
+        <label for="finalGrade">Final Grade (%) (Optional)</label>
+        <input type="number" id="finalGrade" min="0" max="100" [ngModel]="finalGrade()" (ngModelChange)="finalGrade.set($event)" name="finalGrade" class="form-control" placeholder="0-100">
+      </div>
+
+      <div class="form-checkboxes">
+        <div class="checkbox-group">
+          <input type="checkbox" id="hasExam" [ngModel]="hasExam()" (ngModelChange)="hasExam.set($event)" name="hasExam">
+          <label for="hasExam">Had Exam?</label>
+        </div>
+        <div class="checkbox-group">
+          <input type="checkbox" id="wouldTakeAgain" [ngModel]="wouldTakeAgain()" (ngModelChange)="wouldTakeAgain.set($event)" name="wouldTakeAgain">
+          <label for="wouldTakeAgain">Would take again?</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="reviewText">Your Review (min 10 characters)</label>
+      <textarea id="reviewText" [ngModel]="reviewText()" (ngModelChange)="reviewText.set($event)" name="reviewText" rows="4" class="form-control" placeholder="What did you think of this unit? Was it hard? Interesting?"></textarea>
+    </div>
+
+    <div *ngIf="errorMessage()" class="error-box">
+      {{ errorMessage() }}
+    </div>
+
+    <div class="form-actions">
+      <button type="button" (click)="onCancel()" class="btn btn-secondary" [disabled]="isLoading()">Cancel</button>
+      <button type="submit" class="btn btn-primary" [disabled]="isLoading() || !reviewText() || reviewText().length < 10">
+        {{ isLoading() ? 'Submitting...' : 'Post Review' }}
+      </button>
+    </div>
+  </form>
+</div>

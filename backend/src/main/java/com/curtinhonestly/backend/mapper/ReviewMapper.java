@@ -22,7 +22,11 @@ public class ReviewMapper {
         dto.setWouldTakeAgain(review.isWouldTakeAgain());
 
         // User details (The user who posted the review)
-        dto.setUserName(review.getUser().getUsername());
+        if (review.getUser() != null) {
+            dto.setUserName(review.getUser().getUsername());
+        } else {
+            dto.setUserName("Anonymous");
+        }
 
         return dto;
     }

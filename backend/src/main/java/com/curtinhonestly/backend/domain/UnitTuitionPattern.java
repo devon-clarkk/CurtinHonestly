@@ -19,7 +19,7 @@ public class UnitTuitionPattern {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "unit_code", referencedColumnName = "code", nullable = false)
+    @JoinColumn(name = "unit_id", nullable = false)
     private Unit unit;
 
     @Column(length = 50)
