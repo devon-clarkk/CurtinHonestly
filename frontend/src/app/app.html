@@ -8,6 +8,14 @@
     </div>
     <nav>
       <a routerLink="/">Home</a>
+      <ng-container *ngIf="!authService.currentUser()">
+        <a routerLink="/login">Login</a>
+        <a routerLink="/register" class="register-link">Register</a>
+      </ng-container>
+      <ng-container *ngIf="authService.currentUser()">
+        <span class="user-email">{{ authService.currentUser() }}</span>
+        <a href="javascript:void(0)" (click)="logout()">Logout</a>
+      </ng-container>
     </nav>
   </div>
 </header>
@@ -69,8 +77,25 @@ nav a {
   font-size: 1.1rem;
 }
 
-nav a:hover {
-  color: var(--accent-color); /* Hover effect using brand gold */
+nav a.register-link {
+  background-color: var(--accent-color);
+  color: #1a202c;
+  padding: 8px 16px;
+  border-radius: 4px;
+  margin-top: -8px; /* Offset for vertical alignment */
+  transition: background-color 0.2s;
+}
+
+nav a.register-link:hover {
+  background-color: #e5c415;
+}
+
+.user-email {
+  color: #718096;
+  font-size: 0.9rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
 }
 
 /* Body and Footer Styling */
