@@ -2,9 +2,12 @@
 <header class="main-header">
   <div class="header-container">
     <div class="logo">
-      <a routerLink="/">
-        <img src="/assets/images/logo.png" alt="Curtin Honestly Logo" class="header-logo">
-      </a>
+      <div class="logo-group">
+        <a routerLink="/">
+          <img src="/assets/images/logo.png" alt="Curtin Honestly Logo" class="header-logo">
+        </a>
+        <span class="disclaimer">Independent student platform. Not affiliated with Curtin University.</span>
+      </div>
     </div>
     <nav>
       <a routerLink="/">Home</a>
@@ -27,7 +30,8 @@
 
 <footer class="main-footer">
   <div class="footer-container">
-    <p>&copy; 2026 Curtin Honestly - Authentic Unit Reviews</p>
+    <p>We created Curtin Honestly to give students a space for real feedback so you can make better choices about your studies.</p>
+    <p class="copyright">&copy; 2026 Curtin Honestly</p>
   </div>
 </footer>
 
@@ -36,7 +40,7 @@
 .main-header {
   background-color: var(--header-background); /* Very light grey */
   color: var(--header-text);
-  padding: 25px 0;
+  padding: 15px 0; /* Reduced padding */
   border-bottom: 1px solid var(--border-color);
   box-shadow: 0 1px 3px rgba(0,0,0,0.05);
   position: sticky;
@@ -53,6 +57,20 @@
   align-items: center;
 }
 
+.logo-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.disclaimer {
+  font-size: 0.65rem;
+  color: #4a5568; /* darker grey */
+  font-style: italic;
+  max-width: 200px;
+  line-height: 1.2;
+}
+
 .logo {
   display: flex;
   align-items: center;
@@ -64,7 +82,7 @@ nav {
 }
 
 .header-logo {
-  height: 45px; /* logo height */
+  height: 40px; /* reduced logo height */
   width: auto;
   display: block;
 }
@@ -74,15 +92,15 @@ nav a {
   text-decoration: none;
   font-weight: 700; /* Bold */
   font-family: var(--header-font); /* Uses Rubik font */
-  font-size: 1.1rem;
+  font-size: 1rem; /* slightly smaller */
 }
 
 nav a.register-link {
   background-color: var(--accent-color);
   color: #1a202c;
-  padding: 8px 16px;
+  padding: 6px 14px;
   border-radius: 4px;
-  margin-top: -8px; /* Offset for vertical alignment */
+  margin-top: -4px; /* Offset for vertical alignment */
   transition: background-color 0.2s;
 }
 
@@ -100,20 +118,32 @@ nav a.register-link:hover {
 
 /* Body and Footer Styling */
 .content-body {
-  min-height: calc(100vh - 160px); /* Adjust based on header/footer height */
-  padding: 20px;
+  min-height: calc(100vh - 140px); /* Adjust based on header/footer height */
+  padding: 10px 20px 20px 20px; /* Reduced top padding */
 }
 
 .main-footer {
   background-color: #2d3748;
-  color: #a0aec0;
-  padding: 20px 0;
+  color: #edf2f7;
+  padding: 40px 20px;
   text-align: center;
-  font-size: 0.9rem;
 }
 
 .footer-container {
-  max-width: 1200px;
+  max-width: 800px;
   margin: 0 auto;
+}
+
+.main-footer p {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  margin-bottom: 15px;
+}
+
+.main-footer .copyright {
+  font-size: 0.85rem;
+  color: #a0aec0;
+  margin-top: 20px;
+  margin-bottom: 0;
 }
 </style>
