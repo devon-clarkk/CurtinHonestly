@@ -43,6 +43,7 @@ public class Unit {
     @Column(nullable = false)
     private UnitLevel level;
 
+/*
     @Formula("(SELECT COUNT(*) FROM reviews r WHERE r.unit_id = id)")
     private Integer reviewCount;
 
@@ -54,6 +55,7 @@ public class Unit {
 
     @Formula("(SELECT COALESCE(AVG(r.final_grade), 0) FROM reviews r WHERE r.unit_id = id)")
     private Double averageFinalGrade;
+*/
 
     @Column(length = 255)
     private String area;

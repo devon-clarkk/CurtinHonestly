@@ -125,7 +125,28 @@
 
     <!-- Right: Reviews List -->
     <section class="reviews-section">
-      <h3>Student Reviews</h3>
+      <div class="reviews-header-row">
+        <h3>Student Reviews</h3>
+        
+        <!-- Button to show the add review form -->
+        <button *ngIf="authService.isLoggedIn() && !showAddReviewForm()" 
+                (click)="toggleAddReviewForm()" 
+                class="btn btn-primary add-review-btn">
+          Add Review
+        </button>
+      </div>
+
+      <!-- The Add Review Form (hidden by default) -->
+      <app-add-review 
+        *ngIf="showAddReviewForm()" 
+        [unitCode]="unit.code" 
+        (reviewAdded)="onReviewAdded()"
+        (cancel)="toggleAddReviewForm()">
+      </app-add-review>
+
+      <div *ngIf="!authService.isLoggedIn()" class="login-to-review">
+        <p>Want to share your experience? <a routerLink="/login">Log in</a> to leave a review!</p>
+      </div>
       
       <div *ngIf="unit.reviews.length === 0" class="no-reviews">
         No reviews yet. Be the first to write one!

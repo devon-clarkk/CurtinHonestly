@@ -146,6 +146,46 @@
   margin-bottom: 20px;
 }
 
+.reviews-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.reviews-header-row h3 {
+  margin-bottom: 0;
+}
+
+.add-review-btn {
+  font-size: 0.9rem;
+  padding: 8px 16px;
+}
+
+.login-to-review {
+  background-color: #f8fafc;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 25px;
+  border: 1px dashed var(--border-color);
+  text-align: center;
+}
+
+.login-to-review p {
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.login-to-review a {
+  color: var(--primary-color);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.login-to-review a:hover {
+  text-decoration: underline;
+}
+
 .description-section p {
   line-height: 1.6;
   color: var(--text-primary);
