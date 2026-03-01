@@ -36,8 +36,12 @@ export class AuthService {
     );
   }
 
-  register(request: RegisterRequest): Observable<any> {
-    return this.http.post(`${this.apiUrl}/register`, request);
+  register(request: RegisterRequest): Observable<JwtResponse> {
+    return this.http.post<JwtResponse>(`${this.apiUrl}/register`, request).pipe(
+      tap(response => {
+        this.saveToken(response.token, request.email);
+      })
+    );
   }
 
   logout() {
