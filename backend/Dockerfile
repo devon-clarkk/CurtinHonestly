@@ -22,8 +22,19 @@ RUN ./gradlew bootJar -x test --no-daemon
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 
+# Install curl and python (needed for seeder script)
+RUN apk add --no-cache curl python3 py3-requests
+
 # Copy only the bootable JAR
 COPY --from=build /app/build/libs/*-SNAPSHOT.jar app.jar
+
+# Copy the seeder scripts and data
+COPY populate_db.sh generate_reviews.py ./
+COPY src/test/java/com/curtinhonestly/backend/httprequest/populate_units.http /app/src/test/java/com/curtinhonestly/backend/httprequest/populate_units.http
+RUN sed -i 's/\r$//' populate_db.sh && \
+    sed -i 's/\r$//' generate_reviews.py && \
+    sed -i 's/\r$//' /app/src/test/java/com/curtinhonestly/backend/httprequest/populate_units.http && \
+    chmod +x populate_db.sh generate_reviews.py
 
 # Optimized launch command for 512MB RAM (Render)
 ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75.0", "-Xss256k", "-jar", "app.jar"]

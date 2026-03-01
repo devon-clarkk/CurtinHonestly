@@ -42,6 +42,7 @@ public class UnitService {
                 case "code_desc":
                     sort = Sort.by(Sort.Direction.DESC, "code");
                     break;
+/*
                 case "most_reviewed":
                     sort = Sort.by(Sort.Direction.DESC, "reviewCount");
                     break;
@@ -66,6 +67,7 @@ public class UnitService {
                 case "highest_workload":
                     sort = Sort.by(Sort.Direction.DESC, "averageWorkload");
                     break;
+*/
             }
         }
 
@@ -86,25 +88,39 @@ public class UnitService {
     }
     public Unit getUnitByCode(String code) throws RuntimeException
     {
-        return unitRepo.findById(code).orElseThrow(() -> new RuntimeException("Unit not found"));
+        return unitRepo.findByCode(code).orElseThrow(() -> new RuntimeException("Unit not found with code: " + code));
     }
     public Unit createUnit(Unit unit)
     {
-        if (unit.getTuitionPatterns() != null) {
-            unit.getTuitionPatterns().forEach(pattern -> pattern.setUnit(unit));
-        }
-
-        if (unit.getPrerequisiteGroups() != null) {
-            unit.getPrerequisiteGroups().forEach(group -> {
-                group.setUnit(unit);
-                if (group.getOptions() != null) {
-                    group.getOptions().forEach(option -> option.setGroup(group));
-                }
+        try {
+            log.info("Attempting to add/update unit: {}", unit.getCode());
+            
+            // Check if unit with same code already exists to avoid unique constraint violations
+            unitRepo.findByCode(unit.getCode()).ifPresent(existing -> {
+                log.info("Unit with code {} already exists. Updating existing unit with ID: {}", unit.getCode(), existing.getId());
+                unit.setId(existing.getId());
             });
-        }
 
-        log.info("Unit added: {}", unit.getCode());
-        return unitRepo.save(unit);
+            if (unit.getTuitionPatterns() != null) {
+                unit.getTuitionPatterns().forEach(pattern -> pattern.setUnit(unit));
+            }
+
+            if (unit.getPrerequisiteGroups() != null) {
+                unit.getPrerequisiteGroups().forEach(group -> {
+                    group.setUnit(unit);
+                    if (group.getOptions() != null) {
+                        group.getOptions().forEach(option -> option.setGroup(group));
+                    }
+                });
+            }
+
+            Unit savedUnit = unitRepo.save(unit);
+            log.info("Successfully saved unit: {} with ID: {}", savedUnit.getCode(), savedUnit.getId());
+            return savedUnit;
+        } catch (Exception e) {
+            log.error("Failed to create unit {}: {}", unit.getCode(), e.getMessage(), e);
+            throw e;
+        }
     }
     public void deleteUnit(Unit unit)
     {

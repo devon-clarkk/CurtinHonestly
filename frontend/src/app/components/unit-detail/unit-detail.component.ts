@@ -1,9 +1,11 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { UnitService } from '../../services/unit.service';
+import { AuthService } from '../../services/auth.service';
 import { UnitDetails } from '../../models/unit.model';
-import { Observable, switchMap, map } from 'rxjs';
+import { Observable, switchMap, map, of } from 'rxjs';
+import { AddReviewComponent } from '../add-review/add-review.component';
 
 /**
  * This component shows all the details for a single unit, including its reviews.
@@ -12,31 +14,52 @@ import { Observable, switchMap, map } from 'rxjs';
 @Component({
   selector: 'app-unit-detail',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, AddReviewComponent],
   templateUrl: './unit-detail.component.html',
   styleUrl: './unit-detail.component.css'
 })
 export class UnitDetailComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private unitService = inject(UnitService);
+  authService = inject(AuthService);
 
   // This will store all the unit information once it's fetched
   unit$: Observable<UnitDetails> | undefined;
+  
+  // Track if we should show the add review form
+  showAddReviewForm = signal(false);
 
   ngOnInit(): void {
+    this.loadUnit();
+  }
+
+  loadUnit() {
     // 1. Listen to changes in the URL parameters (like /units/COMP1000)
     // 2. Use 'switchMap' to switch from the URL stream to the API data stream
     this.unit$ = this.route.paramMap.pipe(
       switchMap(params => {
         const code = params.get('code') || '';
+        if (!code) return of(null as any);
         return this.unitService.getUnitByCode(code);
       }),
-      map((unit: UnitDetails) => ({
-        ...unit,
-        // Ensure ratio is a decimal for the percentage pipe
-        wouldTakeAgainRatio: unit.wouldTakeAgainRatio > 1 ? unit.wouldTakeAgainRatio / 100 : unit.wouldTakeAgainRatio
-      }))
+      map((unit: UnitDetails) => {
+        if (!unit) return unit;
+        return {
+          ...unit,
+          // Ensure ratio is a decimal for the percentage pipe
+          wouldTakeAgainRatio: unit.wouldTakeAgainRatio > 1 ? unit.wouldTakeAgainRatio / 100 : unit.wouldTakeAgainRatio
+        };
+      })
     );
+  }
+
+  toggleAddReviewForm() {
+    this.showAddReviewForm.update(v => !v);
+  }
+
+  onReviewAdded() {
+    this.showAddReviewForm.set(false);
+    this.loadUnit();
   }
 
   getStarArray(rating: number): string[] {
