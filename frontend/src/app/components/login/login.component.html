@@ -1,0 +1,45 @@
+<div class="auth-container">
+  <div class="auth-card">
+    <h2>Login to Curtin Honestly</h2>
+    <p class="subtitle">Join your fellow Curtin students to share authentic unit reviews.</p>
+
+    <form (ngSubmit)="onSubmit()" #loginForm="ngForm">
+      <div class="form-group">
+        <label for="email">Curtin Student Email</label>
+        <input 
+          type="email" 
+          id="email" 
+          name="email" 
+          [(ngModel)]="email" 
+          required 
+          placeholder="your.name@student.curtin.edu.au"
+          #emailInput="ngModel"
+        >
+        <div class="hint">Must end with &#64;student.curtin.edu.au</div>
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input 
+          type="password" 
+          id="password" 
+          name="password" 
+          [(ngModel)]="password" 
+          required
+        >
+      </div>
+
+      <div *ngIf="errorMessage()" class="error-box">
+        {{ errorMessage() }}
+      </div>
+
+      <button type="submit" [disabled]="!loginForm.valid || isLoading()" class="btn btn-primary">
+        {{ isLoading() ? 'Logging in...' : 'Login' }}
+      </button>
+
+      <div class="auth-footer">
+        Don't have an account? <a routerLink="/register">Register here</a>
+      </div>
+    </form>
+  </div>
+</div>

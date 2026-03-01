@@ -1,0 +1,124 @@
+.auth-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 20px;
+  background-color: #f7fafc;
+  min-height: calc(100vh - 300px);
+}
+
+.auth-card {
+  background: white;
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  max-width: 450px;
+  width: 100%;
+}
+
+h2 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  color: #1a202c;
+  text-align: center;
+}
+
+.subtitle {
+  color: #718096;
+  text-align: center;
+  margin-bottom: 30px;
+  font-size: 0.95rem;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #4a5568;
+}
+
+input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 1rem;
+  box-sizing: border-box;
+}
+
+input:focus {
+  outline: none;
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 3px rgba(192, 151, 17, 0.2);
+}
+
+.hint {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-top: 5px;
+}
+
+.btn-primary {
+  width: 100%;
+  background-color: var(--primary-color);
+  color: #1a202c;
+  border: none;
+  padding: 14px;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  margin-top: 10px;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: #a8840f;
+}
+
+.btn-primary:disabled {
+  background-color: var(--border-color);
+  color: var(--text-secondary);
+  cursor: not-allowed;
+}
+
+.error-box {
+  background-color: #fff5f5;
+  color: #c53030;
+  padding: 12px;
+  border-radius: 6px;
+  border-left: 4px solid #c53030;
+  margin-bottom: 20px;
+  font-size: 0.9rem;
+}
+
+.success-box {
+  background-color: #f0fff4;
+  color: #2f855a;
+  padding: 12px;
+  border-radius: 6px;
+  border-left: 4px solid #38a169;
+  margin-bottom: 20px;
+  font-size: 0.9rem;
+}
+
+.auth-footer {
+  margin-top: 25px;
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.auth-footer a {
+  color: var(--primary-color);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.auth-footer a:hover {
+  text-decoration: underline;
+}
