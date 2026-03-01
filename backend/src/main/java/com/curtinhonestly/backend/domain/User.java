@@ -14,8 +14,8 @@ import java.util.List;
 
 @Entity
 
-// Map to the "users" table
-@Table(name = "users")
+// Map to the "app_users" table to avoid conflicts with reserved words
+@Table(name = "app_users")
 
 // Lombok getters/setters
 @Getter
@@ -37,6 +37,7 @@ public class User {
     private String id;
 
     @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "app_user_roles", joinColumns = @JoinColumn(name = "user_id"))
     @Enumerated(EnumType.STRING)
     private List<UserRole> roles = new ArrayList<>();
 

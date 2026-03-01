@@ -22,7 +22,7 @@ public class UnitPrerequisiteGroup {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "unit_code", referencedColumnName = "code", nullable = false)
+    @JoinColumn(name = "unit_id", nullable = false)
     private Unit unit;
 
     @Column(name = "group_name", length = 50)
