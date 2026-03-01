@@ -39,8 +39,8 @@ export class RegisterComponent {
     this.authService.register({ email: this.email, password: this.password }).subscribe({
       next: () => {
         this.isLoading.set(false);
-        this.successMessage.set('Registration successful! Redirecting to login...');
-        setTimeout(() => this.router.navigate(['/login']), 2000);
+        this.successMessage.set('Registration successful! Logging you in...');
+        setTimeout(() => this.router.navigate(['/']), 1500);
       },
       error: (err) => {
         this.isLoading.set(false);
