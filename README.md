@@ -1,5 +1,11 @@
 # University Unit Review Platform
 
+# Live versions: 
+
+PROD: https://curtinhonestly-frontend.vercel.app/
+
+DEV: https://curtin-honestly-dev.vercel.app/
+
 ## Project Idea  
 A website where university students in Australia can leave reviews for their units (courses), helping future students make informed decisions.
 
