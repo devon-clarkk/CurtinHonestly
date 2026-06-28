@@ -1,0 +1,43 @@
+---
+description: Project context for CurtinHonestly (what it is, how it's structured, how to run it)
+alwaysApply: true
+---
+
+# CurtinHonestly — project context
+
+CurtinHonestly is a student unit review platform for Curtin University. The repo is a **full-stack monorepo**:
+
+- **Backend**: Spring Boot (Java **21**) with Spring Security, JPA/Hibernate, PostgreSQL, and JWT auth.
+- **Frontend**: **Angular** (currently Angular **21**).
+- **Local stack**: `docker-compose.yml` runs `db` (Postgres), `backend`, and `frontend`.
+
+## Repo layout
+
+- `backend/`: Spring Boot API
+- `frontend/`: Angular app
+- `design/`: design assets/docs
+
+## Runtime configuration (env vars)
+
+Backend config is primarily driven by env vars (with sensible defaults):
+
+- `DATABASE_URL` (default `jdbc:postgresql://localhost:5432/postgres` or `jdbc:postgresql://db:5432/postgres` in compose)
+- `DATABASE_USERNAME` (default `postgres`)
+- `DATABASE_PASSWORD` (default `CurtinHonestly`)
+- `JWT_SECRET` (default value exists for local/dev; override for any real deployment)
+
+When making changes that touch configuration, prefer **env vars + documented defaults** over hardcoding.
+
+## How to run (typical)
+
+- **Docker**: use `docker-compose.yml` to bring up db/backend/frontend together.
+- **Backend**: Gradle-based Spring Boot project (`backend/build.gradle`).
+- **Frontend**: Angular CLI project (`frontend/package.json` scripts like `start` / `build`).
+
+## Working agreements for agents
+
+- Prefer changes that keep **Docker compose** working (db ↔ backend ↔ frontend).
+- Keep backend API changes paired with frontend integration (contract-first mindset).
+- Don’t commit secrets (treat any default secrets as placeholders).
+- If unsure about conventions (branching, naming, auth flow, API base paths), ask before implementing sweeping changes.
+
