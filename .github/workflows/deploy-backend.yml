@@ -81,9 +81,12 @@ jobs:
             --name "${{ secrets.CONTAINER_APP_NAME }}" \
             --resource-group "${{ secrets.RESOURCE_GROUP }}" \
             --image "$IMAGE" \
-            --target-port 8080 \
             --set-env-vars \
               database-url="$DATABASE_URL" \
               database-username="$DATABASE_USERNAME" \
               database-password="$DATABASE_PASSWORD" \
               jwt-secret="$JWT_SECRET"
+          az containerapp ingress update \
+            --name "${{ secrets.CONTAINER_APP_NAME }}" \
+            --resource-group "${{ secrets.RESOURCE_GROUP }}" \
+            --target-port 8080
