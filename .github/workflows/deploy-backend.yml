@@ -77,6 +77,11 @@ jobs:
         run: |
           set -euo pipefail
           IMAGE="${{ secrets.ACR_LOGIN_SERVER }}/curtinhonestly-backend:${IMAGE_TAG}"
+          az containerapp registry set \
+            --name "${{ secrets.CONTAINER_APP_NAME }}" \
+            --resource-group "${{ secrets.RESOURCE_GROUP }}" \
+            --server "${{ secrets.ACR_LOGIN_SERVER }}" \
+            --identity system
           az containerapp update \
             --name "${{ secrets.CONTAINER_APP_NAME }}" \
             --resource-group "${{ secrets.RESOURCE_GROUP }}" \
