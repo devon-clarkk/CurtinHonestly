@@ -3,8 +3,9 @@ package com.curtinhonestly.backend.dto;
 import lombok.Data;
 
 @Data
-public class UnitPrerequisiteOptionDTO {
-    private String code;
+public class CoursePrerequisiteOptionDTO {
+    private String courseCode;
+    private Integer credits;
     private String title;
     private boolean concurrent;
 }
