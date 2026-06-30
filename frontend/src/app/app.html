@@ -3,17 +3,31 @@
   <div class="header-container">
     <div class="logo">
       <div class="logo-group">
-        <a routerLink="/">
+        <a routerLink="/" (click)="closeMobileNav()">
           <img src="/assets/images/logo.png" alt="Curtin Honestly Logo" class="header-logo">
         </a>
         <span class="disclaimer">Independent student platform. Not affiliated with Curtin University.</span>
       </div>
     </div>
-    <nav>
-      <a routerLink="/">Home</a>
+
+    <button
+      type="button"
+      class="nav-toggle"
+      (click)="toggleMobileNav()"
+      [attr.aria-expanded]="mobileNavOpen()"
+      aria-controls="main-nav"
+      aria-label="Toggle navigation menu"
+    >
+      <span class="nav-toggle-bar"></span>
+      <span class="nav-toggle-bar"></span>
+      <span class="nav-toggle-bar"></span>
+    </button>
+
+    <nav id="main-nav" class="main-nav" [class.is-open]="mobileNavOpen()">
+      <a routerLink="/" (click)="closeMobileNav()">Home</a>
       <ng-container *ngIf="!authService.currentUser()">
-        <a routerLink="/login">Login</a>
-        <a routerLink="/register" class="register-link">Register</a>
+        <a routerLink="/login" (click)="closeMobileNav()">Login</a>
+        <a routerLink="/register" class="register-link" (click)="closeMobileNav()">Register</a>
       </ng-container>
       <ng-container *ngIf="authService.currentUser()">
         <span class="user-email">{{ authService.currentUser() }}</span>
@@ -76,9 +90,14 @@
   align-items: center;
 }
 
-nav {
+.main-nav {
   display: flex;
   gap: 30px;
+  align-items: center;
+}
+
+.nav-toggle {
+  display: none;
 }
 
 .header-logo {
@@ -87,24 +106,24 @@ nav {
   display: block;
 }
 
-nav a {
-  color: var(--header-text); /* Dark links on light background */
+.main-nav a {
+  color: var(--header-text);
   text-decoration: none;
-  font-weight: 700; /* Bold */
-  font-family: var(--header-font); /* Uses Rubik font */
-  font-size: 1rem; /* slightly smaller */
+  font-weight: 700;
+  font-family: var(--header-font);
+  font-size: 1rem;
 }
 
-nav a.register-link {
+.main-nav a.register-link {
   background-color: var(--accent-color);
   color: #1a202c;
   padding: 6px 14px;
   border-radius: 4px;
-  margin-top: -4px; /* Offset for vertical alignment */
+  margin-top: -4px;
   transition: background-color 0.2s;
 }
 
-nav a.register-link:hover {
+.main-nav a.register-link:hover {
   background-color: #e5c415;
 }
 
@@ -145,5 +164,117 @@ nav a.register-link:hover {
   color: #a0aec0;
   margin-top: 20px;
   margin-bottom: 0;
+}
+
+@media (max-width: 768px) {
+  .header-container {
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0;
+    padding: 0 16px;
+  }
+
+  .logo {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .logo-group {
+    align-items: flex-start;
+  }
+
+  .disclaimer {
+    max-width: none;
+    font-size: 0.6rem;
+  }
+
+  .nav-toggle {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+    width: 44px;
+    height: 44px;
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: white;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .nav-toggle-bar {
+    display: block;
+    width: 100%;
+    height: 2px;
+    background-color: var(--header-text);
+    border-radius: 1px;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+  }
+
+  .nav-toggle[aria-expanded='true'] .nav-toggle-bar:nth-child(1) {
+    transform: translateY(7px) rotate(45deg);
+  }
+
+  .nav-toggle[aria-expanded='true'] .nav-toggle-bar:nth-child(2) {
+    opacity: 0;
+  }
+
+  .nav-toggle[aria-expanded='true'] .nav-toggle-bar:nth-child(3) {
+    transform: translateY(-7px) rotate(-45deg);
+  }
+
+  .main-nav {
+    display: none;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    width: 100%;
+    margin-top: 12px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border-color);
+  }
+
+  .main-nav.is-open {
+    display: flex;
+  }
+
+  .main-nav a,
+  .main-nav .user-email {
+    padding: 14px 4px;
+    border-bottom: 1px solid var(--border-color);
+    font-size: 1rem;
+    white-space: normal;
+  }
+
+  .main-nav a:last-child {
+    border-bottom: none;
+  }
+
+  .main-nav a.register-link {
+    margin-top: 0;
+    padding: 14px 16px;
+    text-align: center;
+    border-bottom: none;
+    margin-top: 8px;
+  }
+
+  .user-email {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.85rem;
+    color: #718096;
+    font-weight: 500;
+  }
+
+  .main-footer {
+    padding: 28px 16px;
+  }
+
+  .main-footer p {
+    font-size: 1rem;
+  }
 }
 </style>
