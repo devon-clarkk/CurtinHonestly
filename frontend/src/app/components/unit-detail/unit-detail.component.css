@@ -445,6 +445,45 @@
   margin-right: 5px;
 }
 
+.concurrent-badge,
+.credits-badge {
+  display: inline-block;
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+.concurrent-badge {
+  background-color: #ebf8ff;
+  color: #2b6cb0;
+}
+
+.credits-badge {
+  background-color: #faf5ff;
+  color: #6b46c1;
+}
+
+.prereq-course {
+  display: block;
+  font-size: 0.85rem;
+  padding: 4px 8px;
+  border-radius: 4px;
+  color: var(--text-primary);
+}
+
+.prereq-course strong {
+  color: var(--secondary-color);
+  margin-right: 5px;
+}
+
+.course-options {
+  margin-top: 4px;
+}
+
 /* Handbook Link */
 .handbook-link {
   display: inline-block;
