@@ -10,4 +10,5 @@ public class UnitPrerequisiteGroupDTO {
     private String requirement;
     private Integer position;
     private List<UnitPrerequisiteOptionDTO> options;
+    private List<CoursePrerequisiteOptionDTO> courseOptions;
 }

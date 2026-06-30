@@ -7,12 +7,12 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "unit_prerequisite_options")
+@Table(name = "course_prerequisite_options")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class UnitPrerequisiteOption {
+public class CoursePrerequisiteOption {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -22,10 +22,12 @@ public class UnitPrerequisiteOption {
     @JoinColumn(name = "group_id", nullable = false)
     private UnitPrerequisiteGroup group;
 
-    @Column(length = 30)
-    private String code;
+    @Column(name = "course_code", length = 50)
+    private String courseCode;
 
-    @Column(length = 255)
+    private Integer credits;
+
+    @Column(columnDefinition = "TEXT")
     private String title;
 
     @Column(nullable = false)

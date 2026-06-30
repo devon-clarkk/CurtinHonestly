@@ -111,6 +111,9 @@ public class UnitService {
                     if (group.getOptions() != null) {
                         group.getOptions().forEach(option -> option.setGroup(group));
                     }
+                    if (group.getCourseOptions() != null) {
+                        group.getCourseOptions().forEach(option -> option.setGroup(group));
+                    }
                 });
             }
 

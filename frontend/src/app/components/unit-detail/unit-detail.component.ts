@@ -78,4 +78,8 @@ export class UnitDetailComponent implements OnInit {
     }
     return stars;
   }
+
+  requirementLabel(requirement: string): string {
+    return requirement === 'all' ? 'Complete All' : 'Select One';
+  }
 }

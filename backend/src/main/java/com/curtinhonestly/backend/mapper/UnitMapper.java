@@ -88,6 +88,10 @@ public class UnitMapper {
                 group.getOptions().stream()
                         .map(UnitMapper::toPrerequisiteOptionDTO)
                         .collect(Collectors.toList()) : new ArrayList<>());
+        dto.setCourseOptions(group.getCourseOptions() != null ?
+                group.getCourseOptions().stream()
+                        .map(UnitMapper::toCoursePrerequisiteOptionDTO)
+                        .collect(Collectors.toList()) : new ArrayList<>());
         return dto;
     }
 
@@ -95,6 +99,16 @@ public class UnitMapper {
         UnitPrerequisiteOptionDTO dto = new UnitPrerequisiteOptionDTO();
         dto.setCode(option.getCode());
         dto.setTitle(option.getTitle());
+        dto.setConcurrent(option.isConcurrent());
+        return dto;
+    }
+
+    private static CoursePrerequisiteOptionDTO toCoursePrerequisiteOptionDTO(CoursePrerequisiteOption option) {
+        CoursePrerequisiteOptionDTO dto = new CoursePrerequisiteOptionDTO();
+        dto.setCourseCode(option.getCourseCode());
+        dto.setCredits(option.getCredits());
+        dto.setTitle(option.getTitle());
+        dto.setConcurrent(option.isConcurrent());
         return dto;
     }
 
