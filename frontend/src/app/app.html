@@ -50,13 +50,13 @@
 </footer>
 
 <style>
-/* Header Styling */
+/* Header — handbook-style: white bar, black type, gold accent */
 .main-header {
-  background-color: var(--header-background); /* Very light grey */
+  background-color: var(--header-background);
   color: var(--header-text);
-  padding: 15px 0; /* Reduced padding */
+  padding: 12px 0;
   border-bottom: 1px solid var(--border-color);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  box-shadow: none;
   position: sticky;
   top: 0;
   z-index: 1000;
@@ -79,9 +79,9 @@
 
 .disclaimer {
   font-size: 0.65rem;
-  color: #4a5568; /* darker grey */
+  color: var(--text-secondary);
   font-style: italic;
-  max-width: 200px;
+  max-width: 220px;
   line-height: 1.2;
 }
 
@@ -112,23 +112,33 @@
   font-weight: 700;
   font-family: var(--header-font);
   font-size: 1rem;
+  padding-bottom: 4px;
+  border-bottom: 3px solid transparent;
+  transition: border-color 0.2s, background-color 0.2s;
+}
+
+.main-nav a:hover,
+.main-nav a.router-link-active {
+  border-bottom-color: var(--primary-color);
 }
 
 .main-nav a.register-link {
-  background-color: var(--accent-color);
-  color: #1a202c;
-  padding: 6px 14px;
-  border-radius: 4px;
+  background-color: var(--primary-color);
+  color: var(--secondary-color);
+  padding: 8px 16px;
+  border-radius: var(--radius-none);
+  border-bottom: none;
   margin-top: -4px;
   transition: background-color 0.2s;
 }
 
 .main-nav a.register-link:hover {
-  background-color: #e5c415;
+  background-color: #a8840f;
+  border-bottom: none;
 }
 
 .user-email {
-  color: #718096;
+  color: var(--text-secondary);
   font-size: 0.9rem;
   font-weight: 500;
   display: flex;
@@ -142,10 +152,11 @@
 }
 
 .main-footer {
-  background-color: #2d3748;
-  color: #edf2f7;
+  background-color: var(--secondary-color);
+  color: #f0f0f0;
   padding: 40px 20px;
   text-align: center;
+  border-top: 4px solid var(--primary-color);
 }
 
 .footer-container {
@@ -161,7 +172,7 @@
 
 .main-footer .copyright {
   font-size: 0.85rem;
-  color: #a0aec0;
+  color: #b3b3b3;
   margin-top: 20px;
   margin-bottom: 0;
 }
@@ -197,7 +208,7 @@
     height: 44px;
     padding: 10px;
     border: 1px solid var(--border-color);
-    border-radius: 8px;
+    border-radius: var(--radius-sm);
     background: white;
     cursor: pointer;
     flex-shrink: 0;
@@ -252,11 +263,13 @@
   }
 
   .main-nav a.register-link {
-    margin-top: 0;
+    margin-top: 8px;
     padding: 14px 16px;
     text-align: center;
     border-bottom: none;
-    margin-top: 8px;
+    background-color: var(--primary-color);
+    color: var(--secondary-color);
+    border-radius: var(--radius-none);
   }
 
   .user-email {
@@ -265,7 +278,7 @@
     text-overflow: ellipsis;
     white-space: nowrap;
     font-size: 0.85rem;
-    color: #718096;
+    color: var(--text-secondary);
     font-weight: 500;
   }
 
