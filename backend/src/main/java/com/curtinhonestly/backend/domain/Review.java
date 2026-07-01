@@ -10,6 +10,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.UuidGenerator;
 
+import java.time.Instant;
+
 @Entity
 
 // Map to the "reviews" table
@@ -42,6 +44,9 @@ public class Review {
     private int workload; // 0-10
     private boolean hasExam; // Optional
     private boolean wouldTakeAgain;
+
+    @Column(nullable = false, updatable = false)
+    private Instant createdAt = Instant.now();
 
     @ManyToOne
     @JoinColumn(name = "unit_id", nullable = false)

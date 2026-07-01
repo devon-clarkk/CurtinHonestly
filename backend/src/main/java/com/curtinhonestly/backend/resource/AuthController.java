@@ -34,7 +34,7 @@ public class AuthController {
         }
 
         try {
-            User user = userService.createAdminUser(request.email(), request.password());
+            User user = userService.createUser(request.email(), request.password());
             String token = jwtUtil.generateToken(
                     user.getEmail(),
                     user.getRoles().stream().map(Enum::name).toList()

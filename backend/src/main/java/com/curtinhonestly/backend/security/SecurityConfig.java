@@ -44,10 +44,15 @@ public class SecurityConfig {
                         // Allow CORS preflight requests
                         .requestMatchers(CorsUtils::isPreFlightRequest).permitAll()
 
-                        // Public endpoints - anyone can GET
-                        .requestMatchers(HttpMethod.GET, "/units", "/units/**", "/reviews", "/reviews/**", "/users", "/users/**").permitAll()
+                        // Public read endpoints for the student app
+                        .requestMatchers(HttpMethod.GET, "/units", "/units/**").permitAll()
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/error").permitAll()
+
+                        // Admin namespace and sensitive listings
+                        .requestMatchers("/admin/**").hasAuthority(UserRole.ROLE_ADMIN.name())
+                        .requestMatchers(HttpMethod.GET, "/reviews", "/reviews/**").hasAuthority(UserRole.ROLE_ADMIN.name())
+                        .requestMatchers(HttpMethod.GET, "/users", "/users/**").hasAuthority(UserRole.ROLE_ADMIN.name())
 
                         // Admin only endpoints - Use name() to get "ROLE_ADMIN"
                         .requestMatchers(HttpMethod.DELETE, "/units/**").hasAuthority(UserRole.ROLE_ADMIN.name())
