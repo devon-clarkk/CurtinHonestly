@@ -35,3 +35,9 @@
 .btn-accent:hover {
   background-color: #333333;
 }
+
+@media (max-width: 768px) {
+  .content-body {
+    padding: 8px 12px 16px;
+  }
+}
