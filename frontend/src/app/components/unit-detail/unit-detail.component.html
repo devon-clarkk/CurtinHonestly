@@ -6,7 +6,7 @@
     <div class="header-main">
       <div class="header-left">
         <span class="detail-code">{{ unit.code }}</span>
-        <h1 class="detail-name">{{ unit.name }}</h1>
+        <h1 class="detail-name handbook-title">{{ unit.name }}</h1>
         <p class="detail-faculty">{{ unit.faculty }}</p>
         
         <div class="header-actions" *ngIf="unit.unitLink">
@@ -54,7 +54,7 @@
   <div class="content-grid">
     <!-- Left: Description -->
     <aside class="description-section">
-      <h3>About this Unit</h3>
+      <h3 class="section-heading">About this Unit</h3>
       <p class="unit-desc">{{ unit.description }}</p>
 
       <!-- Unit Information -->
@@ -137,7 +137,7 @@
     <!-- Right: Reviews List -->
     <section class="reviews-section">
       <div class="reviews-header-row">
-        <h3>Student Reviews</h3>
+        <h3 class="section-heading">Student Reviews</h3>
         
         <!-- Button to show the add review form -->
         <button *ngIf="authService.isLoggedIn() && !showAddReviewForm()" 

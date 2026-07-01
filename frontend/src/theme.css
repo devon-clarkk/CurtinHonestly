@@ -29,19 +29,25 @@
 
 /* Edit this file to customize the look and feel of the website! */
 :root {
-  /* Colors - Based on Design Guide */
-  --primary-color: #c09711;       /* Curtin Gold */
-  --secondary-color: #000000;     /* Black Contrast */
-  --background-color: #fafafa;    /* Off-white background */
-  --card-background: #ffffff;     /* White for cards */
-  --text-primary: #1f1f1f;        /* Near-black text */
-  --text-secondary: #666666;      /* Medium gray secondary text */
-  --accent-color: #c09711;        /* Use Gold for accents/links */
-  --header-background: #f1f5f9;   /* Very light grey for banners */
-  --header-text: #1f1f1f;         /* Dark text for light header */
-  --border-color: #e2e8f0;        /* Light gray for borders */
+  /* Colors — design/colours/colours.json */
+  --primary-color: #c09711;
+  --secondary-color: #000000;
+  --background-color: #fafafa;
+  --card-background: #ffffff;
+  --text-primary: #1f1f1f;
+  --text-secondary: #666666;
+  --accent-color: #c09711;
+  --header-background: #ffffff;
+  --header-text: #000000;
+  --border-color: #e8e8e8;
+  --surface-muted: #f7f7f7;
 
-  /* Fonts - Using your custom fonts from the design folder */
+  /* Shape — handbook uses sharp corners; minimal radius only on inputs */
+  --radius-none: 0;
+  --radius-sm: 2px;
+  --radius-md: 4px;
+
+  /* Fonts — design/fonts/fonts.md */
   --main-font: 'RobotoCondensedCustom', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   --header-font: 'RubikCustom', sans-serif;
   --alt-font: 'NimbusSansCustom', sans-serif;
@@ -59,9 +65,38 @@ body {
   font-family: var(--main-font);
   background-color: var(--background-color);
   color: var(--text-primary);
+  font-size: 16px;
+  line-height: 1.6;
 }
 
 h1, h2, h3, h4 {
   font-family: var(--header-font);
   font-weight: 700;
+  color: var(--secondary-color);
+}
+
+/* Handbook-style short gold bar under main titles */
+.handbook-title {
+  position: relative;
+  padding-bottom: 24px;
+  margin-bottom: 0;
+}
+
+.handbook-title::before {
+  content: '';
+  display: block;
+  width: 40px;
+  height: 6px;
+  background-color: var(--primary-color);
+  margin-bottom: 16px;
+}
+
+/* Section headings — flat, bold, no pill shapes */
+.section-heading {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--secondary-color);
+  margin: 0 0 1rem;
+  border: none;
+  padding: 0;
 }
