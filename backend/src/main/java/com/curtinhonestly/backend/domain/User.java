@@ -48,7 +48,8 @@ public class User {
     @com.fasterxml.jackson.annotation.JsonIgnore
     private String password;
 
-    private String username;
+    @Column(nullable = false)
+    private boolean verifiedStudent = false;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Review> reviews;
