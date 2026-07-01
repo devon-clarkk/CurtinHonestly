@@ -22,7 +22,7 @@ public class UnitPrerequisiteGroup {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "unit_id", nullable = false)
+    @JoinColumn(name = "unit_code", referencedColumnName = "code", nullable = false)
     private Unit unit;
 
     @Column(name = "group_name", length = 50)
@@ -36,4 +36,8 @@ public class UnitPrerequisiteGroup {
     @OneToMany(mappedBy = "group", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnoreProperties("group")
     private List<UnitPrerequisiteOption> options;
+
+    @OneToMany(mappedBy = "group", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnoreProperties("group")
+    private List<CoursePrerequisiteOption> courseOptions;
 }

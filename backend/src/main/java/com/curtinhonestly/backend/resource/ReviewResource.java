@@ -4,6 +4,7 @@ import com.curtinhonestly.backend.domain.Review;
 import com.curtinhonestly.backend.service.ReviewService;
 import com.curtinhonestly.backend.security.SecurityConstants;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -14,6 +15,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/reviews")
 @RequiredArgsConstructor
+@Slf4j
 public class ReviewResource {
 
     private final ReviewService reviewService;
@@ -25,9 +27,17 @@ public class ReviewResource {
 
     @PostMapping
     @PreAuthorize(SecurityConstants.HAS_ROLE_USER)
-    public ResponseEntity<Review> createReview(@RequestBody Review review) {
-        return ResponseEntity.created(URI.create("/reviews/" + review.getId()))
-                .body(reviewService.createReview(review));
+    public ResponseEntity<?> createReview(@RequestBody Review review) {
+        try {
+            Review savedReview = reviewService.createReview(review);
+            return ResponseEntity.created(URI.create("/reviews/" + savedReview.getId()))
+                    .body(savedReview);
+        } catch (Exception e) {
+            log.error("Error creating review: {}", e.getMessage(), e);
+            String message = e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName();
+            return ResponseEntity.internalServerError()
+                    .body("{\"error\": \"Failed to create review: " + message + "\"}");
+        }
     }
 
     @DeleteMapping("/{id}")

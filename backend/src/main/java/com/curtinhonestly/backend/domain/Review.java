@@ -34,6 +34,7 @@ public class Review {
 
     private int rating; // 0-5
     private Integer finalGrade; // Optional
+    @Column(length = 2000)
     private String reviewText;
     private String semesterTaken; // Optional
     private String professor; // Optional

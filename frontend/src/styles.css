@@ -6,15 +6,16 @@
   box-sizing: border-box;
 }
 
-/* Base button style */
+/* Base button style — handbook uses square/rectangular buttons */
 .btn {
   padding: 10px 20px;
-  border-radius: 6px;
+  border-radius: var(--radius-none);
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease, color 0.2s ease;
   border: none;
   font-family: var(--main-font);
+  text-transform: none;
 }
 
 .btn-primary {
@@ -23,14 +24,20 @@
 }
 
 .btn-primary:hover {
-  filter: brightness(0.9);
+  background-color: #a8840f;
 }
 
 .btn-accent {
-  background-color: var(--accent-color);
-  color: white;
+  background-color: var(--secondary-color);
+  color: #ffffff;
 }
 
 .btn-accent:hover {
-  filter: brightness(1.1);
+  background-color: #333333;
+}
+
+@media (max-width: 768px) {
+  .content-body {
+    padding: 8px 12px 16px;
+  }
 }

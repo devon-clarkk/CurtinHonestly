@@ -27,6 +27,7 @@ public class ReviewService {
     private final UnitService unitService;
     private final UserRepo userRepo;
     private final UnitRepo unitRepo;
+    private final ProfanityFilterService profanityFilterService;
 
     public List<Review> getReviewsByUnitCode(String unitCode) {
         Unit unit = unitService.getUnitByCode(unitCode);
@@ -52,6 +53,16 @@ public class ReviewService {
         // Validate rating scale (0-5)
         if (review.getRating() < 0 || review.getRating() > 5) {
             throw new IllegalArgumentException("Rating must be between 0 and 5");
+        }
+
+        // Validate grade scale (0-100)
+        if (review.getFinalGrade() != null && (review.getFinalGrade() < 0 || review.getFinalGrade() > 100)) {
+            throw new IllegalArgumentException("Final grade must be between 0 and 100%");
+        }
+
+        // Check for profanity
+        if (profanityFilterService.containsProfanity(review.getReviewText())) {
+            throw new IllegalArgumentException("Review contains inappropriate language. Please keep it professional.");
         }
 
         // Extract unit code from incoming Review object

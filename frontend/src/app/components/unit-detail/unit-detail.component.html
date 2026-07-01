@@ -6,7 +6,7 @@
     <div class="header-main">
       <div class="header-left">
         <span class="detail-code">{{ unit.code }}</span>
-        <h1 class="detail-name">{{ unit.name }}</h1>
+        <h1 class="detail-name handbook-title">{{ unit.name }}</h1>
         <p class="detail-faculty">{{ unit.faculty }}</p>
         
         <div class="header-actions" *ngIf="unit.unitLink">
@@ -54,7 +54,7 @@
   <div class="content-grid">
     <!-- Left: Description -->
     <aside class="description-section">
-      <h3>About this Unit</h3>
+      <h3 class="section-heading">About this Unit</h3>
       <p class="unit-desc">{{ unit.description }}</p>
 
       <!-- Unit Information -->
@@ -108,14 +108,25 @@
           <div *ngFor="let group of unit.prerequisiteGroups" class="prereq-group">
             <div class="prereq-header">
               <span class="group-name">{{ group.groupName }}</span>
-              <span class="group-req badge">{{ group.requirement === 'one' ? 'Select One' : 'Complete All' }}</span>
+              <span class="group-req badge">{{ requirementLabel(group.requirement) }}</span>
             </div>
-            <ul class="prereq-options">
+            <ul class="prereq-options" *ngIf="group.options?.length">
               <li *ngFor="let option of group.options">
                 <a [routerLink]="['/units', option.code]" class="prereq-link">
                   <strong>{{ option.code }}</strong>
                   <span>{{ option.title }}</span>
+                  <span *ngIf="option.concurrent" class="concurrent-badge">Concurrent</span>
                 </a>
+              </li>
+            </ul>
+            <ul class="prereq-options course-options" *ngIf="group.courseOptions?.length">
+              <li *ngFor="let option of group.courseOptions" class="prereq-course-item">
+                <div class="prereq-course">
+                  <strong>{{ option.courseCode }}</strong>
+                  <span *ngIf="option.credits" class="credits-badge">{{ option.credits }} credits</span>
+                  <span>{{ option.title }}</span>
+                  <span *ngIf="option.concurrent" class="concurrent-badge">Concurrent</span>
+                </div>
               </li>
             </ul>
           </div>
@@ -126,7 +137,7 @@
     <!-- Right: Reviews List -->
     <section class="reviews-section">
       <div class="reviews-header-row">
-        <h3>Student Reviews</h3>
+        <h3 class="section-heading">Student Reviews</h3>
         
         <!-- Button to show the add review form -->
         <button *ngIf="authService.isLoggedIn() && !showAddReviewForm()" 

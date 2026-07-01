@@ -2,38 +2,39 @@
 .list-container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 40px 20px;
+  padding: 10px 20px 40px 20px; /* Reduced top padding from 40px to 10px */
 }
 
 .list-header {
-  text-align: center;
-  margin-bottom: 50px;
-  background-color: var(--header-background); /* Very light grey */
+  text-align: left;
+  margin-bottom: 30px;
+  background: none;
   color: var(--text-primary);
-  padding: 80px 20px;
-  border-radius: 12px;
-  border: 1px solid var(--border-color);
+  padding: 20px 0 30px;
+  border-radius: var(--radius-none);
+  border: none;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .list-header h1 {
-  font-size: 3rem;
-  color: var(--text-primary);
-  margin-bottom: 15px;
+  font-size: 2.5rem;
+  color: var(--secondary-color);
+  margin-bottom: 8px;
 }
 
 .list-header p {
-  font-size: 1.4rem;
+  font-size: 1.1rem;
   color: var(--text-secondary);
 }
 
 /* Filter Bar Styling */
 .filter-bar {
   background-color: var(--card-background);
-  padding: 30px;
-  border-radius: 12px;
+  padding: 24px;
+  border-radius: var(--radius-none);
   border: 1px solid var(--border-color);
   margin-bottom: 40px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+  box-shadow: none;
 }
 
 .filter-top {
@@ -45,18 +46,18 @@
 }
 
 .search-box {
-  flex: 1;
-  min-width: 300px;
+  flex: 1 1 200px;
+  min-width: 0;
 }
 
 .search-input {
   width: 100%;
-  padding: 12px 20px;
-  border-radius: 8px;
-  border: 2px solid var(--border-color);
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
   font-family: var(--main-font);
   font-size: 1rem;
-  transition: all 0.2s;
+  transition: border-color 0.2s;
 }
 
 .search-input:focus {
@@ -74,8 +75,8 @@
 
 .filter-select {
   padding: 12px 15px;
-  border-radius: 8px;
-  border: 2px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
   font-family: var(--main-font);
   background-color: white;
   min-width: 180px;
@@ -124,26 +125,26 @@
 }
 
 .faculty-pill {
-  padding: 8px 16px;
-  border-radius: 20px;
+  padding: 8px 14px;
+  border-radius: var(--radius-none);
   border: 1px solid var(--border-color);
-  background-color: #f8fafc;
+  background-color: var(--surface-muted);
   font-size: 0.85rem;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: border-color 0.2s, background-color 0.2s, color 0.2s;
   color: var(--text-secondary);
 }
 
 .faculty-pill:hover {
-  border-color: var(--primary-color);
-  color: var(--primary-color);
+  border-color: var(--secondary-color);
+  color: var(--secondary-color);
 }
 
 .faculty-pill.active {
-  background-color: var(--primary-color);
-  border-color: var(--primary-color);
-  color: white;
+  background-color: var(--secondary-color);
+  border-color: var(--secondary-color);
+  color: #ffffff;
 }
 
 /* Unit Card Updates */
@@ -155,7 +156,7 @@
 
 .level-tag {
   font-size: 0.65rem;
-  color: #a0aec0;
+  color: var(--text-secondary);
   font-weight: 600;
   text-transform: uppercase;
 }
@@ -165,8 +166,8 @@
   text-align: center;
   padding: 60px;
   background-color: white;
-  border-radius: 12px;
-  border: 1px dashed var(--border-color);
+  border-radius: var(--radius-none);
+  border: 1px solid var(--border-color);
 }
 
 .empty-state p {
@@ -187,24 +188,25 @@
 .unit-card {
   background-color: var(--card-background);
   border: 1px solid var(--border-color);
-  border-radius: 12px;
-  width: 350px;
+  border-radius: var(--radius-none);
+  width: 100%;
+  max-width: 350px;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: none;
+  transition: border-color 0.2s ease;
   overflow: hidden;
 }
 
 .unit-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+  border-color: var(--primary-color);
+  box-shadow: none;
 }
 
 /* Header of the card with tags */
 .card-header {
   padding: 15px 20px;
-  background-color: #f8fafc;
+  background-color: var(--surface-muted);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -212,13 +214,14 @@
 }
 
 .faculty-tag {
-  background-color: #edf2f7;
+  background-color: transparent;
   color: var(--text-secondary);
-  padding: 4px 10px;
-  border-radius: 20px;
+  padding: 0;
+  border-radius: var(--radius-none);
   font-size: 0.75rem;
-  font-weight: bold;
+  font-weight: 700;
   text-transform: uppercase;
+  letter-spacing: 0.02em;
 }
 
 .unit-code {
@@ -262,7 +265,7 @@
 .half-star {
   position: relative;
   display: inline-block;
-  color: #edf2f7; /* Empty star color (light grey) */
+  color: var(--border-color);
 }
 
 .half-star::before {
@@ -283,7 +286,7 @@
 
 .stats-row {
   display: flex;
-  border-top: 1px solid #edf2f7;
+  border-top: 1px solid var(--border-color);
   padding-top: 15px;
 }
 
@@ -337,4 +340,78 @@
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+
+@media (max-width: 768px) {
+  .list-container {
+    padding: 8px 12px 32px;
+  }
+
+  .list-header {
+    padding: 20px 16px;
+    margin-bottom: 20px;
+  }
+
+  .list-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .list-header p {
+    font-size: 1rem;
+  }
+
+  .filter-bar {
+    padding: 16px;
+    margin-bottom: 24px;
+  }
+
+  .filter-top {
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .search-box {
+    flex: 1 1 auto;
+    width: 100%;
+  }
+
+  .select-group {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    gap: 10px;
+  }
+
+  .filter-select {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .btn-clear {
+    align-self: flex-start;
+    padding: 8px 0;
+  }
+
+  .faculty-filters {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .faculty-pill {
+    padding: 10px 14px;
+  }
+
+  .unit-grid {
+    gap: 16px;
+  }
+
+  .unit-card {
+    max-width: none;
+  }
+
+  .empty-state {
+    padding: 40px 20px;
+  }
 }
