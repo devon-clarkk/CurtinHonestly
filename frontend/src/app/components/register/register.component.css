@@ -3,15 +3,16 @@
   justify-content: center;
   align-items: center;
   padding: 40px 20px;
-  background-color: #f7fafc;
+  background-color: var(--background-color);
   min-height: calc(100vh - 300px);
 }
 
 .auth-card {
-  background: white;
+  background: var(--card-background);
   padding: 40px;
-  border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border-radius: var(--radius-none);
+  border: 1px solid var(--border-color);
+  box-shadow: none;
   max-width: 450px;
   width: 100%;
 }
@@ -19,12 +20,12 @@
 h2 {
   margin-top: 0;
   margin-bottom: 10px;
-  color: #1a202c;
+  color: var(--secondary-color);
   text-align: center;
 }
 
 .subtitle {
-  color: #718096;
+  color: var(--text-secondary);
   text-align: center;
   margin-bottom: 30px;
   font-size: 0.95rem;
@@ -38,22 +39,22 @@ label {
   display: block;
   margin-bottom: 8px;
   font-weight: 600;
-  color: #4a5568;
+  color: var(--text-primary);
 }
 
 input {
   width: 100%;
   padding: 12px 16px;
-  border: 1px solid #e2e8f0;
-  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
   font-size: 1rem;
   box-sizing: border-box;
 }
 
 input:focus {
   outline: none;
-  border-color: var(--accent-color);
-  box-shadow: 0 0 0 3px rgba(192, 151, 17, 0.2);
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(192, 151, 17, 0.15);
 }
 
 .hint {
@@ -65,10 +66,10 @@ input:focus {
 .btn-primary {
   width: 100%;
   background-color: var(--primary-color);
-  color: #1a202c;
+  color: var(--secondary-color);
   border: none;
   padding: 14px;
-  border-radius: 6px;
+  border-radius: var(--radius-none);
   font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
@@ -90,7 +91,7 @@ input:focus {
   background-color: #fff5f5;
   color: #c53030;
   padding: 12px;
-  border-radius: 6px;
+  border-radius: var(--radius-none);
   border-left: 4px solid #c53030;
   margin-bottom: 20px;
   font-size: 0.9rem;
@@ -100,7 +101,7 @@ input:focus {
   background-color: #f0fff4;
   color: #2f855a;
   padding: 12px;
-  border-radius: 6px;
+  border-radius: var(--radius-none);
   border-left: 4px solid #38a169;
   margin-bottom: 20px;
   font-size: 0.9rem;
@@ -121,4 +122,15 @@ input:focus {
 
 .auth-footer a:hover {
   text-decoration: underline;
+}
+
+@media (max-width: 640px) {
+  .auth-container {
+    padding: 24px 12px;
+    min-height: calc(100vh - 260px);
+  }
+
+  .auth-card {
+    padding: 24px 20px;
+  }
 }

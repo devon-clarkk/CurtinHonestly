@@ -1,8 +1,10 @@
 spring:
   datasource:
-    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/postgres}
-    username: ${DATABASE_USERNAME:postgres}
-    password: ${DATABASE_PASSWORD:CurtinHonestly}
+    # Azure Container Apps: database-url, database-username, database-password
+    # Local/docker legacy: DATABASE_URL, DATABASE_USERNAME, DATABASE_PASSWORD (see Application.java)
+    url: ${database-url:jdbc:postgresql://localhost:5432/postgres}
+    username: ${database-username:postgres}
+    password: ${database-password:CurtinHonestly}
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -16,4 +18,4 @@ logging:
     org.hibernate.orm.jdbc.bind: TRACE
     com.curtinhonestly.backend: DEBUG
 jwt:
-  secret: ${JWT_SECRET:tG4Mz8q7Rs2Lp9FnXKp7dWsYmYeTb4H3}
+  secret: ${jwt-secret:tG4Mz8q7Rs2Lp9FnXKp7dWsYmYeTb4H3}

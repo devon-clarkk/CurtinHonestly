@@ -54,6 +54,14 @@ export interface TuitionPattern {
 export interface PrerequisiteOption {
   code: string;
   title: string;
+  concurrent: boolean;
+}
+
+export interface CoursePrerequisiteOption {
+  courseCode: string;
+  credits?: number;
+  title: string;
+  concurrent: boolean;
 }
 
 export interface PrerequisiteGroup {
@@ -61,6 +69,7 @@ export interface PrerequisiteGroup {
   requirement: string;
   position: number;
   options: PrerequisiteOption[];
+  courseOptions: CoursePrerequisiteOption[];
 }
 
 export interface UnitDetails {
