@@ -51,6 +51,11 @@
   --main-font: 'RobotoCondensedCustom', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   --header-font: 'RubikCustom', sans-serif;
   --alt-font: 'NimbusSansCustom', sans-serif;
+
+  /* Responsive breakpoints */
+  --bp-sm: 640px;
+  --bp-md: 768px;
+  --bp-lg: 1024px;
 }
 
 /* Base styles using the variables above */
