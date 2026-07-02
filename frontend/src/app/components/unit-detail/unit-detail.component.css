@@ -45,6 +45,14 @@
   margin: 0;
 }
 
+.seo-intro {
+  color: var(--text-secondary);
+  font-size: 1rem;
+  line-height: 1.5;
+  margin: 12px 0 0;
+  max-width: 42rem;
+}
+
 .header-left {
   /* Reverted to original left-aligned state */
 }
