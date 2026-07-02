@@ -25,12 +25,13 @@
 
     <nav id="main-nav" class="main-nav" [class.is-open]="mobileNavOpen()">
       <a routerLink="/" (click)="closeMobileNav()">Home</a>
-      <ng-container *ngIf="!authService.currentUser()">
+      <ng-container *ngIf="!authService.isLoggedIn()">
         <a routerLink="/login" (click)="closeMobileNav()">Login</a>
         <a routerLink="/register" class="register-link" (click)="closeMobileNav()">Register</a>
       </ng-container>
-      <ng-container *ngIf="authService.currentUser()">
-        <span class="user-email">{{ authService.currentUser() }}</span>
+      <ng-container *ngIf="authService.isLoggedIn()">
+        <a routerLink="/my-reviews" (click)="closeMobileNav()">My Reviews</a>
+        <a routerLink="/account" (click)="closeMobileNav()">My Account</a>
         <a href="javascript:void(0)" (click)="logout()">Logout</a>
       </ng-container>
     </nav>
@@ -147,8 +148,8 @@
 
 /* Body and Footer Styling */
 .content-body {
-  min-height: calc(100vh - 140px);
-  padding: 4px 0 20px;
+  min-height: calc(100vh - 140px); /* Adjust based on header/footer height */
+  padding: 10px 20px 20px 20px; /* Reduced top padding */
 }
 
 .main-footer {

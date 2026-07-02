@@ -1,11 +1,10 @@
 <!-- Main container for the unit list -->
 <div class="list-container">
-  <header class="list-header">
-    <h1 class="handbook-title">Curtin University Unit Reviews</h1>
-    <p class="list-lead">Read honest student reviews for Curtin units — ratings, workload, grades, and would-take-again scores to help you choose the right units for your degree.</p>
-  </header>
+  <div class="list-header">
+    <h1 class="handbook-title">Explore Units</h1>
+    <p>Read through real experiences from other students to help you find the right units for your degree.</p>
+  </div>
 
-  <div class="catalog">
   <!-- Filter Bar -->
   <div class="filter-bar">
     <div class="filter-top">
@@ -97,11 +96,10 @@
       
       <div class="card-footer">
         <!-- routerLink takes the user to the details page using the unit code -->
-        <a [routerLink]="['/units', unit.code]" class="btn btn-primary view-btn" [attr.aria-label]="'Read ' + unit.code + ' reviews at Curtin University'">
-          {{ unit.code }} reviews
+        <a [routerLink]="['/units', unit.code]" class="btn btn-primary view-btn">
+          View Details & Reviews
         </a>
       </div>
     </div>
-  </div>
   </div>
 </div>
