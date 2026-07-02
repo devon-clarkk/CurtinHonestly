@@ -1,0 +1,25 @@
+<header class="admin-header">
+  <div class="header-inner">
+    <div>
+      <strong>Curtin Honestly</strong>
+      <span class="subtitle">Admin</span>
+    </div>
+
+    @if (auth.isLoggedIn()) {
+      <nav>
+        <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Overview</a>
+        <a routerLink="/analytics" routerLinkActive="active">Analytics</a>
+        <a routerLink="/operations" routerLinkActive="active">Operations</a>
+      </nav>
+
+      <div class="user-actions">
+        <span class="email">{{ auth.currentUser() }}</span>
+        <button type="button" class="btn" (click)="logout()">Logout</button>
+      </div>
+    }
+  </div>
+</header>
+
+<main class="admin-main">
+  <router-outlet />
+</main>

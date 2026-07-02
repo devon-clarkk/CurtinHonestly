@@ -4,6 +4,7 @@ import com.curtinhonestly.backend.domain.Review;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -11,4 +12,7 @@ import java.util.Optional;
 public interface ReviewRepo extends JpaRepository<Review, String> {
     Optional<Review> findById(String id);
     List<Review> findByUnit_Id(String unitId);
+    List<Review> findByUser_IdOrderByCreatedAtDesc(String userId);
+    long countByCreatedAtAfter(Instant since);
+    List<Review> findByCreatedAtAfter(Instant since);
 }

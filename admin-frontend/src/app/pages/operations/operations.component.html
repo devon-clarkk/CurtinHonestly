@@ -1,0 +1,105 @@
+<h1 class="page-title">Operations</h1>
+<p class="page-subtitle">Moderation and user management.</p>
+
+@if (errorMessage()) {
+  <div class="error-banner">{{ errorMessage() }}</div>
+}
+@if (successMessage()) {
+  <div class="success-banner">{{ successMessage() }}</div>
+}
+
+<section class="card section">
+  <h2>Add user</h2>
+  <div class="form-row">
+    <input type="email" placeholder="email@example.com" [(ngModel)]="newEmail" name="newEmail" />
+    <input type="password" placeholder="Temporary password" [(ngModel)]="newPassword" name="newPassword" />
+    <label class="checkbox">
+      <input type="checkbox" [(ngModel)]="newUserIsAdmin" name="newUserIsAdmin" />
+      Grant admin role
+    </label>
+    <button type="button" class="btn btn-primary" (click)="createUser()">Create user</button>
+  </div>
+</section>
+
+<section class="card section">
+  <h2>Users</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Email</th>
+        <th>Verified</th>
+        <th>Roles</th>
+        <th>Reviews</th>
+        <th>Joined</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (user of users(); track user.id) {
+        <tr>
+          <td>{{ user.email }}</td>
+          <td>
+            @if (user.verifiedStudent) {
+              <span class="badge badge-active">Verified</span>
+            } @else {
+              <span class="badge">Unverified</span>
+            }
+          </td>
+          <td>
+            @if (isAdmin(user)) {
+              <span class="badge badge-admin">Admin</span>
+            } @else {
+              <span class="badge">User</span>
+            }
+          </td>
+          <td>{{ user.reviewCount }}</td>
+          <td>{{ user.createdAt | date: 'mediumDate' }}</td>
+          <td>
+            @if (user.banned) {
+              <span class="badge badge-banned">Banned</span>
+            } @else {
+              <span class="badge badge-active">Active</span>
+            }
+          </td>
+          <td class="actions">
+            <button type="button" class="btn" (click)="toggleBan(user)">
+              {{ user.banned ? 'Unban' : 'Ban' }}
+            </button>
+            <button type="button" class="btn btn-danger" (click)="deleteUser(user)">Delete</button>
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</section>
+
+<section class="card section">
+  <h2>Recent reviews</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Unit</th>
+        <th>Author</th>
+        <th>Rating</th>
+        <th>Excerpt</th>
+        <th>Date</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (review of reviews(); track review.id) {
+        <tr>
+          <td>{{ review.unitCode }}</td>
+          <td>{{ review.authorEmail }}</td>
+          <td>{{ review.rating }}/5</td>
+          <td class="excerpt">{{ review.reviewText }}</td>
+          <td>{{ review.createdAt | date: 'short' }}</td>
+          <td>
+            <button type="button" class="btn btn-danger" (click)="deleteReview(review)">Delete</button>
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</section>

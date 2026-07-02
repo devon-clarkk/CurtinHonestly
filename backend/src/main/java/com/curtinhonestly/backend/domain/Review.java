@@ -10,6 +10,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.UuidGenerator;
 
+import java.time.Instant;
+
 @Entity
 
 // Map to the "reviews" table
@@ -43,6 +45,9 @@ public class Review {
     private boolean hasExam; // Optional
     private boolean wouldTakeAgain;
 
+    @Column(nullable = false, updatable = false)
+    private Instant createdAt = Instant.now();
+
     @ManyToOne
     @JoinColumn(name = "unit_id", nullable = false)
     private Unit unit;
@@ -51,11 +56,6 @@ public class Review {
     @JoinColumn(name = "user_id", nullable = false)
     @JsonIgnore
     private User user;
-
-
-    public String getUsername() {
-        return user != null ? user.getUsername() : null;
-    }
 
 }
 
