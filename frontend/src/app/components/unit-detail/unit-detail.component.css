@@ -45,14 +45,6 @@
   margin: 0;
 }
 
-.seo-intro {
-  color: var(--text-secondary);
-  font-size: 1rem;
-  line-height: 1.5;
-  margin: 12px 0 0;
-  max-width: 42rem;
-}
-
 .header-left {
   /* Reverted to original left-aligned state */
 }
@@ -230,8 +222,20 @@
 
 .user-name {
   font-weight: bold;
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
   font-size: 1.1rem;
+}
+
+.verified-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #2563eb;
+  font-size: 0.85rem;
+  font-weight: 600;
 }
 
 .review-meta {

@@ -1,0 +1,37 @@
+<h1 class="page-title">Overview</h1>
+<p class="page-subtitle">At-a-glance traction and platform health.</p>
+
+@if (errorMessage()) {
+  <div class="error-banner">{{ errorMessage() }}</div>
+}
+
+@if (isLoading()) {
+  <p>Loading metrics…</p>
+} @else if (overview(); as data) {
+  <div class="stat-grid">
+    <div class="card">
+      <div class="stat-value">{{ data.totalUsers }}</div>
+      <div class="stat-label">Total users</div>
+    </div>
+    <div class="card">
+      <div class="stat-value">{{ data.totalReviews }}</div>
+      <div class="stat-label">Total reviews</div>
+    </div>
+    <div class="card">
+      <div class="stat-value">{{ data.totalUnits }}</div>
+      <div class="stat-label">Units in catalogue</div>
+    </div>
+    <div class="card">
+      <div class="stat-value">{{ data.averageRating }}</div>
+      <div class="stat-label">Average rating</div>
+    </div>
+    <div class="card highlight">
+      <div class="stat-value">+{{ data.usersLast7Days }}</div>
+      <div class="stat-label">New users (7 days)</div>
+    </div>
+    <div class="card highlight">
+      <div class="stat-value">+{{ data.reviewsLast7Days }}</div>
+      <div class="stat-label">New reviews (7 days)</div>
+    </div>
+  </div>
+}

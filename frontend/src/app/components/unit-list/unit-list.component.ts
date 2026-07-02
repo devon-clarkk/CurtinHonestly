@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { UnitService } from '../../services/unit.service';
-import { SeoService } from '../../services/seo.service';
 import { UnitSummary, Faculty, UnitLevel } from '../../models/unit.model';
 import { Observable, map, BehaviorSubject, switchMap, debounceTime, distinctUntilChanged } from 'rxjs';
 
@@ -16,7 +15,6 @@ import { Observable, map, BehaviorSubject, switchMap, debounceTime, distinctUnti
 })
 export class UnitListComponent implements OnInit {
   private unitService = inject(UnitService);
-  private seoService = inject(SeoService);
   
   // Filter state
   searchQuery = '';
@@ -48,8 +46,6 @@ export class UnitListComponent implements OnInit {
   units$: Observable<UnitSummary[]> | undefined;
 
   ngOnInit(): void {
-    this.seoService.updateHomePage();
-
     this.units$ = this.filterSubject.pipe(
       debounceTime(300), // Small wait to avoid too many requests while typing
       switchMap(() => this.unitService.getUnits(

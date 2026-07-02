@@ -1,0 +1,57 @@
+<div class="auth-container">
+  <div class="auth-card">
+    <h2>Your Account</h2>
+    <p class="subtitle">Reviews are posted anonymously. Your email is never shown on reviews.</p>
+
+    <div *ngIf="authService.verifiedStudent()" class="success-box">
+      You are a verified Curtin student. Your reviews show a verified badge.
+    </div>
+
+    <div *ngIf="!authService.verifiedStudent()">
+      <p class="info-text">
+        Verify with your Curtin student email to display a verified badge on your reviews.
+      </p>
+
+      <form (ngSubmit)="onVerify()" #verifyForm="ngForm">
+        <div class="form-group">
+          <label for="studentEmail">Curtin Student Email</label>
+          <input
+            type="email"
+            id="studentEmail"
+            name="studentEmail"
+            [(ngModel)]="studentEmail"
+            required
+            placeholder="your.name@student.curtin.edu.au"
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="password">Current Password</label>
+          <input
+            type="password"
+            id="password"
+            name="password"
+            [(ngModel)]="password"
+            required
+          >
+        </div>
+
+        <div *ngIf="errorMessage()" class="error-box">
+          {{ errorMessage() }}
+        </div>
+
+        <div *ngIf="successMessage()" class="success-box">
+          {{ successMessage() }}
+        </div>
+
+        <button type="submit" [disabled]="!verifyForm.valid || isLoading()" class="btn btn-primary">
+          {{ isLoading() ? 'Verifying...' : 'Verify as student' }}
+        </button>
+      </form>
+    </div>
+
+    <div class="auth-footer">
+      <a routerLink="/">Back to home</a>
+    </div>
+  </div>
+</div>
