@@ -15,5 +15,6 @@ public class ReviewDTO {
     private boolean hasExam;
     private boolean wouldTakeAgain;
 
-    private boolean reviewerVerified;
+    // User details
+    private String userName;
 }

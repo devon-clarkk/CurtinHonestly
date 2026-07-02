@@ -23,6 +23,11 @@ export class RegisterComponent {
   isLoading = signal(false);
 
   onSubmit() {
+    if (!this.email.endsWith('@student.curtin.edu.au')) {
+      this.errorMessage.set('Only @student.curtin.edu.au emails are allowed.');
+      return;
+    }
+
     if (this.password !== this.confirmPassword) {
       this.errorMessage.set('Passwords do not match.');
       return;
@@ -32,13 +37,10 @@ export class RegisterComponent {
     this.errorMessage.set(null);
 
     this.authService.register({ email: this.email, password: this.password }).subscribe({
-      next: (response) => {
+      next: () => {
         this.isLoading.set(false);
-        const message = response.verifiedStudent
-          ? 'Registration successful! You are verified as a Curtin student.'
-          : 'Registration successful! Verify your student email from your account to show the verified badge on reviews.';
-        this.successMessage.set(message);
-        setTimeout(() => this.router.navigate(['/']), 2000);
+        this.successMessage.set('Registration successful! Logging you in...');
+        setTimeout(() => this.router.navigate(['/']), 1500);
       },
       error: (err) => {
         this.isLoading.set(false);
