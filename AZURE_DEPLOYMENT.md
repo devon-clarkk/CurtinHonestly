@@ -234,6 +234,7 @@ Or use GitHub Environment secrets and branch conditions (dev branch → dev API 
 |---|---|---|
 | dev | `API_URL` | `https://curtinhonestly-be-dev....azurecontainerapps.io` |
 | prod | `API_URL` | `https://curtinhonestly-be-prod....azurecontainerapps.io` |
+| prod | `SITE_URL` | `https://curtinhonestly.com` (canonical URL for sitemap, OG tags, JSON-LD) |
 
 Build command becomes:
 
