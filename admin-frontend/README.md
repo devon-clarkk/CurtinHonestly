@@ -1,6 +1,8 @@
 # Curtin Honestly — Admin Panel
 
-Lightweight Angular admin app for platform metrics and moderation. Deploy separately (e.g. Azure Static Web Apps) from the public student frontend.
+Lightweight Angular admin app for platform metrics and moderation. Deployed separately from the public student frontend.
+
+**Production:** https://orange-mud-057f08200.7.azurestaticapps.net
 
 ## Pages
 
