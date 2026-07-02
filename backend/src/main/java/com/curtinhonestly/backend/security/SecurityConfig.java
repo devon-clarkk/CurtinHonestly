@@ -45,9 +45,8 @@ public class SecurityConfig {
                         .requestMatchers(CorsUtils::isPreFlightRequest).permitAll()
 
                         // Public endpoints - anyone can GET
-                        .requestMatchers(HttpMethod.GET, "/units", "/units/**", "/reviews", "/reviews/**").permitAll()
-                        .requestMatchers("/auth/register", "/auth/login").permitAll()
-                        .requestMatchers("/auth/me", "/auth/verify-student").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/units", "/units/**", "/reviews", "/reviews/**", "/users", "/users/**").permitAll()
+                        .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/error").permitAll()
 
                         // Admin only endpoints - Use name() to get "ROLE_ADMIN"

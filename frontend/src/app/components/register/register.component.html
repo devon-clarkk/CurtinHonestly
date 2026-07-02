@@ -1,21 +1,21 @@
 <div class="auth-container">
   <div class="auth-card">
     <h2>Join Curtin Honestly</h2>
-    <p class="subtitle">Create an account to help others with your unit experiences. Reviews are always posted anonymously.</p>
+    <p class="subtitle">Create an account to help others with your unit experiences.</p>
 
     <form (ngSubmit)="onSubmit()" #registerForm="ngForm">
       <div class="form-group">
-        <label for="email">Email</label>
+        <label for="email">Curtin Student Email</label>
         <input 
           type="email" 
           id="email" 
           name="email" 
           [(ngModel)]="email" 
           required 
-          placeholder="you@example.com or you@student.curtin.edu.au"
+          placeholder="your.name@student.curtin.edu.au"
           #emailInput="ngModel"
         >
-        <div class="hint">Use your &#64;student.curtin.edu.au email to register as a verified student immediately.</div>
+        <div class="hint">Must end with &#64;student.curtin.edu.au</div>
       </div>
 
       <div class="form-group">

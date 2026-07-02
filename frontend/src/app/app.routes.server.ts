@@ -1,15 +1,17 @@
-import { RenderMode, ServerRoute } from '@angular/ssr';
+import { PrerenderFallback, RenderMode, ServerRoute } from '@angular/ssr';
+import unitCodes from '../generated/unit-codes.json';
 
 export const serverRoutes: ServerRoute[] = [
-  // Beginners: Dynamic routes like /units/:code cannot be "Prerendered" easily
-  // because the server doesn't know all the possible codes at build time.
-  // We set it to 'Server' so it renders when the user requests the page.
+  { path: 'login', renderMode: RenderMode.Client },
+  { path: 'register', renderMode: RenderMode.Client },
   {
     path: 'units/:code',
-    renderMode: RenderMode.Server
+    renderMode: RenderMode.Prerender,
+    async getPrerenderParams() {
+      return unitCodes.map((code) => ({ code }));
+    },
+    fallback: PrerenderFallback.Client,
   },
-  {
-    path: '**',
-    renderMode: RenderMode.Prerender
-  }
+  { path: '', renderMode: RenderMode.Prerender },
+  { path: '**', renderMode: RenderMode.Client },
 ];
