@@ -1,0 +1,84 @@
+<h1 class="page-title">Analytics</h1>
+<p class="page-subtitle">Deeper trends — signups, reviews, and faculty breakdown.</p>
+
+<div class="toolbar card">
+  <label>
+    Period
+    <select [(ngModel)]="selectedDays" (change)="load()" name="days">
+      <option [ngValue]="14">Last 14 days</option>
+      <option [ngValue]="30">Last 30 days</option>
+      <option [ngValue]="90">Last 90 days</option>
+    </select>
+  </label>
+</div>
+
+@if (errorMessage()) {
+  <div class="error-banner">{{ errorMessage() }}</div>
+}
+
+@if (isLoading()) {
+  <p>Loading analytics…</p>
+} @else if (analytics(); as data) {
+  <div class="grid">
+    <section class="card span-2">
+      <h2>Signups & reviews over time</h2>
+      <div class="legend">
+        <span><i class="dot users"></i> Users</span>
+        <span><i class="dot reviews"></i> Reviews</span>
+      </div>
+      <div class="chart-row">
+        @for (point of data.signupsAndReviewsOverTime; track point.period) {
+          <div class="chart-bar-group">
+            <div class="chart-bars">
+              <div
+                class="chart-bar users"
+                [style.height]="barHeight(point.users, maxSeriesValue(data.signupsAndReviewsOverTime))"
+                [title]="'Users: ' + point.users"
+              ></div>
+              <div
+                class="chart-bar reviews"
+                [style.height]="barHeight(point.reviews, maxSeriesValue(data.signupsAndReviewsOverTime))"
+                [title]="'Reviews: ' + point.reviews"
+              ></div>
+            </div>
+            <span class="chart-label">{{ point.period.slice(5) }}</span>
+          </div>
+        }
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Reviews by faculty</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Faculty</th>
+            <th>Reviews</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (entry of data.reviewsByFaculty | keyvalue; track entry.key) {
+            <tr>
+              <td>{{ entry.key }}</td>
+              <td>{{ entry.value }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </section>
+
+    <section class="card">
+      <h2>Quality signals</h2>
+      <div class="mini-stats">
+        <div>
+          <div class="stat-value">{{ data.averageWorkload }}</div>
+          <div class="stat-label">Avg workload (0–10)</div>
+        </div>
+        <div>
+          <div class="stat-value">{{ (data.wouldTakeAgainRatio * 100) | number: '1.0-0' }}%</div>
+          <div class="stat-label">Would take again</div>
+        </div>
+      </div>
+    </section>
+  </div>
+}

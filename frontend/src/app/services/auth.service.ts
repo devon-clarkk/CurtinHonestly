@@ -13,8 +13,24 @@ export interface RegisterRequest {
   password?: string;
 }
 
+export interface VerifyStudentRequest {
+  studentEmail: string;
+  password: string;
+}
+
+export interface UpdateEmailRequest {
+  newEmail: string;
+  password: string;
+}
+
 export interface JwtResponse {
   token: string;
+  verifiedStudent: boolean;
+}
+
+export interface AccountStatus {
+  email: string;
+  verifiedStudent: boolean;
 }
 
 @Injectable({
@@ -23,47 +39,88 @@ export interface JwtResponse {
 export class AuthService {
   private http = inject(HttpClient);
   private apiUrl = `${environment.apiUrl}/auth`;
-  
-  // Use a signal to track login status
-  // Beginners: Signals are a great way to handle "state" that automatically updates the UI
-  currentUser = signal<string | null>(this.getStoredEmail());
+
+  isLoggedIn = signal<boolean>(this.hasStoredToken());
+  verifiedStudent = signal<boolean>(this.getStoredVerifiedStudent());
+  email = signal<string | null>(this.getStoredEmail());
 
   login(request: LoginRequest): Observable<JwtResponse> {
     return this.http.post<JwtResponse>(`${this.apiUrl}/login`, request).pipe(
-      tap(response => {
-        this.saveToken(response.token, request.email);
-      })
+      tap(response => this.persistSession(response.token, response.verifiedStudent, request.email))
     );
   }
 
   register(request: RegisterRequest): Observable<JwtResponse> {
     return this.http.post<JwtResponse>(`${this.apiUrl}/register`, request).pipe(
+      tap(response => this.persistSession(response.token, response.verifiedStudent, request.email))
+    );
+  }
+
+  verifyStudent(request: VerifyStudentRequest): Observable<JwtResponse> {
+    return this.http.post<JwtResponse>(`${this.apiUrl}/verify-student`, request).pipe(
       tap(response => {
-        this.saveToken(response.token, request.email);
+        this.persistSession(response.token, response.verifiedStudent, request.studentEmail);
+      })
+    );
+  }
+
+  updateEmail(request: UpdateEmailRequest): Observable<JwtResponse> {
+    return this.http.patch<JwtResponse>(`${this.apiUrl}/me`, request).pipe(
+      tap(response => this.persistSession(response.token, response.verifiedStudent, request.newEmail))
+    );
+  }
+
+  deleteAccount(password: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/me`, { body: { password } });
+  }
+
+  refreshAccountStatus(): Observable<AccountStatus> {
+    return this.http.get<AccountStatus>(`${this.apiUrl}/me`).pipe(
+      tap(status => {
+        localStorage.setItem('verified_student', String(status.verifiedStudent));
+        localStorage.setItem('user_email', status.email);
+        this.verifiedStudent.set(status.verifiedStudent);
+        this.email.set(status.email);
       })
     );
   }
 
   logout() {
     localStorage.removeItem('auth_token');
+    localStorage.removeItem('verified_student');
     localStorage.removeItem('user_email');
-    this.currentUser.set(null);
+    this.isLoggedIn.set(false);
+    this.verifiedStudent.set(false);
+    this.email.set(null);
   }
 
-  private saveToken(token: string, email: string) {
+  private persistSession(token: string, verifiedStudent: boolean, email: string) {
     localStorage.setItem('auth_token', token);
+    localStorage.setItem('verified_student', String(verifiedStudent));
     localStorage.setItem('user_email', email);
-    this.currentUser.set(email);
+    this.isLoggedIn.set(true);
+    this.verifiedStudent.set(verifiedStudent);
+    this.email.set(email);
+  }
+
+  private hasStoredToken(): boolean {
+    if (typeof localStorage === 'undefined') {
+      return false;
+    }
+    return !!localStorage.getItem('auth_token');
+  }
+
+  private getStoredVerifiedStudent(): boolean {
+    if (typeof localStorage === 'undefined') {
+      return false;
+    }
+    return localStorage.getItem('verified_student') === 'true';
   }
 
   private getStoredEmail(): string | null {
-    if (typeof localStorage !== 'undefined') {
-      return localStorage.getItem('user_email');
+    if (typeof localStorage === 'undefined') {
+      return null;
     }
-    return null;
-  }
-
-  isLoggedIn(): boolean {
-    return !!this.currentUser();
+    return localStorage.getItem('user_email');
   }
 }
