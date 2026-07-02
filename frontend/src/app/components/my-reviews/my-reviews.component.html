@@ -1,0 +1,107 @@
+<div class="page-container">
+  <div class="page-header">
+    <div class="header-row">
+      <div>
+        <h1 class="handbook-title">My Reviews</h1>
+        <p class="subtitle">All reviews you have posted. They appear anonymously on unit pages.</p>
+      </div>
+      @if (!showAddFlow()) {
+        <button type="button" class="btn btn-primary" (click)="startAddReview()">Add new review</button>
+      }
+    </div>
+  </div>
+
+  @if (errorMessage()) {
+    <div class="error-box">{{ errorMessage() }}</div>
+  }
+  @if (successMessage()) {
+    <div class="success-box">{{ successMessage() }}</div>
+  }
+
+  @if (showAddFlow()) {
+    <section class="add-flow card">
+      <div class="add-flow-header">
+        <h2>Add a review</h2>
+        <button type="button" class="btn-text" (click)="cancelAddReview()">Cancel</button>
+      </div>
+
+      @if (!selectedUnitCode()) {
+        <p class="section-hint">Search for a unit, then select one to write your review.</p>
+        <input
+          type="text"
+          class="search-input"
+          [(ngModel)]="searchQuery"
+          (ngModelChange)="onSearchChange()"
+          placeholder="Search by unit code or name…"
+        />
+
+        @if (searchResults$ | async; as units) {
+          @if (units.length === 0) {
+            <p class="empty-hint">No units found. Try a different search.</p>
+          } @else {
+            <ul class="unit-pick-list">
+              @for (unit of units; track unit.code) {
+                <li>
+                  <button type="button" class="unit-pick-item" (click)="selectUnit(unit)">
+                    <span class="unit-code">{{ unit.code }}</span>
+                    <span class="unit-name">{{ unit.name }}</span>
+                  </button>
+                </li>
+              }
+            </ul>
+          }
+        }
+      } @else {
+        <div class="selected-unit">
+          <strong>{{ selectedUnitCode() }}</strong> — {{ selectedUnitName() }}
+          <button type="button" class="btn-text" (click)="selectedUnitCode.set(null)">Change unit</button>
+        </div>
+        <app-add-review
+          [unitCode]="selectedUnitCode()!"
+          (reviewAdded)="onReviewAdded()"
+          (cancel)="cancelAddReview()"
+        />
+      }
+    </section>
+  }
+
+  @if (isLoading()) {
+    <p class="loading-text">Loading your reviews…</p>
+  } @else if (reviews().length === 0) {
+    <div class="empty-state card">
+      <p>You have not posted any reviews yet.</p>
+      <button type="button" class="btn btn-primary" (click)="startAddReview()">Write your first review</button>
+    </div>
+  } @else {
+    <div class="review-list">
+      @for (review of reviews(); track review.id) {
+        <article class="review-card card">
+          <div class="review-card-header">
+            <div>
+              <a class="unit-link" (click)="viewUnit(review.unitCode)">{{ review.unitCode }}</a>
+              <h3>{{ review.unitName }}</h3>
+            </div>
+            <div class="rating">{{ review.rating }}/5</div>
+          </div>
+          <p class="review-excerpt">{{ review.reviewText }}</p>
+          <div class="review-meta">
+            <span>{{ review.semesterTaken }}</span>
+            @if (review.createdAt) {
+              <span>{{ review.createdAt | date: 'mediumDate' }}</span>
+            }
+          </div>
+          <div class="review-actions">
+            <button type="button" class="btn-text" (click)="viewUnit(review.unitCode)">View unit</button>
+            <button type="button" class="btn-text danger" (click)="deleteReview(review)">Delete</button>
+          </div>
+        </article>
+      }
+    </div>
+  }
+
+  <div class="page-footer">
+    <a routerLink="/account">My Account</a>
+    <span class="sep">·</span>
+    <a routerLink="/">Back to home</a>
+  </div>
+</div>

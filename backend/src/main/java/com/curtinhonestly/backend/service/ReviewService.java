@@ -97,4 +97,11 @@ public class ReviewService {
     public List<Review> getAllReviews() {
         return reviewRepo.findAll();
     }
+
+    public List<Review> getReviewsForCurrentUser() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepo.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found: " + email));
+        return reviewRepo.findByUser_IdOrderByCreatedAtDesc(user.getId());
+    }
 }

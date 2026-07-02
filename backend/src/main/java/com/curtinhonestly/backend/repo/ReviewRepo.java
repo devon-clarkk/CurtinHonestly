@@ -12,6 +12,7 @@ import java.util.Optional;
 public interface ReviewRepo extends JpaRepository<Review, String> {
     Optional<Review> findById(String id);
     List<Review> findByUnit_Id(String unitId);
+    List<Review> findByUser_IdOrderByCreatedAtDesc(String userId);
     long countByCreatedAtAfter(Instant since);
     List<Review> findByCreatedAtAfter(Instant since);
 }

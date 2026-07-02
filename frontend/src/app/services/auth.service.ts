@@ -18,12 +18,18 @@ export interface VerifyStudentRequest {
   password: string;
 }
 
+export interface UpdateEmailRequest {
+  newEmail: string;
+  password: string;
+}
+
 export interface JwtResponse {
   token: string;
   verifiedStudent: boolean;
 }
 
 export interface AccountStatus {
+  email: string;
   verifiedStudent: boolean;
 }
 
@@ -36,30 +42,45 @@ export class AuthService {
 
   isLoggedIn = signal<boolean>(this.hasStoredToken());
   verifiedStudent = signal<boolean>(this.getStoredVerifiedStudent());
+  email = signal<string | null>(this.getStoredEmail());
 
   login(request: LoginRequest): Observable<JwtResponse> {
     return this.http.post<JwtResponse>(`${this.apiUrl}/login`, request).pipe(
-      tap(response => this.persistSession(response.token, response.verifiedStudent))
+      tap(response => this.persistSession(response.token, response.verifiedStudent, request.email))
     );
   }
 
   register(request: RegisterRequest): Observable<JwtResponse> {
     return this.http.post<JwtResponse>(`${this.apiUrl}/register`, request).pipe(
-      tap(response => this.persistSession(response.token, response.verifiedStudent))
+      tap(response => this.persistSession(response.token, response.verifiedStudent, request.email))
     );
   }
 
   verifyStudent(request: VerifyStudentRequest): Observable<JwtResponse> {
     return this.http.post<JwtResponse>(`${this.apiUrl}/verify-student`, request).pipe(
-      tap(response => this.persistSession(response.token, response.verifiedStudent))
+      tap(response => {
+        this.persistSession(response.token, response.verifiedStudent, request.studentEmail);
+      })
     );
+  }
+
+  updateEmail(request: UpdateEmailRequest): Observable<JwtResponse> {
+    return this.http.patch<JwtResponse>(`${this.apiUrl}/me`, request).pipe(
+      tap(response => this.persistSession(response.token, response.verifiedStudent, request.newEmail))
+    );
+  }
+
+  deleteAccount(password: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/me`, { body: { password } });
   }
 
   refreshAccountStatus(): Observable<AccountStatus> {
     return this.http.get<AccountStatus>(`${this.apiUrl}/me`).pipe(
       tap(status => {
         localStorage.setItem('verified_student', String(status.verifiedStudent));
+        localStorage.setItem('user_email', status.email);
         this.verifiedStudent.set(status.verifiedStudent);
+        this.email.set(status.email);
       })
     );
   }
@@ -67,15 +88,19 @@ export class AuthService {
   logout() {
     localStorage.removeItem('auth_token');
     localStorage.removeItem('verified_student');
+    localStorage.removeItem('user_email');
     this.isLoggedIn.set(false);
     this.verifiedStudent.set(false);
+    this.email.set(null);
   }
 
-  private persistSession(token: string, verifiedStudent: boolean) {
+  private persistSession(token: string, verifiedStudent: boolean, email: string) {
     localStorage.setItem('auth_token', token);
     localStorage.setItem('verified_student', String(verifiedStudent));
+    localStorage.setItem('user_email', email);
     this.isLoggedIn.set(true);
     this.verifiedStudent.set(verifiedStudent);
+    this.email.set(email);
   }
 
   private hasStoredToken(): boolean {
@@ -90,5 +115,12 @@ export class AuthService {
       return false;
     }
     return localStorage.getItem('verified_student') === 'true';
+  }
+
+  private getStoredEmail(): string | null {
+    if (typeof localStorage === 'undefined') {
+      return null;
+    }
+    return localStorage.getItem('user_email');
   }
 }

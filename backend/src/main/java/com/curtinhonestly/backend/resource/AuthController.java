@@ -81,7 +81,35 @@ public class AuthController {
     public ResponseEntity<AccountDTO> getCurrentAccount() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userService.getUserByEmail(email);
-        return ResponseEntity.ok(new AccountDTO(user.isVerifiedStudent()));
+        return ResponseEntity.ok(new AccountDTO(user.getEmail(), user.isVerifiedStudent()));
+    }
+
+    @PatchMapping("/me")
+    public ResponseEntity<?> updateEmail(@RequestBody UpdateEmailRequest request) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        try {
+            User user = userService.updateEmail(email, request.newEmail(), request.password());
+            String token = jwtUtil.generateToken(
+                    user.getEmail(),
+                    user.getRoles().stream().map(Enum::name).toList()
+            );
+            return ResponseEntity.ok(new JwtResponse(token, user.isVerifiedStudent()));
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.status(400).body("{\"error\": \"" + ex.getMessage() + "\"}");
+        }
+    }
+
+    @DeleteMapping("/me")
+    public ResponseEntity<?> deleteAccount(@RequestBody DeleteAccountRequest request) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        try {
+            userService.deleteAccount(email, request.password());
+            return ResponseEntity.noContent().build();
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.status(400).body("{\"error\": \"" + ex.getMessage() + "\"}");
+        }
     }
 
     @PostMapping("/verify-student")
@@ -119,5 +147,7 @@ public class AuthController {
     public record RegisterRequest(String email, String password) {}
     public record LoginRequest(String email, String password) {}
     public record VerifyStudentRequest(String studentEmail, String password) {}
+    public record UpdateEmailRequest(String newEmail, String password) {}
+    public record DeleteAccountRequest(String password) {}
     public record JwtResponse(String token, boolean verifiedStudent) {}
 }

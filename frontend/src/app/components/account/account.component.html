@@ -1,20 +1,59 @@
-<div class="auth-container">
-  <div class="auth-card">
-    <h2>Your Account</h2>
-    <p class="subtitle">Reviews are posted anonymously. Your email is never shown on reviews.</p>
+<div class="page-container">
+  <div class="page-header">
+    <h1 class="handbook-title">My Account</h1>
+    <p class="subtitle">Manage your email, verification status, and account settings. Reviews are always posted anonymously.</p>
+  </div>
 
-    <div *ngIf="authService.verifiedStudent()" class="success-box">
-      You are a verified Curtin student. Your reviews show a verified badge.
-    </div>
+  @if (errorMessage()) {
+    <div class="error-box">{{ errorMessage() }}</div>
+  }
+  @if (successMessage()) {
+    <div class="success-box">{{ successMessage() }}</div>
+  }
 
-    <div *ngIf="!authService.verifiedStudent()">
-      <p class="info-text">
-        Verify with your Curtin student email to display a verified badge on your reviews.
+  <section class="account-section card">
+    <h2>Account details</h2>
+    <dl class="detail-list">
+      <dt>Email</dt>
+      <dd>{{ authService.email() || 'Loading…' }}</dd>
+      <dt>Status</dt>
+      <dd>
+        @if (authService.verifiedStudent()) {
+          <span class="status-badge verified">Verified Curtin student</span>
+        } @else {
+          <span class="status-badge unverified">Not verified</span>
+        }
+      </dd>
+    </dl>
+  </section>
+
+  <section class="account-section card">
+    <h2>Update email</h2>
+    <p class="section-hint">Change the email you use to sign in. You will need your current password.</p>
+    <form (ngSubmit)="onUpdateEmail()" class="stacked-form">
+      <div class="form-group">
+        <label for="newEmail">New email</label>
+        <input type="email" id="newEmail" name="newEmail" [(ngModel)]="newEmail" required />
+      </div>
+      <div class="form-group">
+        <label for="emailPassword">Current password</label>
+        <input type="password" id="emailPassword" name="emailPassword" [(ngModel)]="emailPassword" required />
+      </div>
+      <button type="submit" class="btn btn-primary" [disabled]="isLoading() || !newEmail || !emailPassword">
+        {{ isLoading() ? 'Saving…' : 'Update email' }}
+      </button>
+    </form>
+  </section>
+
+  @if (!authService.verifiedStudent()) {
+    <section class="account-section card">
+      <h2>Verify as Curtin student</h2>
+      <p class="section-hint">
+        Link your @student.curtin.edu.au email to show a verified badge on your reviews.
       </p>
-
-      <form (ngSubmit)="onVerify()" #verifyForm="ngForm">
+      <form (ngSubmit)="onVerify()" class="stacked-form">
         <div class="form-group">
-          <label for="studentEmail">Curtin Student Email</label>
+          <label for="studentEmail">Curtin student email</label>
           <input
             type="email"
             id="studentEmail"
@@ -22,36 +61,36 @@
             [(ngModel)]="studentEmail"
             required
             placeholder="your.name@student.curtin.edu.au"
-          >
+          />
         </div>
-
         <div class="form-group">
-          <label for="password">Current Password</label>
-          <input
-            type="password"
-            id="password"
-            name="password"
-            [(ngModel)]="password"
-            required
-          >
+          <label for="verifyPassword">Current password</label>
+          <input type="password" id="verifyPassword" name="verifyPassword" [(ngModel)]="verifyPassword" required />
         </div>
-
-        <div *ngIf="errorMessage()" class="error-box">
-          {{ errorMessage() }}
-        </div>
-
-        <div *ngIf="successMessage()" class="success-box">
-          {{ successMessage() }}
-        </div>
-
-        <button type="submit" [disabled]="!verifyForm.valid || isLoading()" class="btn btn-primary">
-          {{ isLoading() ? 'Verifying...' : 'Verify as student' }}
+        <button type="submit" class="btn btn-primary" [disabled]="isLoading() || !studentEmail || !verifyPassword">
+          {{ isLoading() ? 'Verifying…' : 'Verify as student' }}
         </button>
       </form>
-    </div>
+    </section>
+  }
 
-    <div class="auth-footer">
-      <a routerLink="/">Back to home</a>
-    </div>
+  <section class="account-section card danger-zone">
+    <h2>Delete account</h2>
+    <p class="section-hint">Permanently remove your account and all reviews you have posted.</p>
+    <form (ngSubmit)="onDeleteAccount()" class="stacked-form">
+      <div class="form-group">
+        <label for="deletePassword">Confirm with your password</label>
+        <input type="password" id="deletePassword" name="deletePassword" [(ngModel)]="deletePassword" required />
+      </div>
+      <button type="submit" class="btn btn-danger" [disabled]="isLoading() || !deletePassword">
+        {{ isLoading() ? 'Deleting…' : 'Delete my account' }}
+      </button>
+    </form>
+  </section>
+
+  <div class="page-footer">
+    <a routerLink="/my-reviews">My Reviews</a>
+    <span class="sep">·</span>
+    <a routerLink="/">Back to home</a>
   </div>
 </div>
