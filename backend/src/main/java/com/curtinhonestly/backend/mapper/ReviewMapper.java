@@ -1,6 +1,7 @@
 package com.curtinhonestly.backend.mapper;
 
 import com.curtinhonestly.backend.domain.Review;
+import com.curtinhonestly.backend.dto.MyReviewDTO;
 import com.curtinhonestly.backend.dto.ReviewDTO;
 
 import java.util.ArrayList;
@@ -21,14 +22,29 @@ public class ReviewMapper {
         dto.setHasExam(review.isHasExam());
         dto.setWouldTakeAgain(review.isWouldTakeAgain());
 
-        // User details (The user who posted the review)
         if (review.getUser() != null) {
-            dto.setUserName(review.getUser().getUsername());
-        } else {
-            dto.setUserName("Anonymous");
+            dto.setReviewerVerified(review.getUser().isVerifiedStudent());
         }
 
         return dto;
+    }
+
+    public static MyReviewDTO mapToMyReviewDTO(Review review) {
+        String unitCode = review.getUnit() != null ? review.getUnit().getCode() : "";
+        String unitName = review.getUnit() != null ? review.getUnit().getName() : "";
+        return new MyReviewDTO(
+                review.getId(),
+                unitCode,
+                unitName,
+                review.getRating(),
+                review.getReviewText(),
+                review.getSemesterTaken(),
+                review.getCreatedAt()
+        );
+    }
+
+    public static List<MyReviewDTO> mapToMyReviewDTOs(List<Review> reviews) {
+        return reviews.stream().map(ReviewMapper::mapToMyReviewDTO).toList();
     }
 
     public static List<ReviewDTO> mapToDTOs(List<Review> reviews) {

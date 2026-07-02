@@ -6,12 +6,10 @@
     "outDir": "./out-tsc/app",
     "types": [
       "node"
-    ],
-    "resolveJsonModule": true
+    ]
   },
   "include": [
-    "src/**/*.ts",
-    "src/**/*.json"
+    "src/**/*.ts"
   ],
   "exclude": [
     "src/**/*.spec.ts"

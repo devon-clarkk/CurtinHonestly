@@ -43,7 +43,17 @@ export interface Review {
   workload: number;
   hasExam: boolean;
   wouldTakeAgain: boolean;
-  userName: string;
+  reviewerVerified: boolean;
+}
+
+export interface MyReview {
+  id: string;
+  unitCode: string;
+  unitName: string;
+  rating: number;
+  reviewText: string;
+  semesterTaken: string;
+  createdAt: string;
 }
 
 export interface TuitionPattern {

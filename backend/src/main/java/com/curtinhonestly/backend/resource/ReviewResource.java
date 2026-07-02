@@ -1,5 +1,8 @@
 package com.curtinhonestly.backend.resource;
 
+import com.curtinhonestly.backend.dto.MyReviewDTO;
+import com.curtinhonestly.backend.dto.ReviewDTO;
+import com.curtinhonestly.backend.mapper.ReviewMapper;
 import com.curtinhonestly.backend.domain.Review;
 import com.curtinhonestly.backend.service.ReviewService;
 import com.curtinhonestly.backend.security.SecurityConstants;
@@ -20,9 +23,15 @@ public class ReviewResource {
 
     private final ReviewService reviewService;
 
+    @GetMapping("/me")
+    @PreAuthorize(SecurityConstants.HAS_ROLE_USER)
+    public ResponseEntity<List<MyReviewDTO>> getMyReviews() {
+        return ResponseEntity.ok(ReviewMapper.mapToMyReviewDTOs(reviewService.getReviewsForCurrentUser()));
+    }
+
     @GetMapping
-    public ResponseEntity<List<Review>> getAllReviews() {
-        return ResponseEntity.ok().body(reviewService.getAllReviews());
+    public ResponseEntity<List<ReviewDTO>> getAllReviews() {
+        return ResponseEntity.ok(ReviewMapper.mapToDTOs(reviewService.getAllReviews()));
     }
 
     @PostMapping
@@ -31,7 +40,7 @@ public class ReviewResource {
         try {
             Review savedReview = reviewService.createReview(review);
             return ResponseEntity.created(URI.create("/reviews/" + savedReview.getId()))
-                    .body(savedReview);
+                    .body(ReviewMapper.mapToDTO(savedReview));
         } catch (Exception e) {
             log.error("Error creating review: {}", e.getMessage(), e);
             String message = e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName();

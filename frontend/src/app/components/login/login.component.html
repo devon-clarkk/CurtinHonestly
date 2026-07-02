@@ -5,17 +5,16 @@
 
     <form (ngSubmit)="onSubmit()" #loginForm="ngForm">
       <div class="form-group">
-        <label for="email">Curtin Student Email</label>
+        <label for="email">Email</label>
         <input 
           type="email" 
           id="email" 
           name="email" 
           [(ngModel)]="email" 
           required 
-          placeholder="your.name@student.curtin.edu.au"
+          placeholder="you@example.com"
           #emailInput="ngModel"
         >
-        <div class="hint">Must end with &#64;student.curtin.edu.au</div>
       </div>
 
       <div class="form-group">

@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.UuidGenerator;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -48,7 +49,14 @@ public class User {
     @com.fasterxml.jackson.annotation.JsonIgnore
     private String password;
 
-    private String username;
+    @Column(nullable = false)
+    private boolean verifiedStudent = false;
+
+    @Column(nullable = false)
+    private boolean banned = false;
+
+    @Column(nullable = false, updatable = false)
+    private Instant createdAt = Instant.now();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Review> reviews;
