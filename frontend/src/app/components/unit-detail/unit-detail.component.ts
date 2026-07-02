@@ -3,8 +3,9 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { UnitService } from '../../services/unit.service';
 import { AuthService } from '../../services/auth.service';
+import { SeoService } from '../../services/seo.service';
 import { UnitDetails } from '../../models/unit.model';
-import { Observable, switchMap, map, of } from 'rxjs';
+import { Observable, switchMap, map, of, tap } from 'rxjs';
 import { AddReviewComponent } from '../add-review/add-review.component';
 
 /**
@@ -21,6 +22,7 @@ import { AddReviewComponent } from '../add-review/add-review.component';
 export class UnitDetailComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private unitService = inject(UnitService);
+  private seoService = inject(SeoService);
   authService = inject(AuthService);
 
   // This will store all the unit information once it's fetched
@@ -49,6 +51,11 @@ export class UnitDetailComponent implements OnInit {
           // Ensure ratio is a decimal for the percentage pipe
           wouldTakeAgainRatio: unit.wouldTakeAgainRatio > 1 ? unit.wouldTakeAgainRatio / 100 : unit.wouldTakeAgainRatio
         };
+      }),
+      tap((unit) => {
+        if (unit) {
+          this.seoService.updateUnitPage(unit);
+        }
       })
     );
   }
