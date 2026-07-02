@@ -30,7 +30,8 @@
         <a routerLink="/register" class="register-link" (click)="closeMobileNav()">Register</a>
       </ng-container>
       <ng-container *ngIf="authService.isLoggedIn()">
-        <a routerLink="/account" (click)="closeMobileNav()">Account</a>
+        <a routerLink="/my-reviews" (click)="closeMobileNav()">My Reviews</a>
+        <a routerLink="/account" (click)="closeMobileNav()">My Account</a>
         <a href="javascript:void(0)" (click)="logout()">Logout</a>
       </ng-container>
     </nav>

@@ -4,20 +4,15 @@ import { UnitDetailComponent } from './components/unit-detail/unit-detail.compon
 import { LoginComponent } from './components/login/login.component';
 import { RegisterComponent } from './components/register/register.component';
 import { AccountComponent } from './components/account/account.component';
+import { MyReviewsComponent } from './components/my-reviews/my-reviews.component';
+import { authGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
-  // The home page showing all units
   { path: '', component: UnitListComponent },
-  
-  // Auth pages
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent },
-  { path: 'account', component: AccountComponent },
-  
-  // The detail page for a specific unit (e.g., /units/COMP1000)
-  // Beginners: the ':code' part is a placeholder for the actual unit code
+  { path: 'account', component: AccountComponent, canActivate: [authGuard] },
+  { path: 'my-reviews', component: MyReviewsComponent, canActivate: [authGuard] },
   { path: 'units/:code', component: UnitDetailComponent },
-  
-  // Catch-all route to redirect back home if the URL is wrong
   { path: '**', redirectTo: '' }
 ];

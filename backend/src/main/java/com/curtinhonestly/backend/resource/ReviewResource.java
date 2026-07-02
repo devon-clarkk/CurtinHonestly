@@ -1,5 +1,6 @@
 package com.curtinhonestly.backend.resource;
 
+import com.curtinhonestly.backend.dto.MyReviewDTO;
 import com.curtinhonestly.backend.dto.ReviewDTO;
 import com.curtinhonestly.backend.mapper.ReviewMapper;
 import com.curtinhonestly.backend.domain.Review;
@@ -21,6 +22,12 @@ import java.util.List;
 public class ReviewResource {
 
     private final ReviewService reviewService;
+
+    @GetMapping("/me")
+    @PreAuthorize(SecurityConstants.HAS_ROLE_USER)
+    public ResponseEntity<List<MyReviewDTO>> getMyReviews() {
+        return ResponseEntity.ok(ReviewMapper.mapToMyReviewDTOs(reviewService.getReviewsForCurrentUser()));
+    }
 
     @GetMapping
     public ResponseEntity<List<ReviewDTO>> getAllReviews() {
