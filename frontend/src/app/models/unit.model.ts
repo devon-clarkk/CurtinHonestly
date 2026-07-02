@@ -43,7 +43,7 @@ export interface Review {
   workload: number;
   hasExam: boolean;
   wouldTakeAgain: boolean;
-  userName: string;
+  reviewerVerified: boolean;
 }
 
 export interface TuitionPattern {

@@ -1,0 +1,23 @@
+:root {
+  --primary-color: #c09711;
+  --secondary-color: #000000;
+  --background-color: #f4f4f5;
+  --card-background: #ffffff;
+  --text-primary: #1f1f1f;
+  --text-secondary: #666666;
+  --border-color: #e8e8e8;
+  --danger-color: #b42318;
+  --success-color: #067647;
+  --main-font: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+  margin: 0;
+  font-family: var(--main-font);
+  background: var(--background-color);
+  color: var(--text-primary);
+}
+
+* {
+  box-sizing: border-box;
+}

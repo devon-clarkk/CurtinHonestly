@@ -21,11 +21,6 @@ export class LoginComponent {
   isLoading = signal(false);
 
   onSubmit() {
-    if (!this.email.endsWith('@student.curtin.edu.au')) {
-      this.errorMessage.set('Only @student.curtin.edu.au emails are allowed.');
-      return;
-    }
-
     this.isLoading.set(true);
     this.errorMessage.set(null);
 

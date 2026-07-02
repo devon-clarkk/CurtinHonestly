@@ -1,0 +1,35 @@
+:host {
+  display: flex;
+  justify-content: center;
+  padding-top: 48px;
+}
+
+.login-card {
+  width: min(420px, 100%);
+}
+
+h1 {
+  margin: 0 0 8px;
+}
+
+.hint {
+  color: var(--text-secondary);
+  margin: 0 0 20px;
+}
+
+form {
+  display: grid;
+  gap: 14px;
+}
+
+label {
+  display: grid;
+  gap: 6px;
+  font-weight: 600;
+}
+
+input {
+  padding: 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+}
