@@ -25,12 +25,12 @@
 
     <nav id="main-nav" class="main-nav" [class.is-open]="mobileNavOpen()">
       <a routerLink="/" (click)="closeMobileNav()">Home</a>
-      <ng-container *ngIf="!authService.currentUser()">
+      <ng-container *ngIf="!authService.isLoggedIn()">
         <a routerLink="/login" (click)="closeMobileNav()">Login</a>
         <a routerLink="/register" class="register-link" (click)="closeMobileNav()">Register</a>
       </ng-container>
-      <ng-container *ngIf="authService.currentUser()">
-        <span class="user-email">{{ authService.currentUser() }}</span>
+      <ng-container *ngIf="authService.isLoggedIn()">
+        <a routerLink="/account" (click)="closeMobileNav()">Account</a>
         <a href="javascript:void(0)" (click)="logout()">Logout</a>
       </ng-container>
     </nav>

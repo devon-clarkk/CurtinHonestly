@@ -21,11 +21,8 @@ public class ReviewMapper {
         dto.setHasExam(review.isHasExam());
         dto.setWouldTakeAgain(review.isWouldTakeAgain());
 
-        // User details (The user who posted the review)
         if (review.getUser() != null) {
-            dto.setUserName(review.getUser().getUsername());
-        } else {
-            dto.setUserName("Anonymous");
+            dto.setReviewerVerified(review.getUser().isVerifiedStudent());
         }
 
         return dto;
