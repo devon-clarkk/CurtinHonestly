@@ -6,8 +6,12 @@
     <div class="header-main">
       <div class="header-left">
         <span class="detail-code">{{ unit.code }}</span>
-        <h1 class="detail-name handbook-title">{{ unit.name }}</h1>
+        <h1 class="detail-name handbook-title">{{ unit.code }} — {{ unit.name }}</h1>
         <p class="detail-faculty">{{ unit.faculty }}</p>
+        <p class="seo-intro">
+          Student reviews for <strong>{{ unit.code }}</strong> at Curtin University.
+          See ratings, workload, grades, and honest feedback from Curtin students.
+        </p>
         
         <div class="header-actions" *ngIf="unit.unitLink">
           <a [href]="unit.unitLink" target="_blank" class="btn btn-handbook">
