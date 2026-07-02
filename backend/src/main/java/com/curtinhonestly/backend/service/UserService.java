@@ -33,6 +33,19 @@ public class UserService {
         return savedUser;
     }
 
+    public User createAdminUser(String email, String password) {
+        log.info("Creating admin user: {}", email);
+        User user = new User();
+        user.setEmail(email);
+        user.setPassword(passwordEncoder.encode(password));
+        user.setVerifiedStudent(StudentEmailValidator.isStudentEmail(email));
+        user.setRoles(List.of(UserRole.ROLE_ADMIN, UserRole.ROLE_USER));
+
+        User savedUser = userRepo.saveAndFlush(user);
+        log.info("Admin user created successfully with ID: {}", savedUser.getId());
+        return savedUser;
+    }
+
     public User getUserByEmail(String email) {
         return userRepo.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
     }
