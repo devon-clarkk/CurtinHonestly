@@ -71,4 +71,40 @@ public class UserService {
         log.info("User {} verified as student with email {}", savedUser.getId(), studentEmail);
         return savedUser;
     }
+
+    public User updateEmail(String currentEmail, String newEmail, String password) {
+        User user = getUserByEmail(currentEmail);
+
+        if (!passwordEncoder.matches(password, user.getPassword())) {
+            throw new IllegalArgumentException("Invalid password.");
+        }
+
+        if (newEmail == null || !newEmail.contains("@") || !newEmail.contains(".")) {
+            throw new IllegalArgumentException("Please provide a valid email address.");
+        }
+
+        String normalizedEmail = newEmail.trim().toLowerCase();
+        userRepo.findByEmail(normalizedEmail)
+                .filter(existing -> !existing.getId().equals(user.getId()))
+                .ifPresent(existing -> {
+                    throw new IllegalArgumentException("That email is already in use.");
+                });
+
+        user.setEmail(normalizedEmail);
+        user.setVerifiedStudent(StudentEmailValidator.isStudentEmail(normalizedEmail));
+        User savedUser = userRepo.saveAndFlush(user);
+        log.info("User {} updated email", savedUser.getId());
+        return savedUser;
+    }
+
+    public void deleteAccount(String email, String password) {
+        User user = getUserByEmail(email);
+
+        if (!passwordEncoder.matches(password, user.getPassword())) {
+            throw new IllegalArgumentException("Invalid password.");
+        }
+
+        userRepo.delete(user);
+        log.info("User {} deleted their account", user.getId());
+    }
 }

@@ -46,6 +46,16 @@ export interface Review {
   reviewerVerified: boolean;
 }
 
+export interface MyReview {
+  id: string;
+  unitCode: string;
+  unitName: string;
+  rating: number;
+  reviewText: string;
+  semesterTaken: string;
+  createdAt: string;
+}
+
 export interface TuitionPattern {
   type: string;
   duration: string;
