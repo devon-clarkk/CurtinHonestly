@@ -2,11 +2,10 @@ package com.curtinhonestly.backend.resource;
 
 import com.curtinhonestly.backend.domain.Faculty;
 import com.curtinhonestly.backend.domain.Unit;
+import com.curtinhonestly.backend.domain.Review;
 import com.curtinhonestly.backend.domain.UnitLevel;
-import com.curtinhonestly.backend.dto.ReviewDTO;
 import com.curtinhonestly.backend.dto.UnitDetailsDTO;
 import com.curtinhonestly.backend.dto.UnitSummaryDTO;
-import com.curtinhonestly.backend.mapper.ReviewMapper;
 import com.curtinhonestly.backend.service.ReviewService;
 import com.curtinhonestly.backend.service.UnitService;
 import com.curtinhonestly.backend.security.SecurityConstants;
@@ -69,8 +68,8 @@ public class UnitResource {
     }
 
     @GetMapping("/{unitCode}/reviews")
-    public ResponseEntity<List<ReviewDTO>> getReviewsForUnit(@PathVariable String unitCode) {
-        return ResponseEntity.ok(ReviewMapper.mapToDTOs(reviewService.getReviewsByUnitCode(unitCode)));
+    public ResponseEntity<List<Review>> getReviewsForUnit(@PathVariable String unitCode) {
+        return ResponseEntity.ok().body(reviewService.getReviewsByUnitCode(unitCode));
     }
 
     @DeleteMapping("/{id}")
