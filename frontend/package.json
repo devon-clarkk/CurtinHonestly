@@ -5,7 +5,7 @@
     "ng": "ng",
     "set-env": "node set-env.js",
     "start": "npm run set-env && ng serve",
-    "build": "npm run set-env && ng build",
+    "build": "npm run set-env && node scripts/fetch-unit-codes.js && node scripts/generate-seo-assets.js && ng build",
     "watch": "npm run set-env && ng build --watch --configuration development",
     "test": "ng test",
     "serve:ssr:frontend": "node dist/frontend/server/server.mjs"
