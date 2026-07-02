@@ -52,10 +52,5 @@ public class Review {
     @JsonIgnore
     private User user;
 
-
-    public String getUsername() {
-        return user != null ? user.getUsername() : null;
-    }
-
 }
 

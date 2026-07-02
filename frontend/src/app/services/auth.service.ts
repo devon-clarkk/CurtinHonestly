@@ -13,8 +13,18 @@ export interface RegisterRequest {
   password?: string;
 }
 
+export interface VerifyStudentRequest {
+  studentEmail: string;
+  password: string;
+}
+
 export interface JwtResponse {
   token: string;
+  verifiedStudent: boolean;
+}
+
+export interface AccountStatus {
+  verifiedStudent: boolean;
 }
 
 @Injectable({
@@ -23,47 +33,62 @@ export interface JwtResponse {
 export class AuthService {
   private http = inject(HttpClient);
   private apiUrl = `${environment.apiUrl}/auth`;
-  
-  // Use a signal to track login status
-  // Beginners: Signals are a great way to handle "state" that automatically updates the UI
-  currentUser = signal<string | null>(this.getStoredEmail());
+
+  isLoggedIn = signal<boolean>(this.hasStoredToken());
+  verifiedStudent = signal<boolean>(this.getStoredVerifiedStudent());
 
   login(request: LoginRequest): Observable<JwtResponse> {
     return this.http.post<JwtResponse>(`${this.apiUrl}/login`, request).pipe(
-      tap(response => {
-        this.saveToken(response.token, request.email);
-      })
+      tap(response => this.persistSession(response.token, response.verifiedStudent))
     );
   }
 
   register(request: RegisterRequest): Observable<JwtResponse> {
     return this.http.post<JwtResponse>(`${this.apiUrl}/register`, request).pipe(
-      tap(response => {
-        this.saveToken(response.token, request.email);
+      tap(response => this.persistSession(response.token, response.verifiedStudent))
+    );
+  }
+
+  verifyStudent(request: VerifyStudentRequest): Observable<JwtResponse> {
+    return this.http.post<JwtResponse>(`${this.apiUrl}/verify-student`, request).pipe(
+      tap(response => this.persistSession(response.token, response.verifiedStudent))
+    );
+  }
+
+  refreshAccountStatus(): Observable<AccountStatus> {
+    return this.http.get<AccountStatus>(`${this.apiUrl}/me`).pipe(
+      tap(status => {
+        localStorage.setItem('verified_student', String(status.verifiedStudent));
+        this.verifiedStudent.set(status.verifiedStudent);
       })
     );
   }
 
   logout() {
     localStorage.removeItem('auth_token');
-    localStorage.removeItem('user_email');
-    this.currentUser.set(null);
+    localStorage.removeItem('verified_student');
+    this.isLoggedIn.set(false);
+    this.verifiedStudent.set(false);
   }
 
-  private saveToken(token: string, email: string) {
+  private persistSession(token: string, verifiedStudent: boolean) {
     localStorage.setItem('auth_token', token);
-    localStorage.setItem('user_email', email);
-    this.currentUser.set(email);
+    localStorage.setItem('verified_student', String(verifiedStudent));
+    this.isLoggedIn.set(true);
+    this.verifiedStudent.set(verifiedStudent);
   }
 
-  private getStoredEmail(): string | null {
-    if (typeof localStorage !== 'undefined') {
-      return localStorage.getItem('user_email');
+  private hasStoredToken(): boolean {
+    if (typeof localStorage === 'undefined') {
+      return false;
     }
-    return null;
+    return !!localStorage.getItem('auth_token');
   }
 
-  isLoggedIn(): boolean {
-    return !!this.currentUser();
+  private getStoredVerifiedStudent(): boolean {
+    if (typeof localStorage === 'undefined') {
+      return false;
+    }
+    return localStorage.getItem('verified_student') === 'true';
   }
 }
