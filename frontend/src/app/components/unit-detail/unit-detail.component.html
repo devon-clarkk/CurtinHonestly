@@ -166,7 +166,15 @@
       <div *ngFor="let review of unit.reviews" class="review-card">
         <div class="review-header">
           <div class="user-info">
-            <span class="user-name">{{ review.userName }}</span>
+            <span class="user-name">
+              Anonymous
+              <span *ngIf="review.reviewerVerified" class="verified-badge" title="Verified Curtin student">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                  <path fill="currentColor" d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-1 14.59l-4.29-4.3 1.42-1.41L11 12.17l5.88-5.88 1.41 1.41L11 15.59z"/>
+                </svg>
+                Verified student
+              </span>
+            </span>
             <span class="review-meta">{{ review.semesterTaken }} • Prof. {{ review.professor }}</span>
           </div>
           <div class="review-rating">

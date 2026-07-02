@@ -1,0 +1,18 @@
+@import '../login/login.component.css';
+
+.info-text {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  margin-bottom: 24px;
+  line-height: 1.5;
+}
+
+.success-box {
+  background-color: #eff6ff;
+  color: #1d4ed8;
+  padding: 12px;
+  border-radius: var(--radius-none);
+  border-left: 4px solid #2563eb;
+  margin-bottom: 20px;
+  font-size: 0.9rem;
+}
