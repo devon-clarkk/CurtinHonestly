@@ -42,7 +42,7 @@ function defaultSiteUrl(apiUrl) {
   if (isDevApiUrl(apiUrl)) {
     return 'https://nice-pebble-059fa6b00.7.azurestaticapps.net';
   }
-  return 'https://icy-sand-081cc7100.7.azurestaticapps.net';
+  return 'https://curtinhonestly.com';
 }
 
 function resolveSeoEnabled(apiUrl) {

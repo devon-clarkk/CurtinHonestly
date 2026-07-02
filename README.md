@@ -6,7 +6,7 @@ A website where university students in Australia can leave honest reviews for th
 
 | Environment | Frontend | Backend |
 |---|---|---|
-| **Production** | https://icy-sand-081cc7100.7.azurestaticapps.net | `https://be-curtinhonestly-prod.happyplant-9f34dec7.australiaeast.azurecontainerapps.io` |
+| **Production** | https://curtinhonestly.com | `https://be-curtinhonestly-prod.happyplant-9f34dec7.australiaeast.azurecontainerapps.io` |
 | **Dev** | https://nice-pebble-059fa6b00.7.azurestaticapps.net | `https://be-curtinhonestly-dev.happyplant-9f34dec7.australiaeast.azurecontainerapps.io` |
 
 ---
@@ -36,7 +36,7 @@ A website where university students in Australia can leave honest reviews for th
                  ┌─────────────────────────────┐
    Users ──────► │  Azure Static Web Apps (FE)  │   Azure "Free" subscription
                  │  dev: nice-pebble            │
-                 │  prod: icy-sand              │
+                 │  prod: curtinhonestly.com    │
                  └──────────────┬──────────────┘
                                 │ HTTPS (API_URL)
                                 ▼
