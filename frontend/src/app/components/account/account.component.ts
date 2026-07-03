@@ -1,14 +1,14 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { AuthService } from '../../services/auth.service';
+import { AuthService, AccountStatus } from '../../services/auth.service';
 import { SeoService } from '../../services/seo.service';
 
 @Component({
   selector: 'app-account',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, DatePipe],
   templateUrl: './account.component.html',
   styleUrl: './account.component.css'
 })
@@ -16,6 +16,8 @@ export class AccountComponent implements OnInit {
   protected authService = inject(AuthService);
   private router = inject(Router);
   private seoService = inject(SeoService);
+
+  account = signal<AccountStatus | null>(null);
 
   newEmail = '';
   emailPassword = '';
@@ -36,6 +38,7 @@ export class AccountComponent implements OnInit {
     }
 
     this.authService.refreshAccountStatus().subscribe({
+      next: (status) => this.account.set(status),
       error: () => this.authService.logout()
     });
   }
@@ -53,6 +56,7 @@ export class AccountComponent implements OnInit {
         this.successMessage.set('Email updated successfully.');
         this.newEmail = '';
         this.emailPassword = '';
+        this.refreshAccount();
       },
       error: (err) => {
         this.isLoading.set(false);
@@ -79,6 +83,7 @@ export class AccountComponent implements OnInit {
         this.successMessage.set('Your account is now verified as a Curtin student.');
         this.studentEmail = '';
         this.verifyPassword = '';
+        this.refreshAccount();
       },
       error: (err) => {
         this.isLoading.set(false);
@@ -105,6 +110,12 @@ export class AccountComponent implements OnInit {
         this.isLoading.set(false);
         this.errorMessage.set(err.error?.error || 'Failed to delete account.');
       }
+    });
+  }
+
+  private refreshAccount() {
+    this.authService.refreshAccountStatus().subscribe({
+      next: (status) => this.account.set(status)
     });
   }
 

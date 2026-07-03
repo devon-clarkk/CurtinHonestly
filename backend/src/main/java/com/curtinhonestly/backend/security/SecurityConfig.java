@@ -54,6 +54,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/units", "/units/**").permitAll()
                         .requestMatchers("/actuator/health").permitAll()
                         .requestMatchers("/auth/register", "/auth/login").permitAll()
+                        .requestMatchers("/campaigns/validate").permitAll()
                         .requestMatchers("/auth/me", "/auth/verify-student").authenticated()
                         .requestMatchers("/error").permitAll()
 

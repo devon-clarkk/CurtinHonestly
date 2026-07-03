@@ -1,5 +1,6 @@
 package com.curtinhonestly.backend.service;
 
+import com.curtinhonestly.backend.domain.Campaign;
 import com.curtinhonestly.backend.domain.User;
 import com.curtinhonestly.backend.domain.UserRole;
 import com.curtinhonestly.backend.repo.UserRepo;
@@ -22,6 +23,10 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
 
     public User createUser(String email, String password) {
+        return createUser(email, password, null, null);
+    }
+
+    public User createUser(String email, String password, Campaign campaign, String ref) {
         String normalizedEmail = EmailNormalizer.normalize(email);
         log.info("Creating user: {}", normalizedEmail);
 
@@ -35,8 +40,15 @@ public class UserService {
         user.setVerifiedStudent(StudentEmailValidator.isStudentEmail(normalizedEmail));
         user.setRoles(List.of(UserRole.ROLE_USER));
 
+        if (campaign != null) {
+            user.setCampaign(campaign);
+            user.setRegisteredViaRef(ref != null && !ref.isBlank() ? ref.trim() : campaign.getSlug());
+        }
+
         User savedUser = userRepo.saveAndFlush(user);
-        log.info("User created successfully with ID: {}, verifiedStudent={}", savedUser.getId(), savedUser.isVerifiedStudent());
+        log.info("User created successfully with ID: {}, verifiedStudent={}, campaign={}",
+                savedUser.getId(), savedUser.isVerifiedStudent(),
+                campaign != null ? campaign.getSlug() : "none");
         return savedUser;
     }
 

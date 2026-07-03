@@ -1,9 +1,12 @@
 package com.curtinhonestly.backend.resource;
 
+import com.curtinhonestly.backend.domain.Campaign;
 import com.curtinhonestly.backend.domain.User;
 import com.curtinhonestly.backend.dto.AccountDTO;
 import com.curtinhonestly.backend.dto.ErrorResponse;
+import com.curtinhonestly.backend.dto.CampaignEntrySummaryDTO;
 import com.curtinhonestly.backend.security.JwtUtil;
+import com.curtinhonestly.backend.service.CampaignService;
 import com.curtinhonestly.backend.service.UserService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
@@ -18,6 +21,8 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
@@ -27,12 +32,24 @@ public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
     private final UserService userService;
+    private final CampaignService campaignService;
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {
         log.info("Registration attempt for email: {}", request.email());
 
-        User user = userService.createUser(request.email(), request.password());
+        Campaign campaign = null;
+        if (hasCampaignAttribution(request)) {
+            campaign = campaignService.resolveCampaignForRegistration(request.ref(), request.promoCode())
+                    .orElseThrow(() -> new IllegalArgumentException("Campaign not found. Check your referral link or promo code."));
+
+            var validation = campaignService.validateCampaign(request.ref(), request.promoCode());
+            if (!validation.isValid()) {
+                throw new IllegalArgumentException(validation.getMessage());
+            }
+        }
+
+        User user = userService.createUser(request.email(), request.password(), campaign, request.ref());
         String token = jwtUtil.generateToken(
                 user.getEmail(),
                 user.getRoles().stream().map(Enum::name).toList()
@@ -72,7 +89,17 @@ public class AuthController {
     public ResponseEntity<AccountDTO> getCurrentAccount() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userService.getUserByEmail(email);
-        return ResponseEntity.ok(new AccountDTO(user.getEmail(), user.isVerifiedStudent()));
+        var campaign = user.getCampaign();
+        List<CampaignEntrySummaryDTO> entries = campaignService.getEntriesForUser(user);
+
+        return ResponseEntity.ok(new AccountDTO(
+                user.getEmail(),
+                user.isVerifiedStudent(),
+                campaign != null ? campaign.getName() : null,
+                campaign != null ? campaign.getPrizeDescription() : null,
+                campaign != null ? campaign.getEndsAt() : null,
+                entries
+        ));
     }
 
     @PatchMapping("/me")
@@ -117,7 +144,12 @@ public class AuthController {
         return ResponseEntity.ok(new JwtResponse(token, user.isVerifiedStudent()));
     }
 
-    public record RegisterRequest(@NotBlank @Email String email, @NotBlank String password) {}
+    private boolean hasCampaignAttribution(RegisterRequest request) {
+        return (request.ref() != null && !request.ref().isBlank())
+                || (request.promoCode() != null && !request.promoCode().isBlank());
+    }
+
+    public record RegisterRequest(@NotBlank @Email String email, @NotBlank String password, String ref, String promoCode) {}
     public record LoginRequest(String email, String password) {}
     public record VerifyStudentRequest(String studentEmail, String password) {}
     public record UpdateEmailRequest(String newEmail, String password) {}
