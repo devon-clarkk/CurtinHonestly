@@ -26,6 +26,7 @@ export class MyReviewsComponent implements OnInit {
   successMessage = signal<string | null>(null);
 
   showAddFlow = signal(false);
+  editingReview = signal<MyReview | null>(null);
   selectedUnitCode = signal<string | null>(null);
   selectedUnitName = signal<string | null>(null);
 
@@ -42,7 +43,7 @@ export class MyReviewsComponent implements OnInit {
       switchMap(query =>
         this.unitService.getUnits(0, 20, query || undefined, [], undefined, 'code')
       ),
-      map(page => page.content)
+      map(page => page.content.filter(unit => !this.hasReviewForUnit(unit.code)))
     );
   }
 
@@ -64,14 +65,23 @@ export class MyReviewsComponent implements OnInit {
 
   startAddReview() {
     this.showAddFlow.set(true);
+    this.editingReview.set(null);
     this.selectedUnitCode.set(null);
     this.selectedUnitName.set(null);
     this.searchQuery = '';
     this.searchSubject.next('');
   }
 
+  startEditReview(review: MyReview) {
+    this.showAddFlow.set(true);
+    this.editingReview.set(review);
+    this.selectedUnitCode.set(review.unitCode);
+    this.selectedUnitName.set(review.unitName);
+  }
+
   cancelAddReview() {
     this.showAddFlow.set(false);
+    this.editingReview.set(null);
     this.selectedUnitCode.set(null);
     this.selectedUnitName.set(null);
   }
@@ -81,12 +91,17 @@ export class MyReviewsComponent implements OnInit {
   }
 
   selectUnit(unit: UnitSummary) {
+    if (this.hasReviewForUnit(unit.code)) {
+      this.errorMessage.set('You have already reviewed this unit. Edit your existing review instead.');
+      return;
+    }
     this.selectedUnitCode.set(unit.code);
     this.selectedUnitName.set(unit.name);
+    this.errorMessage.set(null);
   }
 
   onReviewAdded() {
-    this.successMessage.set('Review submitted successfully.');
+    this.successMessage.set(this.editingReview() ? 'Review updated successfully.' : 'Review submitted successfully.');
     this.cancelAddReview();
     this.loadReviews();
   }
@@ -107,5 +122,9 @@ export class MyReviewsComponent implements OnInit {
 
   viewUnit(code: string) {
     this.router.navigate(['/units', code]);
+  }
+
+  private hasReviewForUnit(unitCode: string): boolean {
+    return this.reviews().some(review => review.unitCode === unitCode);
   }
 }

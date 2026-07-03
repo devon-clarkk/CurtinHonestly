@@ -51,8 +51,13 @@ export interface MyReview {
   unitCode: string;
   unitName: string;
   rating: number;
+  finalGrade?: number | null;
   reviewText: string;
   semesterTaken: string;
+  professor?: string;
+  workload?: number;
+  hasExam?: boolean;
+  wouldTakeAgain?: boolean;
   createdAt: string;
 }
 

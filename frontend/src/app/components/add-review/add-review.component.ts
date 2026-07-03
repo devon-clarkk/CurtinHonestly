@@ -1,8 +1,9 @@
-import { Component, inject, input, output, signal } from '@angular/core';
+import { Component, effect, inject, input, output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ReviewService, CreateReviewResponse } from '../../services/review.service';
+import { CampaignProgress, CreateReviewResponse, ReviewService } from '../../services/review.service';
 import { BANNED_WORDS } from '../../models/profanity-list';
+import { MyReview } from '../../models/unit.model';
 
 @Component({
   selector: 'app-add-review',
@@ -15,6 +16,7 @@ export class AddReviewComponent {
   private reviewService = inject(ReviewService);
 
   unitCode = input.required<string>();
+  editReview = input<MyReview | null>(null);
   reviewAdded = output<void>();
   cancel = output<void>();
 
@@ -32,9 +34,30 @@ export class AddReviewComponent {
   successMessage = signal<string | null>(null);
 
   private readonly profanityRegex = new RegExp(
-    `\\b(${BANNED_WORDS.map(word => this.escapeRegExp(word)).join('|')})\\b`, 
+    `\\b(${BANNED_WORDS.map(word => this.escapeRegExp(word)).join('|')})\\b`,
     'i'
   );
+
+  constructor() {
+    effect(() => {
+      const existing = this.editReview();
+      if (!existing) {
+        return;
+      }
+      this.rating.set(existing.rating);
+      this.reviewText.set(existing.reviewText);
+      this.semesterTaken.set(existing.semesterTaken);
+      this.professor.set(existing.professor ?? '');
+      this.workload.set(existing.workload ?? 5);
+      this.hasExam.set(existing.hasExam ?? false);
+      this.wouldTakeAgain.set(existing.wouldTakeAgain ?? true);
+      this.finalGrade.set(existing.finalGrade ?? null);
+    });
+  }
+
+  isEditing(): boolean {
+    return !!this.editReview()?.id;
+  }
 
   private escapeRegExp(string: string) {
     return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -77,28 +100,75 @@ export class AddReviewComponent {
       unit: { code: this.unitCode() }
     };
 
-    this.reviewService.createReview(reviewData).subscribe({
+    const request = this.isEditing()
+      ? this.reviewService.updateReview(this.editReview()!.id, reviewData)
+      : this.reviewService.createReview(reviewData);
+
+    request.subscribe({
       next: (response: CreateReviewResponse) => {
         this.isLoading.set(false);
-
-        if (response.campaignEntryToken) {
-          this.successMessage.set(
-            `Review submitted! You're entered in the ${response.campaignName ?? 'campaign'} draw. Entry token: ${response.campaignEntryToken}`
-          );
-          setTimeout(() => {
-            this.reviewAdded.emit();
-            this.resetForm();
-          }, 4000);
-        } else {
-          this.reviewAdded.emit();
-          this.resetForm();
-        }
+        this.handleSuccess(response);
       },
       error: (err) => {
         this.isLoading.set(false);
         this.errorMessage.set(err.error?.error || 'Failed to submit review. Please try again.');
       }
     });
+  }
+
+  private handleSuccess(response: CreateReviewResponse) {
+    const progressMessage = this.buildProgressMessage(response.campaignProgress);
+
+    if (response.campaignEntryToken) {
+      this.successMessage.set(
+        `Review ${this.isEditing() ? 'updated' : 'submitted'}! You're entered in the ${response.campaignName ?? 'campaign'} draw. Entry token: ${response.campaignEntryToken}`
+      );
+      setTimeout(() => {
+        this.reviewAdded.emit();
+        if (!this.isEditing()) {
+          this.resetForm();
+        }
+      }, 4000);
+      return;
+    }
+
+    if (progressMessage) {
+      this.successMessage.set(`Review ${this.isEditing() ? 'updated' : 'submitted'}! ${progressMessage}`);
+      setTimeout(() => {
+        this.reviewAdded.emit();
+        if (!this.isEditing()) {
+          this.resetForm();
+        }
+      }, 3000);
+      return;
+    }
+
+    this.reviewAdded.emit();
+    if (!this.isEditing()) {
+      this.resetForm();
+    }
+  }
+
+  private buildProgressMessage(progress: CampaignProgress | null): string | null {
+    if (!progress) {
+      return null;
+    }
+
+    if (progress.requireVerifiedStudent && progress.entriesEarned === 0 && progress.qualifyingReviews > 0) {
+      return 'Verify your student email to earn draw entries.';
+    }
+
+    if (progress.entriesEarned >= progress.maxEntries) {
+      return 'You have earned the maximum draw entries for this campaign.';
+    }
+
+    const remainder = progress.qualifyingReviews % progress.requiredReviews;
+    if (remainder !== 0) {
+      const needed = progress.requiredReviews - remainder;
+      return `${needed} more qualifying review${needed === 1 ? '' : 's'} needed for a draw entry (${progress.qualifyingReviews}/${progress.requiredReviews}).`;
+    }
+
+    return null;
   }
 
   resetForm() {

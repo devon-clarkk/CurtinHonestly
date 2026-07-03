@@ -58,6 +58,8 @@ export interface CampaignAdmin {
   maxRedemptions: number | null;
   minReviewLength: number;
   maxEntriesPerUser: number;
+  requireVerifiedStudent: boolean;
+  requiredReviewCount: number;
   signupCount: number;
   entryCount: number;
   createdAt: string;

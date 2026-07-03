@@ -71,6 +71,8 @@ export class AdminService {
     maxRedemptions: number | null;
     minReviewLength: number;
     maxEntriesPerUser: number;
+    requireVerifiedStudent: boolean;
+    requiredReviewCount: number;
   }): Observable<CampaignAdmin> {
     return this.http.post<CampaignAdmin>(`${this.apiUrl}/campaigns`, payload);
   }

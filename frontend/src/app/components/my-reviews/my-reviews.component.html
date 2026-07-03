@@ -21,11 +21,11 @@
   @if (showAddFlow()) {
     <section class="add-flow card">
       <div class="add-flow-header">
-        <h2>Add a review</h2>
+        <h2>{{ editingReview() ? 'Edit review' : 'Add a review' }}</h2>
         <button type="button" class="btn-text" (click)="cancelAddReview()">Cancel</button>
       </div>
 
-      @if (!selectedUnitCode()) {
+      @if (!editingReview() && !selectedUnitCode()) {
         <p class="section-hint">Search for a unit, then select one to write your review.</p>
         <input
           type="text"
@@ -58,6 +58,7 @@
         </div>
         <app-add-review
           [unitCode]="selectedUnitCode()!"
+          [editReview]="editingReview()"
           (reviewAdded)="onReviewAdded()"
           (cancel)="cancelAddReview()"
         />
@@ -91,6 +92,7 @@
             }
           </div>
           <div class="review-actions">
+            <button type="button" class="btn-text" (click)="startEditReview(review)">Edit</button>
             <button type="button" class="btn-text" (click)="viewUnit(review.unitCode)">View unit</button>
             <button type="button" class="btn-text danger" (click)="deleteReview(review)">Delete</button>
           </div>

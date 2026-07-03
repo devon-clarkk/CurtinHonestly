@@ -147,14 +147,15 @@
         <button *ngIf="authService.isLoggedIn() && !showAddReviewForm()" 
                 (click)="toggleAddReviewForm()" 
                 class="btn btn-primary add-review-btn">
-          Add Review
+          {{ hasExistingReview() ? 'Edit your review' : 'Add Review' }}
         </button>
       </div>
 
       <!-- The Add Review Form (hidden by default) -->
       <app-add-review 
         *ngIf="showAddReviewForm()" 
-        [unitCode]="unit.code" 
+        [unitCode]="unit.code"
+        [editReview]="myReviewForUnit()"
         (reviewAdded)="onReviewAdded()"
         (cancel)="toggleAddReviewForm()">
       </app-add-review>

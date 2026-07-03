@@ -1,5 +1,5 @@
 <div class="review-form-container">
-  <h3>Add a Review for {{ unitCode() }}</h3>
+  <h3>{{ isEditing() ? 'Edit' : 'Add' }} a Review for {{ unitCode() }}</h3>
   <form (ngSubmit)="onSubmit()" #reviewForm="ngForm">
     
     <div class="form-grid">
@@ -73,7 +73,7 @@
     <div class="form-actions">
       <button type="button" (click)="onCancel()" class="btn btn-secondary" [disabled]="isLoading()">Cancel</button>
       <button type="submit" class="btn btn-primary" [disabled]="isLoading() || !reviewText() || reviewText().length < 10">
-        {{ isLoading() ? 'Submitting...' : 'Post Review' }}
+        {{ isLoading() ? (isEditing() ? 'Saving...' : 'Submitting...') : (isEditing() ? 'Save changes' : 'Post Review') }}
       </button>
     </div>
   </form>

@@ -53,7 +53,8 @@ public class SecurityConfig {
 
                         // Admin namespace and sensitive listings
                         .requestMatchers("/admin/**").hasAuthority(UserRole.ROLE_ADMIN.name())
-                        .requestMatchers(HttpMethod.GET, "/reviews/me").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/reviews/me", "/reviews/me/**").authenticated()
+                        .requestMatchers(HttpMethod.PATCH, "/reviews/**").authenticated()
                         .requestMatchers(HttpMethod.GET, "/reviews", "/reviews/**").hasAuthority(UserRole.ROLE_ADMIN.name())
                         .requestMatchers(HttpMethod.GET, "/users", "/users/**").hasAuthority(UserRole.ROLE_ADMIN.name())
 

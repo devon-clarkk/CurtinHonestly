@@ -3,8 +3,9 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { UnitService } from '../../services/unit.service';
 import { AuthService } from '../../services/auth.service';
+import { ReviewService } from '../../services/review.service';
 import { SeoService } from '../../services/seo.service';
-import { UnitDetails } from '../../models/unit.model';
+import { MyReview, UnitDetails } from '../../models/unit.model';
 import { Observable, switchMap, map, of, tap } from 'rxjs';
 import { AddReviewComponent } from '../add-review/add-review.component';
 
@@ -22,26 +23,24 @@ import { AddReviewComponent } from '../add-review/add-review.component';
 export class UnitDetailComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private unitService = inject(UnitService);
+  private reviewService = inject(ReviewService);
   private seoService = inject(SeoService);
   authService = inject(AuthService);
 
-  // This will store all the unit information once it's fetched
   unit$: Observable<UnitDetails> | undefined;
-  
-  // Track if we should show the add review form
   showAddReviewForm = signal(false);
+  myReviewForUnit = signal<MyReview | null>(null);
 
   ngOnInit(): void {
     this.loadUnit();
   }
 
   loadUnit() {
-    // 1. Listen to changes in the URL parameters (like /units/COMP1000)
-    // 2. Use 'switchMap' to switch from the URL stream to the API data stream
     this.unit$ = this.route.paramMap.pipe(
       switchMap(params => {
         const code = params.get('code') || '';
         if (!code) return of(null as any);
+        this.loadMyReviewForUnit(code);
         return this.unitService.getUnitByCode(code);
       }),
       map((unit: UnitDetails) => {
@@ -66,7 +65,27 @@ export class UnitDetailComponent implements OnInit {
 
   onReviewAdded() {
     this.showAddReviewForm.set(false);
+    const code = this.route.snapshot.paramMap.get('code');
+    if (code) {
+      this.loadMyReviewForUnit(code);
+    }
     this.loadUnit();
+  }
+
+  hasExistingReview(): boolean {
+    return !!this.myReviewForUnit();
+  }
+
+  private loadMyReviewForUnit(unitCode: string) {
+    if (!this.authService.isLoggedIn()) {
+      this.myReviewForUnit.set(null);
+      return;
+    }
+
+    this.reviewService.getMyReviewForUnit(unitCode).subscribe({
+      next: (review) => this.myReviewForUnit.set(review),
+      error: () => this.myReviewForUnit.set(null)
+    });
   }
 
   getStarArray(rating: number): string[] {

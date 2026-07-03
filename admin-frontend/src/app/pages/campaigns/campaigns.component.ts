@@ -27,7 +27,9 @@ export class CampaignsComponent implements OnInit {
   endsAt = '';
   maxRedemptions: number | null = null;
   minReviewLength = 50;
-  maxEntriesPerUser = 5;
+  maxEntriesPerUser = 1;
+  requireVerifiedStudent = true;
+  requiredReviewCount = 1;
 
   ngOnInit(): void {
     this.refreshCampaigns();
@@ -53,7 +55,9 @@ export class CampaignsComponent implements OnInit {
       endsAt: new Date(this.endsAt).toISOString(),
       maxRedemptions: this.maxRedemptions,
       minReviewLength: this.minReviewLength,
-      maxEntriesPerUser: this.maxEntriesPerUser
+      maxEntriesPerUser: this.maxEntriesPerUser,
+      requireVerifiedStudent: this.requireVerifiedStudent,
+      requiredReviewCount: this.requiredReviewCount
     }).subscribe({
       next: () => {
         this.successMessage.set('Campaign created.');

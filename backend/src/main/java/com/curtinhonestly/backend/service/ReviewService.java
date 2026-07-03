@@ -4,6 +4,7 @@ import com.curtinhonestly.backend.domain.CampaignEntry;
 import com.curtinhonestly.backend.domain.Review;
 import com.curtinhonestly.backend.domain.Unit;
 import com.curtinhonestly.backend.domain.User;
+import com.curtinhonestly.backend.dto.CampaignProgressDTO;
 import com.curtinhonestly.backend.repo.ReviewRepo;
 import com.curtinhonestly.backend.repo.UnitRepo;
 import com.curtinhonestly.backend.repo.UserRepo;
@@ -45,55 +46,77 @@ public class ReviewService {
         return reviewRepo.findById(id).orElseThrow(() -> new RuntimeException("Review not found"));
     }
 
+    public Optional<Review> getReviewForCurrentUserAndUnit(String unitCode) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepo.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found: " + email));
+        Unit unit = unitRepo.findByCode(unitCode)
+                .orElseThrow(() -> new RuntimeException("Unit not found with code: " + unitCode));
+        return reviewRepo.findByUser_IdAndUnit_Id(user.getId(), unit.getId());
+    }
+
     public Review createReview(Review review) {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = getCurrentUser();
+        validateReviewFields(review);
 
-        // Load User entity
-        User user = userRepo.findByEmail(username)
-                .orElseThrow(() -> new RuntimeException("User not found: " + username));
-
-        // Validate rating scale (0-5)
-        if (review.getRating() < 0 || review.getRating() > 5) {
-            throw new IllegalArgumentException("Rating must be between 0 and 5");
-        }
-
-        // Validate grade scale (0-100)
-        if (review.getFinalGrade() != null && (review.getFinalGrade() < 0 || review.getFinalGrade() > 100)) {
-            throw new IllegalArgumentException("Final grade must be between 0 and 100%");
-        }
-
-        // Check for profanity
-        if (profanityFilterService.containsProfanity(review.getReviewText())) {
-            throw new IllegalArgumentException("Review contains inappropriate language. Please keep it professional.");
-        }
-
-        // Extract unit code from incoming Review object
         if (review.getUnit() == null || review.getUnit().getCode() == null) {
             throw new IllegalArgumentException("Unit code must be provided in review");
         }
-        String unitCode = review.getUnit().getCode();
 
-        // Look up full Unit entity by code
-        Unit unit = unitRepo.findByCode(unitCode)
-                .orElseThrow(() -> new RuntimeException("Unit not found with code: " + unitCode));
+        Unit unit = unitRepo.findByCode(review.getUnit().getCode())
+                .orElseThrow(() -> new RuntimeException("Unit not found with code: " + review.getUnit().getCode()));
 
-        // Set the full Unit and User entities on the review before saving
+        if (reviewRepo.existsByUser_IdAndUnit_Id(user.getId(), unit.getId())) {
+            throw new IllegalArgumentException("You have already reviewed this unit. Edit your existing review instead.");
+        }
+
         review.setUnit(unit);
         review.setUser(user);
 
-        log.info("Review added by user: {}", username);
+        log.info("Review added by user: {}", user.getEmail());
+        return reviewRepo.save(review);
+    }
 
-        Review savedReview = reviewRepo.save(review);
-        return savedReview;
+    public Review updateReview(String reviewId, Review updates) {
+        User user = getCurrentUser();
+        Review existing = getReviewById(reviewId);
+
+        if (!existing.getUser().getId().equals(user.getId())) {
+            throw new IllegalArgumentException("You can only edit your own reviews.");
+        }
+
+        validateReviewFields(updates);
+
+        existing.setRating(updates.getRating());
+        existing.setFinalGrade(updates.getFinalGrade());
+        existing.setReviewText(updates.getReviewText());
+        existing.setSemesterTaken(updates.getSemesterTaken());
+        existing.setProfessor(updates.getProfessor());
+        existing.setWorkload(updates.getWorkload());
+        existing.setHasExam(updates.isHasExam());
+        existing.setWouldTakeAgain(updates.isWouldTakeAgain());
+
+        log.info("Review updated by user: {}", user.getEmail());
+        return reviewRepo.save(existing);
     }
 
     public ReviewCreationResult createReviewWithCampaignEntry(Review review) {
         Review savedReview = createReview(review);
-        Optional<CampaignEntry> entry = campaignService.tryCreateEntryForReview(savedReview.getUser(), savedReview);
-        return new ReviewCreationResult(savedReview, entry);
+        CampaignService.CampaignAwardResult award = campaignService.tryAwardCampaignEntries(savedReview.getUser(), savedReview);
+        return new ReviewCreationResult(savedReview, award.newEntry(), award.progress());
     }
 
-    public record ReviewCreationResult(Review review, Optional<CampaignEntry> campaignEntry) {}
+    public ReviewCreationResult updateReviewWithCampaignEntry(String reviewId, Review updates) {
+        Review savedReview = updateReview(reviewId, updates);
+        CampaignService.CampaignAwardResult award = campaignService.tryAwardCampaignEntries(savedReview.getUser(), savedReview);
+        return new ReviewCreationResult(savedReview, award.newEntry(), award.progress());
+    }
+
+    public record ReviewCreationResult(
+            Review review,
+            Optional<CampaignEntry> campaignEntry,
+            CampaignProgressDTO campaignProgress
+    ) {}
 
     public void deleteReview(Review review) {
         log.info("Review deleted");
@@ -114,5 +137,25 @@ public class ReviewService {
         User user = userRepo.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found: " + email));
         return reviewRepo.findByUser_IdOrderByCreatedAtDesc(user.getId());
+    }
+
+    private User getCurrentUser() {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        return userRepo.findByEmail(username)
+                .orElseThrow(() -> new RuntimeException("User not found: " + username));
+    }
+
+    private void validateReviewFields(Review review) {
+        if (review.getRating() < 0 || review.getRating() > 5) {
+            throw new IllegalArgumentException("Rating must be between 0 and 5");
+        }
+
+        if (review.getFinalGrade() != null && (review.getFinalGrade() < 0 || review.getFinalGrade() > 100)) {
+            throw new IllegalArgumentException("Final grade must be between 0 and 100%");
+        }
+
+        if (profanityFilterService.containsProfanity(review.getReviewText())) {
+            throw new IllegalArgumentException("Review contains inappropriate language. Please keep it professional.");
+        }
     }
 }
