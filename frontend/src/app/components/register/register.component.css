@@ -63,6 +63,21 @@ input:focus {
   margin-top: 5px;
 }
 
+.optional {
+  font-weight: 400;
+  color: var(--text-secondary);
+}
+
+.campaign-banner {
+  background-color: #eff6ff;
+  color: #1d4ed8;
+  padding: 12px;
+  border-left: 4px solid #2563eb;
+  margin-bottom: 20px;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
 .btn-primary {
   width: 100%;
   background-color: var(--primary-color);

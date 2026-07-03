@@ -3,6 +3,7 @@ package com.curtinhonestly.backend.resource;
 import com.curtinhonestly.backend.dto.*;
 import com.curtinhonestly.backend.security.SecurityConstants;
 import com.curtinhonestly.backend.service.AdminService;
+import com.curtinhonestly.backend.service.CampaignService;
 import com.curtinhonestly.backend.service.ReviewService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -10,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Instant;
 import java.util.List;
 
 @RestController
@@ -20,6 +22,7 @@ public class AdminResource {
 
     private final AdminService adminService;
     private final ReviewService reviewService;
+    private final CampaignService campaignService;
 
     @GetMapping("/stats/overview")
     public ResponseEntity<AdminOverviewDTO> getOverview() {
@@ -75,5 +78,56 @@ public class AdminResource {
         return ResponseEntity.noContent().build();
     }
 
+    @GetMapping("/campaigns")
+    public ResponseEntity<List<CampaignAdminDTO>> listCampaigns() {
+        return ResponseEntity.ok(campaignService.listCampaigns());
+    }
+
+    @PostMapping("/campaigns")
+    public ResponseEntity<?> createCampaign(@RequestBody CreateCampaignRequest request) {
+        try {
+            return ResponseEntity.ok(campaignService.createCampaign(
+                    request.slug(),
+                    request.code(),
+                    request.name(),
+                    request.prizeDescription(),
+                    request.startsAt(),
+                    request.endsAt(),
+                    request.maxRedemptions(),
+                    request.minReviewLength(),
+                    request.maxEntriesPerUser()
+            ));
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest()
+                    .body("{\"error\": \"" + ex.getMessage() + "\"}");
+        }
+    }
+
+    @PatchMapping("/campaigns/{id}/active")
+    public ResponseEntity<CampaignAdminDTO> setCampaignActive(
+            @PathVariable String id,
+            @RequestBody SetCampaignActiveRequest request) {
+        return ResponseEntity.ok(campaignService.setCampaignActive(id, request.active()));
+    }
+
+    @GetMapping("/campaigns/{id}/entries")
+    public ResponseEntity<List<CampaignEntryAdminDTO>> listCampaignEntries(@PathVariable String id) {
+        return ResponseEntity.ok(campaignService.listEntriesForCampaign(id));
+    }
+
     public record CreateUserRequest(String email, String password, boolean admin) {}
+
+    public record CreateCampaignRequest(
+            String slug,
+            String code,
+            String name,
+            String prizeDescription,
+            Instant startsAt,
+            Instant endsAt,
+            Integer maxRedemptions,
+            int minReviewLength,
+            int maxEntriesPerUser
+    ) {}
+
+    public record SetCampaignActiveRequest(boolean active) {}
 }

@@ -1,6 +1,7 @@
 package com.curtinhonestly.backend.resource;
 
 import com.curtinhonestly.backend.dto.MyReviewDTO;
+import com.curtinhonestly.backend.dto.CreateReviewResponseDTO;
 import com.curtinhonestly.backend.dto.ReviewDTO;
 import com.curtinhonestly.backend.mapper.ReviewMapper;
 import com.curtinhonestly.backend.domain.Review;
@@ -38,9 +39,24 @@ public class ReviewResource {
     @PreAuthorize(SecurityConstants.HAS_ROLE_USER)
     public ResponseEntity<?> createReview(@RequestBody Review review) {
         try {
-            Review savedReview = reviewService.createReview(review);
-            return ResponseEntity.created(URI.create("/reviews/" + savedReview.getId()))
-                    .body(ReviewMapper.mapToDTO(savedReview));
+            ReviewService.ReviewCreationResult result = reviewService.createReviewWithCampaignEntry(review);
+            Review savedReview = result.review();
+            ReviewDTO reviewDto = ReviewMapper.mapToDTO(savedReview);
+
+            String entryToken = null;
+            String campaignName = null;
+            if (result.campaignEntry().isPresent()) {
+                var entry = result.campaignEntry().get();
+                entryToken = entry.getEntryToken();
+                campaignName = entry.getCampaign().getName();
+            }
+
+            CreateReviewResponseDTO response = new CreateReviewResponseDTO(reviewDto, entryToken, campaignName);
+            return ResponseEntity.created(URI.create("/reviews/" + savedReview.getId())).body(response);
+        } catch (IllegalArgumentException e) {
+            log.warn("Review validation failed: {}", e.getMessage());
+            return ResponseEntity.badRequest()
+                    .body("{\"error\": \"" + e.getMessage() + "\"}");
         } catch (Exception e) {
             log.error("Error creating review: {}", e.getMessage(), e);
             String message = e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName();

@@ -1,5 +1,6 @@
 package com.curtinhonestly.backend.service;
 
+import com.curtinhonestly.backend.domain.CampaignEntry;
 import com.curtinhonestly.backend.domain.Review;
 import com.curtinhonestly.backend.domain.Unit;
 import com.curtinhonestly.backend.domain.User;
@@ -16,6 +17,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Slf4j
@@ -28,6 +30,7 @@ public class ReviewService {
     private final UserRepo userRepo;
     private final UnitRepo unitRepo;
     private final ProfanityFilterService profanityFilterService;
+    private final CampaignService campaignService;
 
     public List<Review> getReviewsByUnitCode(String unitCode) {
         Unit unit = unitService.getUnitByCode(unitCode);
@@ -43,7 +46,6 @@ public class ReviewService {
     }
 
     public Review createReview(Review review) {
-        // Get authenticated user's email
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
 
         // Load User entity
@@ -81,8 +83,17 @@ public class ReviewService {
 
         log.info("Review added by user: {}", username);
 
-        return reviewRepo.save(review);
+        Review savedReview = reviewRepo.save(review);
+        return savedReview;
     }
+
+    public ReviewCreationResult createReviewWithCampaignEntry(Review review) {
+        Review savedReview = createReview(review);
+        Optional<CampaignEntry> entry = campaignService.tryCreateEntryForReview(savedReview.getUser(), savedReview);
+        return new ReviewCreationResult(savedReview, entry);
+    }
+
+    public record ReviewCreationResult(Review review, Optional<CampaignEntry> campaignEntry) {}
 
     public void deleteReview(Review review) {
         log.info("Review deleted");

@@ -1,8 +1,11 @@
 package com.curtinhonestly.backend.resource;
 
+import com.curtinhonestly.backend.domain.Campaign;
 import com.curtinhonestly.backend.domain.User;
 import com.curtinhonestly.backend.dto.AccountDTO;
+import com.curtinhonestly.backend.dto.CampaignEntrySummaryDTO;
 import com.curtinhonestly.backend.security.JwtUtil;
+import com.curtinhonestly.backend.service.CampaignService;
 import com.curtinhonestly.backend.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,6 +17,9 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+import java.util.Optional;
+
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
@@ -23,6 +29,7 @@ public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
     private final UserService userService;
+    private final CampaignService campaignService;
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
@@ -35,7 +42,29 @@ public class AuthController {
         }
 
         try {
-            User user = userService.createUser(request.email(), request.password());
+            Optional<Campaign> campaignOpt = hasCampaignAttribution(request)
+                    ? campaignService.resolveCampaignForRegistration(request.ref(), request.promoCode())
+                    : Optional.empty();
+
+            if (hasCampaignAttribution(request) && campaignOpt.isEmpty()) {
+                return ResponseEntity.status(400)
+                        .body("{\"error\": \"Campaign not found. Check your referral link or promo code.\"}");
+            }
+
+            if (campaignOpt.isPresent()) {
+                var validation = campaignService.validateCampaign(request.ref(), request.promoCode());
+                if (!validation.isValid()) {
+                    return ResponseEntity.status(400)
+                            .body("{\"error\": \"" + validation.getMessage() + "\"}");
+                }
+            }
+
+            User user = userService.createUser(
+                    request.email(),
+                    request.password(),
+                    campaignOpt.orElse(null),
+                    request.ref()
+            );
             String token = jwtUtil.generateToken(
                     user.getEmail(),
                     user.getRoles().stream().map(Enum::name).toList()
@@ -81,7 +110,17 @@ public class AuthController {
     public ResponseEntity<AccountDTO> getCurrentAccount() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userService.getUserByEmail(email);
-        return ResponseEntity.ok(new AccountDTO(user.getEmail(), user.isVerifiedStudent()));
+        var campaign = user.getCampaign();
+        List<CampaignEntrySummaryDTO> entries = campaignService.getEntriesForUser(user);
+
+        return ResponseEntity.ok(new AccountDTO(
+                user.getEmail(),
+                user.isVerifiedStudent(),
+                campaign != null ? campaign.getName() : null,
+                campaign != null ? campaign.getPrizeDescription() : null,
+                campaign != null ? campaign.getEndsAt() : null,
+                entries
+        ));
     }
 
     @PatchMapping("/me")
@@ -144,7 +183,12 @@ public class AuthController {
         return email != null && email.contains("@") && email.contains(".");
     }
 
-    public record RegisterRequest(String email, String password) {}
+    private boolean hasCampaignAttribution(RegisterRequest request) {
+        return (request.ref() != null && !request.ref().isBlank())
+                || (request.promoCode() != null && !request.promoCode().isBlank());
+    }
+
+    public record RegisterRequest(String email, String password, String ref, String promoCode) {}
     public record LoginRequest(String email, String password) {}
     public record VerifyStudentRequest(String studentEmail, String password) {}
     public record UpdateEmailRequest(String newEmail, String password) {}

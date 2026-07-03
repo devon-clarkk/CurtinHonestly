@@ -61,6 +61,13 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Review> reviews;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "campaign_id")
+    private Campaign campaign;
+
+    @Column(length = 100)
+    private String registeredViaRef;
+
 }
 
 
