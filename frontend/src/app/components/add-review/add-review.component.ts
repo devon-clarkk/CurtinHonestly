@@ -1,8 +1,7 @@
 import { Component, inject, input, output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ReviewService } from '../../services/review.service';
-import { Router } from '@angular/router';
+import { ReviewService, CreateReviewResponse } from '../../services/review.service';
 import { BANNED_WORDS } from '../../models/profanity-list';
 
 @Component({
@@ -14,13 +13,12 @@ import { BANNED_WORDS } from '../../models/profanity-list';
 })
 export class AddReviewComponent {
   private reviewService = inject(ReviewService);
-  private router = inject(Router);
 
   unitCode = input.required<string>();
   reviewAdded = output<void>();
+  reviewError = output<string>();
   cancel = output<void>();
 
-  // Form fields
   rating = signal(5);
   reviewText = signal('');
   semesterTaken = signal('Semester 1, 2026');
@@ -32,15 +30,15 @@ export class AddReviewComponent {
 
   isLoading = signal(false);
   errorMessage = signal<string | null>(null);
+  successMessage = signal<string | null>(null);
 
-  // Pre-compile the profanity regex once
   private readonly profanityRegex = new RegExp(
     `\\b(${BANNED_WORDS.map(word => this.escapeRegExp(word)).join('|')})\\b`, 
     'i'
   );
 
   private escapeRegExp(string: string) {
-    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   }
 
   private containsProfanity(text: string): boolean {
@@ -54,13 +52,11 @@ export class AddReviewComponent {
       return;
     }
 
-    // Validate Grade
     if (this.finalGrade() !== null && (this.finalGrade()! < 0 || this.finalGrade()! > 100)) {
       this.errorMessage.set('Final grade must be between 0 and 100%.');
       return;
     }
 
-    // Profanity Check
     if (this.containsProfanity(this.reviewText())) {
       this.errorMessage.set('Your review contains language that violates our community standards. Please keep it professional.');
       return;
@@ -68,6 +64,7 @@ export class AddReviewComponent {
 
     this.isLoading.set(true);
     this.errorMessage.set(null);
+    this.successMessage.set(null);
 
     const reviewData = {
       rating: this.rating(),
@@ -78,19 +75,31 @@ export class AddReviewComponent {
       hasExam: this.hasExam(),
       wouldTakeAgain: this.wouldTakeAgain(),
       finalGrade: this.finalGrade(),
-      unit: { code: this.unitCode() }
+      unitCode: this.unitCode()
     };
 
     this.reviewService.createReview(reviewData).subscribe({
-      next: () => {
+      next: (response: CreateReviewResponse) => {
         this.isLoading.set(false);
-        this.reviewAdded.emit();
-        // Reset form
-        this.resetForm();
+
+        if (response.campaignEntryToken) {
+          this.successMessage.set(
+            `Review submitted! You're entered in the ${response.campaignName ?? 'campaign'} draw. Entry token: ${response.campaignEntryToken}`
+          );
+          setTimeout(() => {
+            this.reviewAdded.emit();
+            this.resetForm();
+          }, 4000);
+        } else {
+          this.reviewAdded.emit();
+          this.resetForm();
+        }
       },
       error: (err) => {
         this.isLoading.set(false);
-        this.errorMessage.set(err.error?.error || 'Failed to submit review. Please try again.');
+        const message = err.error?.error || 'Failed to submit review. Please try again.';
+        this.errorMessage.set(message);
+        this.reviewError.emit(message);
       }
     });
   }
@@ -104,6 +113,7 @@ export class AddReviewComponent {
     this.hasExam.set(false);
     this.wouldTakeAgain.set(true);
     this.finalGrade.set(null);
+    this.successMessage.set(null);
   }
 
   onCancel() {

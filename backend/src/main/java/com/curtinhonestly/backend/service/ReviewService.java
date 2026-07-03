@@ -1,5 +1,6 @@
 package com.curtinhonestly.backend.service;
 
+import com.curtinhonestly.backend.domain.CampaignEntry;
 import com.curtinhonestly.backend.domain.Review;
 import com.curtinhonestly.backend.domain.Unit;
 import com.curtinhonestly.backend.domain.User;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Slf4j
@@ -31,6 +33,7 @@ public class ReviewService {
     private final UnitRepo unitRepo;
     private final ProfanityFilterService profanityFilterService;
     private final UnitAggregateService unitAggregateService;
+    private final CampaignService campaignService;
 
     public List<Review> getReviewsByUnitCode(String unitCode) {
         Unit unit = unitService.getUnitByCode(unitCode);
@@ -83,6 +86,14 @@ public class ReviewService {
         unitAggregateService.recalculateForUnit(unit.getId());
         return saved;
     }
+
+    public ReviewCreationResult createReviewWithCampaignEntry(ReviewCreateRequest request) {
+        Review savedReview = createReview(request);
+        Optional<CampaignEntry> entry = campaignService.tryCreateEntryForReview(savedReview.getUser(), savedReview);
+        return new ReviewCreationResult(savedReview, entry);
+    }
+
+    public record ReviewCreationResult(Review review, Optional<CampaignEntry> campaignEntry) {}
 
     public void deleteReview(Review review) {
         String unitId = review.getUnit().getId();

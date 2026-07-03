@@ -11,6 +11,8 @@ export interface LoginRequest {
 export interface RegisterRequest {
   email: string;
   password?: string;
+  ref?: string;
+  promoCode?: string;
 }
 
 export interface VerifyStudentRequest {
@@ -31,6 +33,17 @@ export interface JwtResponse {
 export interface AccountStatus {
   email: string;
   verifiedStudent: boolean;
+  campaignName: string | null;
+  campaignPrizeDescription: string | null;
+  campaignEndsAt: string | null;
+  campaignEntries: CampaignEntrySummary[];
+}
+
+export interface CampaignEntrySummary {
+  entryToken: string;
+  campaignName: string;
+  unitCode: string;
+  createdAt: string;
 }
 
 @Injectable({
