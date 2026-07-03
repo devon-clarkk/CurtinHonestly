@@ -102,7 +102,9 @@ public class AdminResource {
                 request.endsAt(),
                 request.maxRedemptions(),
                 request.minReviewLength(),
-                request.maxEntriesPerUser()
+                request.maxEntriesPerUser(),
+                request.requireVerifiedStudent(),
+                request.requiredReviewCount()
         ));
     }
 
@@ -129,7 +131,9 @@ public class AdminResource {
             Instant endsAt,
             Integer maxRedemptions,
             int minReviewLength,
-            int maxEntriesPerUser
+            int maxEntriesPerUser,
+            boolean requireVerifiedStudent,
+            int requiredReviewCount
     ) {}
 
     public record SetCampaignActiveRequest(boolean active) {}

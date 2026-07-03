@@ -19,6 +19,8 @@ public class CampaignAdminDTO {
     private Integer maxRedemptions;
     private int minReviewLength;
     private int maxEntriesPerUser;
+    private boolean requireVerifiedStudent;
+    private int requiredReviewCount;
     private long signupCount;
     private long entryCount;
     private Instant createdAt;

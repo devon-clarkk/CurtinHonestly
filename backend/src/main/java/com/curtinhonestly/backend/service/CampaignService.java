@@ -7,9 +7,11 @@ import com.curtinhonestly.backend.domain.User;
 import com.curtinhonestly.backend.dto.CampaignAdminDTO;
 import com.curtinhonestly.backend.dto.CampaignEntryAdminDTO;
 import com.curtinhonestly.backend.dto.CampaignEntrySummaryDTO;
+import com.curtinhonestly.backend.dto.CampaignProgressDTO;
 import com.curtinhonestly.backend.dto.CampaignValidationDTO;
 import com.curtinhonestly.backend.repo.CampaignEntryRepo;
 import com.curtinhonestly.backend.repo.CampaignRepo;
+import com.curtinhonestly.backend.repo.ReviewRepo;
 import com.curtinhonestly.backend.repo.UserRepo;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -33,7 +35,10 @@ public class CampaignService {
     private final CampaignRepo campaignRepo;
     private final CampaignEntryRepo campaignEntryRepo;
     private final UserRepo userRepo;
+    private final ReviewRepo reviewRepo;
     private final SecureRandom secureRandom = new SecureRandom();
+
+    public record CampaignAwardResult(Optional<CampaignEntry> newEntry, CampaignProgressDTO progress) {}
 
     public Optional<Campaign> resolveCampaignForRegistration(String ref, String promoCode) {
         Campaign byRef = normalize(ref)
@@ -72,43 +77,54 @@ public class CampaignService {
         );
     }
 
-    public Optional<CampaignEntry> tryCreateEntryForReview(User user, Review review) {
-        if (user.getCampaign() == null || user.isBanned() || !user.isVerifiedStudent()) {
-            return Optional.empty();
+    public CampaignProgressDTO getCampaignProgress(User user) {
+        if (user.getCampaign() == null) {
+            return null;
+        }
+        return buildProgress(user, user.getCampaign());
+    }
+
+    public CampaignAwardResult tryAwardCampaignEntries(User user, Review triggeringReview) {
+        if (user.getCampaign() == null || user.isBanned()) {
+            return new CampaignAwardResult(Optional.empty(), null);
         }
 
         Campaign campaign = user.getCampaign();
-        if (!isWithinWindow(campaign, review.getCreatedAt())) {
-            return Optional.empty();
+        CampaignProgressDTO progress = buildProgress(user, campaign);
+
+        if (campaign.isRequireVerifiedStudent() && !user.isVerifiedStudent()) {
+            return new CampaignAwardResult(Optional.empty(), progress);
         }
 
-        String validationMessage = validateCampaignState(campaign, false);
-        if (validationMessage != null) {
-            return Optional.empty();
+        if (!reviewQualifies(triggeringReview, campaign)) {
+            return new CampaignAwardResult(Optional.empty(), progress);
         }
 
-        if (review.getReviewText() == null || review.getReviewText().trim().length() < campaign.getMinReviewLength()) {
-            return Optional.empty();
+        if (validateCampaignState(campaign, false) != null) {
+            return new CampaignAwardResult(Optional.empty(), progress);
         }
 
-        if (campaignEntryRepo.existsByReview_Id(review.getId())) {
-            return Optional.empty();
-        }
-
+        long qualifyingCount = countQualifyingReviews(user, campaign);
+        int requiredReviewCount = Math.max(1, campaign.getRequiredReviewCount());
+        int maxEntriesPerUser = Math.max(1, campaign.getMaxEntriesPerUser());
+        long entriesShouldHave = Math.min(qualifyingCount / requiredReviewCount, maxEntriesPerUser);
         long existingEntries = campaignEntryRepo.countByCampaign_IdAndUser_Id(campaign.getId(), user.getId());
-        if (existingEntries >= campaign.getMaxEntriesPerUser()) {
-            return Optional.empty();
+        long entriesToCreate = entriesShouldHave - existingEntries;
+
+        Optional<CampaignEntry> newEntry = Optional.empty();
+        for (long i = 0; i < entriesToCreate; i++) {
+            CampaignEntry entry = new CampaignEntry();
+            entry.setCampaign(campaign);
+            entry.setUser(user);
+            entry.setReview(triggeringReview);
+            entry.setEntryToken(generateUniqueEntryToken());
+            CampaignEntry saved = campaignEntryRepo.save(entry);
+            newEntry = Optional.of(saved);
+            log.info("Campaign entry {} created for user {} on review {}", saved.getEntryToken(), user.getId(), triggeringReview.getId());
         }
 
-        CampaignEntry entry = new CampaignEntry();
-        entry.setCampaign(campaign);
-        entry.setUser(user);
-        entry.setReview(review);
-        entry.setEntryToken(generateUniqueEntryToken());
-
-        CampaignEntry saved = campaignEntryRepo.save(entry);
-        log.info("Campaign entry {} created for user {} on review {}", saved.getEntryToken(), user.getId(), review.getId());
-        return Optional.of(saved);
+        progress = buildProgress(user, campaign);
+        return new CampaignAwardResult(newEntry, progress);
     }
 
     public List<CampaignEntrySummaryDTO> getEntriesForUser(User user) {
@@ -137,7 +153,9 @@ public class CampaignService {
             Instant endsAt,
             Integer maxRedemptions,
             int minReviewLength,
-            int maxEntriesPerUser
+            int maxEntriesPerUser,
+            boolean requireVerifiedStudent,
+            int requiredReviewCount
     ) {
         String normalizedSlug = requireNormalized(slug, "Campaign slug");
         String normalizedCode = requireNormalized(code, "Promo code").toUpperCase();
@@ -156,7 +174,10 @@ public class CampaignService {
             minReviewLength = 50;
         }
         if (maxEntriesPerUser <= 0) {
-            maxEntriesPerUser = 5;
+            maxEntriesPerUser = 1;
+        }
+        if (requiredReviewCount <= 0) {
+            requiredReviewCount = 1;
         }
 
         Campaign campaign = new Campaign();
@@ -169,6 +190,8 @@ public class CampaignService {
         campaign.setMaxRedemptions(maxRedemptions);
         campaign.setMinReviewLength(minReviewLength);
         campaign.setMaxEntriesPerUser(maxEntriesPerUser);
+        campaign.setRequireVerifiedStudent(requireVerifiedStudent);
+        campaign.setRequiredReviewCount(requiredReviewCount);
         campaign.setActive(true);
 
         return toAdminDTO(campaignRepo.save(campaign));
@@ -197,6 +220,35 @@ public class CampaignService {
                 .toList();
     }
 
+    private long countQualifyingReviews(User user, Campaign campaign) {
+        return reviewRepo.findByUser_IdOrderByCreatedAtDesc(user.getId()).stream()
+                .filter(review -> reviewQualifies(review, campaign))
+                .count();
+    }
+
+    private boolean reviewQualifies(Review review, Campaign campaign) {
+        if (!isWithinWindow(campaign, review.getCreatedAt())) {
+            return false;
+        }
+        return review.getReviewText() != null
+                && review.getReviewText().trim().length() >= campaign.getMinReviewLength();
+    }
+
+    private CampaignProgressDTO buildProgress(User user, Campaign campaign) {
+        long qualifyingReviews = countQualifyingReviews(user, campaign);
+        int requiredReviewCount = Math.max(1, campaign.getRequiredReviewCount());
+        int maxEntriesPerUser = Math.max(1, campaign.getMaxEntriesPerUser());
+        long entriesEarned = Math.min(qualifyingReviews / requiredReviewCount, maxEntriesPerUser);
+
+        return new CampaignProgressDTO(
+                (int) qualifyingReviews,
+                requiredReviewCount,
+                (int) entriesEarned,
+                maxEntriesPerUser,
+                campaign.isRequireVerifiedStudent()
+        );
+    }
+
     private CampaignAdminDTO toAdminDTO(Campaign campaign) {
         return new CampaignAdminDTO(
                 campaign.getId(),
@@ -210,6 +262,8 @@ public class CampaignService {
                 campaign.getMaxRedemptions(),
                 campaign.getMinReviewLength(),
                 campaign.getMaxEntriesPerUser(),
+                campaign.isRequireVerifiedStudent(),
+                campaign.getRequiredReviewCount(),
                 userRepo.countByCampaign_Id(campaign.getId()),
                 campaignEntryRepo.countByCampaign_Id(campaign.getId()),
                 campaign.getCreatedAt()

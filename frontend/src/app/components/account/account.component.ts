@@ -43,6 +43,29 @@ export class AccountComponent implements OnInit {
     });
   }
 
+  campaignProgressLabel(): string | null {
+    const progress = this.account()?.campaignProgress;
+    if (!progress) {
+      return null;
+    }
+
+    if (progress.entriesEarned >= progress.maxEntries) {
+      return `You have ${progress.entriesEarned} draw ${progress.entriesEarned === 1 ? 'entry' : 'entries'}.`;
+    }
+
+    const remainder = progress.qualifyingReviews % progress.requiredReviews;
+    if (remainder === 0 && progress.qualifyingReviews === 0) {
+      return `Leave ${progress.requiredReviews} qualifying review${progress.requiredReviews === 1 ? '' : 's'} on different units to enter the draw.`;
+    }
+
+    if (remainder === 0) {
+      return `${progress.qualifyingReviews} qualifying reviews submitted.`;
+    }
+
+    const needed = progress.requiredReviews - remainder;
+    return `${progress.qualifyingReviews}/${progress.requiredReviews} qualifying reviews — ${needed} more needed for a draw entry.`;
+  }
+
   onUpdateEmail() {
     this.clearMessages();
     this.isLoading.set(true);

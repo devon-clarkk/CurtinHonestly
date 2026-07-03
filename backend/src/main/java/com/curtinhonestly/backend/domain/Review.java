@@ -15,7 +15,10 @@ import java.time.Instant;
 @Entity
 
 // Map to the "reviews" table
-@Table(name = "reviews")
+@Table(
+        name = "reviews",
+        uniqueConstraints = @UniqueConstraint(name = "uk_reviews_user_unit", columnNames = {"user_id", "unit_id"})
+)
 
 // Lombok getters/setters
 @Getter

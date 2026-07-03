@@ -1,8 +1,8 @@
 package com.curtinhonestly.backend.resource;
 
+import com.curtinhonestly.backend.dto.CreateReviewResponseDTO;
 import com.curtinhonestly.backend.dto.MyReviewDTO;
 import com.curtinhonestly.backend.dto.ReviewCreateRequest;
-import com.curtinhonestly.backend.dto.CreateReviewResponseDTO;
 import com.curtinhonestly.backend.dto.ReviewDTO;
 import com.curtinhonestly.backend.mapper.ReviewMapper;
 import com.curtinhonestly.backend.domain.Review;
@@ -51,7 +51,7 @@ public class ReviewResource {
             campaignName = entry.getCampaign().getName();
         }
 
-        CreateReviewResponseDTO response = new CreateReviewResponseDTO(reviewDto, entryToken, campaignName);
+        CreateReviewResponseDTO response = new CreateReviewResponseDTO(reviewDto, entryToken, campaignName, result.campaignProgress());
         return ResponseEntity.created(URI.create("/reviews/" + savedReview.getId())).body(response);
     }
 

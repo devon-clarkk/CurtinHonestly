@@ -4,6 +4,7 @@ import com.curtinhonestly.backend.domain.CampaignEntry;
 import com.curtinhonestly.backend.domain.Review;
 import com.curtinhonestly.backend.domain.Unit;
 import com.curtinhonestly.backend.domain.User;
+import com.curtinhonestly.backend.dto.CampaignProgressDTO;
 import com.curtinhonestly.backend.dto.ReviewCreateRequest;
 import com.curtinhonestly.backend.repo.ReviewRepo;
 import com.curtinhonestly.backend.repo.UnitRepo;
@@ -65,6 +66,10 @@ public class ReviewService {
         Unit unit = unitRepo.findByCode(request.unitCode())
                 .orElseThrow(() -> new RuntimeException("Unit not found with code: " + request.unitCode()));
 
+        if (reviewRepo.existsByUser_IdAndUnit_Id(user.getId(), unit.getId())) {
+            throw new IllegalArgumentException("You've already reviewed this unit. Delete your existing review from My Reviews before posting a new one.");
+        }
+
         // Build the Review server-side from only the user-settable fields.
         // createdAt and id are never taken from client input.
         Review review = new Review();
@@ -89,11 +94,15 @@ public class ReviewService {
 
     public ReviewCreationResult createReviewWithCampaignEntry(ReviewCreateRequest request) {
         Review savedReview = createReview(request);
-        Optional<CampaignEntry> entry = campaignService.tryCreateEntryForReview(savedReview.getUser(), savedReview);
-        return new ReviewCreationResult(savedReview, entry);
+        CampaignService.CampaignAwardResult award = campaignService.tryAwardCampaignEntries(savedReview.getUser(), savedReview);
+        return new ReviewCreationResult(savedReview, award.newEntry(), award.progress());
     }
 
-    public record ReviewCreationResult(Review review, Optional<CampaignEntry> campaignEntry) {}
+    public record ReviewCreationResult(
+            Review review,
+            Optional<CampaignEntry> campaignEntry,
+            CampaignProgressDTO campaignProgress
+    ) {}
 
     public void deleteReview(Review review) {
         String unitId = review.getUnit().getId();

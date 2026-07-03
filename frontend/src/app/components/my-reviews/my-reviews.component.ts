@@ -45,7 +45,7 @@ export class MyReviewsComponent implements OnInit {
       switchMap(query =>
         this.unitService.getUnits(0, 20, query || undefined, [], undefined, 'code')
       ),
-      map(page => page.content)
+      map(page => page.content.filter(unit => !this.hasReviewForUnit(unit.code)))
     );
   }
 
@@ -84,8 +84,13 @@ export class MyReviewsComponent implements OnInit {
   }
 
   selectUnit(unit: UnitSummary) {
+    if (this.hasReviewForUnit(unit.code)) {
+      this.errorMessage.set('You have already reviewed this unit. Delete your existing review below if you want to post a new one.');
+      return;
+    }
     this.selectedUnitCode.set(unit.code);
     this.selectedUnitName.set(unit.name);
+    this.errorMessage.set(null);
   }
 
   onReviewAdded() {
@@ -110,5 +115,9 @@ export class MyReviewsComponent implements OnInit {
 
   viewUnit(code: string) {
     this.router.navigate(['/units', code]);
+  }
+
+  private hasReviewForUnit(unitCode: string): boolean {
+    return this.reviews().some(review => review.unitCode === unitCode);
   }
 }

@@ -14,5 +14,6 @@ public class AccountDTO {
     private String campaignName;
     private String campaignPrizeDescription;
     private Instant campaignEndsAt;
+    private CampaignProgressDTO campaignProgress;
     private List<CampaignEntrySummaryDTO> campaignEntries;
 }
