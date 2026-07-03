@@ -118,6 +118,12 @@
   line-height: 1.5;
 }
 
+.campaign-progress {
+  margin: 12px 0 0;
+  font-weight: 600;
+  color: #1d4ed8;
+}
+
 .entries-heading {
   margin: 16px 0 8px;
   font-size: 1rem;

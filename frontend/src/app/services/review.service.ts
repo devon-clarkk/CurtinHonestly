@@ -4,10 +4,19 @@ import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { MyReview } from '../models/unit.model';
 
+export interface CampaignProgress {
+  qualifyingReviews: number;
+  requiredReviews: number;
+  entriesEarned: number;
+  maxEntries: number;
+  requireVerifiedStudent: boolean;
+}
+
 export interface CreateReviewResponse {
   review: unknown;
   campaignEntryToken: string | null;
   campaignName: string | null;
+  campaignProgress: CampaignProgress | null;
 }
 
 @Injectable({

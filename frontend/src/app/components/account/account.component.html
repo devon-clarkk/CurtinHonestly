@@ -40,8 +40,14 @@
         }
       </p>
 
-      @if (!authService.verifiedStudent()) {
+      @if (account()?.campaignProgress?.requireVerifiedStudent && !authService.verifiedStudent()) {
         <p class="campaign-note">Verify your student email below to earn draw entries when you leave qualifying reviews.</p>
+      } @else if (account()?.campaignProgress && !account()?.campaignProgress?.requireVerifiedStudent) {
+        <p class="campaign-note">This campaign accepts unverified accounts (e.g. alumni). One review per unit counts toward your entry.</p>
+      }
+
+      @if (campaignProgressLabel()) {
+        <p class="campaign-progress">{{ campaignProgressLabel() }}</p>
       }
 
       @if (account()?.campaignEntries?.length) {
@@ -54,8 +60,8 @@
             </li>
           }
         </ul>
-      } @else if (authService.verifiedStudent()) {
-        <p class="campaign-note">Leave a qualifying review on any unit to receive an entry token.</p>
+      } @else if (authService.verifiedStudent() || !account()?.campaignProgress?.requireVerifiedStudent) {
+        <p class="campaign-note">Leave qualifying reviews on different units to receive a draw entry token.</p>
       }
     </section>
   }

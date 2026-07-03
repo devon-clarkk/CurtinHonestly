@@ -52,6 +52,12 @@ public class Campaign {
     @Column(nullable = false)
     private int maxEntriesPerUser = 5;
 
+    @Column(nullable = false)
+    private boolean requireVerifiedStudent = true;
+
+    @Column(nullable = false)
+    private int requiredReviewCount = 1;
+
     @Column(nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
 }

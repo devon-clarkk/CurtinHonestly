@@ -30,12 +30,21 @@ export interface JwtResponse {
   verifiedStudent: boolean;
 }
 
+export interface CampaignProgress {
+  qualifyingReviews: number;
+  requiredReviews: number;
+  entriesEarned: number;
+  maxEntries: number;
+  requireVerifiedStudent: boolean;
+}
+
 export interface AccountStatus {
   email: string;
   verifiedStudent: boolean;
   campaignName: string | null;
   campaignPrizeDescription: string | null;
   campaignEndsAt: string | null;
+  campaignProgress: CampaignProgress | null;
   campaignEntries: CampaignEntrySummary[];
 }
 

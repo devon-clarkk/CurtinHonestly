@@ -25,7 +25,12 @@
     </label>
     <input type="number" placeholder="Max signups (optional)" [(ngModel)]="maxRedemptions" name="maxRedemptions" />
     <input type="number" placeholder="Min review length" [(ngModel)]="minReviewLength" name="minReviewLength" />
-    <input type="number" placeholder="Max entries per user" [(ngModel)]="maxEntriesPerUser" name="maxEntriesPerUser" />
+    <input type="number" placeholder="Required reviews for entry" [(ngModel)]="requiredReviewCount" name="requiredReviewCount" />
+    <input type="number" placeholder="Max draw entries per user" [(ngModel)]="maxEntriesPerUser" name="maxEntriesPerUser" />
+    <label class="checkbox">
+      <input type="checkbox" [(ngModel)]="requireVerifiedStudent" name="requireVerifiedStudent" />
+      Require verified student
+    </label>
   </div>
   <button type="button" class="btn btn-primary" (click)="createCampaign()">Create campaign</button>
 </section>
@@ -56,6 +61,11 @@
           <td>
             <div><code>{{ campaign.slug }}</code></div>
             <div><code>{{ campaign.code }}</code></div>
+            <div class="subtle">
+              {{ campaign.requiredReviewCount }} review(s) ·
+              {{ campaign.requireVerifiedStudent ? 'verified only' : 'any account' }} ·
+              min {{ campaign.minReviewLength }} chars
+            </div>
           </td>
           <td>
             {{ campaign.startsAt | date: 'mediumDate' }} –

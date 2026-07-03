@@ -38,8 +38,13 @@ public class ReviewMapper {
                 unitCode,
                 unitName,
                 review.getRating(),
+                review.getFinalGrade(),
                 review.getReviewText(),
                 review.getSemesterTaken(),
+                review.getProfessor(),
+                review.getWorkload(),
+                review.isHasExam(),
+                review.isWouldTakeAgain(),
                 review.getCreatedAt()
         );
     }

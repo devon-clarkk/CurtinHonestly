@@ -98,6 +98,7 @@ public class AuthController {
                 campaign != null ? campaign.getName() : null,
                 campaign != null ? campaign.getPrizeDescription() : null,
                 campaign != null ? campaign.getEndsAt() : null,
+                campaignService.getCampaignProgress(user),
                 entries
         ));
     }
