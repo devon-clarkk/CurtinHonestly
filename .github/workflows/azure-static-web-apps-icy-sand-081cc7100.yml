@@ -34,7 +34,7 @@ jobs:
         working-directory: frontend
         env:
           API_URL: ${{ secrets.API_URL }}
-          SITE_URL: https://curtinhonestly.com
+          SITE_URL: https://www.curtinhonestly.com
         run: npm run build
 
       - name: Verify unit codes were fetched
