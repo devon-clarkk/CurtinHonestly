@@ -361,6 +361,41 @@
   100% { transform: rotate(360deg); }
 }
 
+/* Loading-more bar at the bottom of the grid */
+.loading-more {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 24px 0;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.spinner-sm {
+  width: 20px;
+  height: 20px;
+  border: 3px solid #edf2f7;
+  border-top: 3px solid var(--primary-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  flex-shrink: 0;
+}
+
+/* Invisible sentinel that triggers infinite scroll */
+.scroll-sentinel {
+  height: 1px;
+  pointer-events: none;
+}
+
+/* End-of-list message */
+.end-message {
+  text-align: center;
+  padding: 24px 0 8px;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+
 @media (max-width: 1110px) {
   :host {
     --unit-catalog-max: calc(var(--unit-card-width) * 2 + var(--unit-grid-gap));

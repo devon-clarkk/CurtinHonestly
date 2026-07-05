@@ -46,6 +46,7 @@ public class SecurityConfig {
 
                         // Public read endpoints for the student app
                         .requestMatchers(HttpMethod.GET, "/units", "/units/**").permitAll()
+                        .requestMatchers("/actuator/health").permitAll()
                         .requestMatchers("/auth/register", "/auth/login").permitAll()
                         .requestMatchers("/auth/me", "/auth/verify-student").authenticated()
                         .requestMatchers("/error").permitAll()
