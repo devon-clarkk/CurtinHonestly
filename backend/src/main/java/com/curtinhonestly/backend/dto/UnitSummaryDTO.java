@@ -2,6 +2,7 @@ package com.curtinhonestly.backend.dto;
 
 import lombok.Data;
 
+import java.time.Instant;
 
 @Data
 public class UnitSummaryDTO {
@@ -14,4 +15,7 @@ public class UnitSummaryDTO {
     private int numberOfReviews;
     private double averageRating;
     private double wouldTakeAgainRatio;
+
+    // Null when no reviews exist; used for sitemap lastmod
+    private Instant latestReviewAt;
 }

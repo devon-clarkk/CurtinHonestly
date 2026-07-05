@@ -3,7 +3,9 @@ package com.curtinhonestly.backend.mapper;
 import com.curtinhonestly.backend.domain.*;
 import com.curtinhonestly.backend.dto.*;
 
+import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -26,6 +28,14 @@ public class UnitMapper {
         dto.setNumberOfReviews(reviews.size());
         dto.setAverageRating(calculateAverageRating(reviews));
         dto.setWouldTakeAgainRatio(calculateWouldTakeAgainRatio(reviews));
+
+        Instant latestReviewAt = reviews.stream()
+                .map(Review::getCreatedAt)
+                .filter(Objects::nonNull)
+                .max(Comparator.naturalOrder())
+                .orElse(null);
+        dto.setLatestReviewAt(latestReviewAt);
+
         return dto;
     }
 
