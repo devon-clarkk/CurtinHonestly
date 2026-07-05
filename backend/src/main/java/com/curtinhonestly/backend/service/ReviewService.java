@@ -28,6 +28,7 @@ public class ReviewService {
     private final UserRepo userRepo;
     private final UnitRepo unitRepo;
     private final ProfanityFilterService profanityFilterService;
+    private final UnitAggregateService unitAggregateService;
 
     public List<Review> getReviewsByUnitCode(String unitCode) {
         Unit unit = unitService.getUnitByCode(unitCode);
@@ -81,12 +82,16 @@ public class ReviewService {
 
         log.info("Review added by user: {}", username);
 
-        return reviewRepo.save(review);
+        Review saved = reviewRepo.save(review);
+        unitAggregateService.recalculateForUnit(unit.getId());
+        return saved;
     }
 
     public void deleteReview(Review review) {
+        String unitId = review.getUnit().getId();
         log.info("Review deleted");
         reviewRepo.delete(review);
+        unitAggregateService.recalculateForUnit(unitId);
     }
 
     public void deleteReviewById(String id) {

@@ -4,6 +4,7 @@ import com.curtinhonestly.backend.dto.*;
 import com.curtinhonestly.backend.security.SecurityConstants;
 import com.curtinhonestly.backend.service.AdminService;
 import com.curtinhonestly.backend.service.ReviewService;
+import com.curtinhonestly.backend.service.UnitAggregateService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +21,7 @@ public class AdminResource {
 
     private final AdminService adminService;
     private final ReviewService reviewService;
+    private final UnitAggregateService unitAggregateService;
 
     @GetMapping("/stats/overview")
     public ResponseEntity<AdminOverviewDTO> getOverview() {
@@ -73,6 +75,12 @@ public class AdminResource {
     public ResponseEntity<Void> deleteReview(@PathVariable String id) {
         reviewService.deleteReviewById(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/units/recalculate-aggregates")
+    public ResponseEntity<Void> recalculateAggregates() {
+        unitAggregateService.recalculateAll();
+        return ResponseEntity.ok().build();
     }
 
     public record CreateUserRequest(String email, String password, boolean admin) {}

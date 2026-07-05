@@ -10,24 +10,28 @@
   <div class="filter-bar">
     <div class="filter-top">
       <div class="search-box">
-        <input 
-          type="text" 
-          [(ngModel)]="searchQuery" 
-          (ngModelChange)="onFilterChange()" 
+        <input
+          type="text"
+          [(ngModel)]="searchQuery"
+          (ngModelChange)="onSearchChange()"
           placeholder="Search by code or name..."
           class="search-input">
       </div>
-      
+
       <div class="select-group">
         <select [(ngModel)]="selectedLevel" (change)="onFilterChange()" class="filter-select">
           <option [ngValue]="undefined">All Levels</option>
-          <option *ngFor="let level of levels" [value]="level.value">{{ level.label }}</option>
+          @for (level of levels; track level.value) {
+            <option [value]="level.value">{{ level.label }}</option>
+          }
         </select>
 
         <select [(ngModel)]="sortBy" (change)="onFilterChange()" class="filter-select">
-          <option *ngFor="let option of sortOptions" [value]="option.value">{{ option.label }}</option>
+          @for (option of sortOptions; track option.value) {
+            <option [value]="option.value">{{ option.label }}</option>
+          }
         </select>
-        
+
         <button class="btn-clear" (click)="resetFilters()">Clear Filters</button>
       </div>
     </div>
@@ -35,73 +39,100 @@
     <div class="faculty-filters">
       <span class="filter-label">Faculties:</span>
       <div class="faculty-pills">
-        <button 
-          *ngFor="let faculty of faculties" 
-          class="faculty-pill" 
-          [class.active]="isFacultySelected(faculty.value)"
-          (click)="toggleFaculty(faculty.value)">
-          {{ faculty.label }}
-        </button>
+        @for (faculty of faculties; track faculty.value) {
+          <button
+            class="faculty-pill"
+            [class.active]="isFacultySelected(faculty.value)"
+            (click)="toggleFaculty(faculty.value)">
+            {{ faculty.label }}
+          </button>
+        }
       </div>
     </div>
   </div>
 
-  <!-- Loading state - shown while units$ is fetching data -->
-  <div *ngIf="!(units$ | async)" class="loading">
-    <div class="spinner"></div>
-    <p>Loading units...</p>
-  </div>
+  <!-- Single subscription — no triple async pipe -->
+  @if (state$ | async; as state) {
+    @if (state.loading) {
+      <div class="loading">
+        <div class="spinner"></div>
+        <p>Loading units...</p>
+      </div>
+    } @else if (state.error && state.units.length === 0) {
+      <div class="empty-state">
+        <p>{{ state.error }}</p>
+        <button class="btn btn-primary" (click)="loadPage0()">Try Again</button>
+      </div>
+    } @else if (state.units.length === 0) {
+      <div class="empty-state">
+        <p>No units found matching your filters.</p>
+        <button class="btn btn-primary" (click)="resetFilters()">Reset All Filters</button>
+      </div>
+    } @else {
+      <!-- The grid of unit cards -->
+      <div class="unit-grid">
+        @for (unit of state.units; track unit.code) {
+          <div class="unit-card">
+            <div class="card-header">
+              <div class="header-tags">
+                <span class="faculty-tag">{{ unit.faculty }}</span>
+                <span class="level-tag">{{ unit.level }}</span>
+              </div>
+              <span class="unit-code">{{ unit.code }}</span>
+            </div>
 
-  <!-- Empty state -->
-  <div class="empty-state" *ngIf="(units$ | async)?.length === 0">
-    <p>No units found matching your filters.</p>
-    <button class="btn btn-primary" (click)="resetFilters()">Reset All Filters</button>
-  </div>
+            <div class="card-body">
+              <h2 class="unit-name">{{ unit.name }}</h2>
 
-  <!-- The grid of unit cards -->
-  <div class="unit-grid" *ngIf="units$ | async as units">
-    <div *ngFor="let unit of units" class="unit-card">
-      <div class="card-header">
-        <div class="header-tags">
-          <span class="faculty-tag">{{ unit.faculty }}</span>
-          <span class="level-tag">{{ unit.level }}</span>
-        </div>
-        <span class="unit-code">{{ unit.code }}</span>
-      </div>
-      
-      <div class="card-body">
-        <h2 class="unit-name">{{ unit.name }}</h2>
-        
-        <div class="rating-box">
-          <span class="stars">
-            <ng-container *ngFor="let type of getStarArray(unit.averageRating)">
-              <span *ngIf="type === 'full'">★</span>
-              <span *ngIf="type === 'half'" class="half-star">★</span>
-              <span *ngIf="type === 'empty'">☆</span>
-            </ng-container>
-          </span>
-          <span class="rating-num">{{ unit.averageRating | number:'1.1-1' }}</span>
-        </div>
-        
-        <div class="stats-row">
-          <div class="stat">
-            <span class="stat-value">{{ unit.numberOfReviews }}</span>
-            <span class="stat-label">Reviews</span>
+              <div class="rating-box">
+                <span class="stars">
+                  @for (type of getStarArray(unit.averageRating); track $index) {
+                    @if (type === 'full') {
+                      <span>★</span>
+                    } @else if (type === 'half') {
+                      <span class="half-star">★</span>
+                    } @else {
+                      <span>☆</span>
+                    }
+                  }
+                </span>
+                <span class="rating-num">{{ unit.averageRating | number:'1.1-1' }}</span>
+              </div>
+
+              <div class="stats-row">
+                <div class="stat">
+                  <span class="stat-value">{{ unit.numberOfReviews }}</span>
+                  <span class="stat-label">Reviews</span>
+                </div>
+                <div class="stat">
+                  <span class="stat-value">{{ unit.wouldTakeAgainRatio | percent }}</span>
+                  <span class="stat-label">Recommended</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="card-footer">
+              <a [routerLink]="['/units', unit.code]" class="btn btn-primary view-btn" [attr.aria-label]="'Read ' + unit.code + ' reviews at Curtin University'">
+                {{ unit.code }} reviews
+              </a>
+            </div>
           </div>
-          <div class="stat">
-            <span class="stat-value">{{ unit.wouldTakeAgainRatio | percent }}</span>
-            <span class="stat-label">Recommended</span>
-          </div>
+        }
+      </div>
+
+      @if (state.loadingMore) {
+        <div class="loading-more">
+          <div class="spinner-sm"></div>
+          <span>Loading more units…</span>
         </div>
-      </div>
-      
-      <div class="card-footer">
-        <!-- routerLink takes the user to the details page using the unit code -->
-        <a [routerLink]="['/units', unit.code]" class="btn btn-primary view-btn" [attr.aria-label]="'Read ' + unit.code + ' reviews at Curtin University'">
-          {{ unit.code }} reviews
-        </a>
-      </div>
-    </div>
-  </div>
+      }
+
+      @if (state.hasMore) {
+        <div #scrollSentinel class="scroll-sentinel" aria-hidden="true"></div>
+      } @else {
+        <p class="end-message">All {{ state.units.length }} units loaded</p>
+      }
+    }
+  }
   </div>
 </div>
