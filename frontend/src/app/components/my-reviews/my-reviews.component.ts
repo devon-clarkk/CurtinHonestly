@@ -5,6 +5,7 @@ import { Router, RouterLink } from '@angular/router';
 import { BehaviorSubject, debounceTime, distinctUntilChanged, map, Observable, switchMap } from 'rxjs';
 import { ReviewService } from '../../services/review.service';
 import { UnitService } from '../../services/unit.service';
+import { SeoService } from '../../services/seo.service';
 import { MyReview, UnitSummary } from '../../models/unit.model';
 import { AddReviewComponent } from '../add-review/add-review.component';
 
@@ -19,6 +20,7 @@ export class MyReviewsComponent implements OnInit {
   private reviewService = inject(ReviewService);
   private unitService = inject(UnitService);
   private router = inject(Router);
+  private seoService = inject(SeoService);
 
   reviews = signal<MyReview[]>([]);
   isLoading = signal(true);
@@ -34,6 +36,7 @@ export class MyReviewsComponent implements OnInit {
   searchResults$: Observable<UnitSummary[]> | undefined;
 
   ngOnInit() {
+    this.seoService.noIndex('My Reviews | CurtinHonestly');
     this.loadReviews();
 
     this.searchResults$ = this.searchSubject.pipe(

@@ -7,11 +7,13 @@ const path = require('path');
 const { resolveSeoBuildConfig } = require('./seo-build-config');
 
 const outputPath = path.resolve(__dirname, '../src/generated/unit-codes.json');
+const sitemapMetaPath = path.resolve(__dirname, '../src/generated/unit-sitemap-meta.json');
 const PAGE_SIZE = 500;
 const isCi = process.env.GITHUB_ACTIONS === 'true';
 
-async function fetchAllUnitCodes(apiUrl) {
+async function fetchAllUnits(apiUrl) {
   const codes = [];
+  const sitemapMeta = [];
   let page = 0;
   let totalPages = 1;
 
@@ -29,6 +31,10 @@ async function fetchAllUnitCodes(apiUrl) {
     for (const unit of content) {
       if (unit.code) {
         codes.push(unit.code);
+        sitemapMeta.push({
+          code: unit.code,
+          lastmod: unit.latestReviewAt ? unit.latestReviewAt.slice(0, 10) : null,
+        });
       }
     }
 
@@ -37,30 +43,33 @@ async function fetchAllUnitCodes(apiUrl) {
     console.log(`Fetched page ${page}/${totalPages} (${codes.length} codes so far)`);
   }
 
-  return codes;
+  return { codes, sitemapMeta };
 }
 
-function writeEmptyCodes(reason) {
+function writeEmptyOutputs(reason) {
   console.log(reason);
   fs.mkdirSync(path.dirname(outputPath), { recursive: true });
   fs.writeFileSync(outputPath, '[]\n');
+  fs.writeFileSync(sitemapMetaPath, '[]\n');
 }
 
 async function main() {
   const { apiUrl, seoEnabled } = resolveSeoBuildConfig();
 
   if (!seoEnabled) {
-    writeEmptyCodes('SEO disabled for this build — skipping unit code fetch (no backend load).');
+    writeEmptyOutputs('SEO disabled for this build — skipping unit code fetch (no backend load).');
     return;
   }
 
   console.log(`SEO enabled — fetching unit codes from ${apiUrl} ...`);
 
   try {
-    const codes = await fetchAllUnitCodes(apiUrl);
+    const { codes, sitemapMeta } = await fetchAllUnits(apiUrl);
     fs.mkdirSync(path.dirname(outputPath), { recursive: true });
     fs.writeFileSync(outputPath, JSON.stringify(codes, null, 2));
+    fs.writeFileSync(sitemapMetaPath, JSON.stringify(sitemapMeta, null, 2));
     console.log(`Wrote ${codes.length} unit codes to ${outputPath}`);
+    console.log(`Wrote sitemap metadata to ${sitemapMetaPath}`);
   } catch (error) {
     console.error('Failed to fetch unit codes:', error.message);
 
@@ -68,7 +77,7 @@ async function main() {
       process.exit(1);
     }
 
-    writeEmptyCodes('Non-CI build: writing empty unit-codes.json after fetch failure.');
+    writeEmptyOutputs('Non-CI build: writing empty outputs after fetch failure.');
   }
 }
 
