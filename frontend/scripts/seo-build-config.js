@@ -42,7 +42,7 @@ function defaultSiteUrl(apiUrl) {
   if (isDevApiUrl(apiUrl)) {
     return 'https://nice-pebble-059fa6b00.7.azurestaticapps.net';
   }
-  return 'https://curtinhonestly.com';
+  return 'https://www.curtinhonestly.com';
 }
 
 function resolveSeoEnabled(apiUrl) {
