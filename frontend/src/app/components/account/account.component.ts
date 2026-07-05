@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
+import { SeoService } from '../../services/seo.service';
 
 @Component({
   selector: 'app-account',
@@ -14,6 +15,7 @@ import { AuthService } from '../../services/auth.service';
 export class AccountComponent implements OnInit {
   protected authService = inject(AuthService);
   private router = inject(Router);
+  private seoService = inject(SeoService);
 
   newEmail = '';
   emailPassword = '';
@@ -26,6 +28,8 @@ export class AccountComponent implements OnInit {
   isLoading = signal(false);
 
   ngOnInit() {
+    this.seoService.noIndex('Account | CurtinHonestly');
+
     if (!this.authService.isLoggedIn()) {
       this.router.navigate(['/login']);
       return;

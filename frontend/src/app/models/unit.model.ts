@@ -44,6 +44,7 @@ export interface Review {
   hasExam: boolean;
   wouldTakeAgain: boolean;
   reviewerVerified: boolean;
+  createdAt?: string;
 }
 
 export interface MyReview {

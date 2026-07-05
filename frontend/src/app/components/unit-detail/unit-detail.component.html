@@ -1,4 +1,12 @@
 <div class="detail-container" *ngIf="unit$ | async as unit; else loading">
+  <!-- Breadcrumb navigation -->
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <ol>
+      <li><a routerLink="/">Home</a></li>
+      <li aria-current="page">{{ unit.code }}</li>
+    </ol>
+  </nav>
+
   <!-- Top section with back button and unit header -->
   <header class="detail-header">
     <a routerLink="/" class="back-link">&larr; Back to all units</a>
@@ -14,13 +22,13 @@
         </p>
         
         <div class="header-actions" *ngIf="unit.unitLink">
-          <a [href]="unit.unitLink" target="_blank" class="btn btn-handbook">
+          <a [href]="unit.unitLink" target="_blank" rel="noopener noreferrer" class="btn btn-handbook">
             View in Curtin Handbook
           </a>
         </div>
       </div>
       
-      <div class="header-right">
+      <div class="header-right" *ngIf="unit.numberOfReviews > 0">
         <div class="big-rating">
           <span class="big-num">{{ unit.averageRating | number:'1.1-1' }}</span>
           <div class="big-stars-container">
@@ -39,7 +47,7 @@
   </header>
 
   <!-- Summary Cards Section -->
-  <section class="summary-stats">
+  <section class="summary-stats" *ngIf="unit.numberOfReviews > 0">
     <div class="stat-card">
       <span class="stat-title">Workload</span>
       <span class="stat-value">{{ unit.averageWorkload | number:'1.1-1' }}/10</span>
@@ -87,7 +95,7 @@
           </div>
           <div class="info-item full-width" *ngIf="unit.unitLink">
             <span class="label">Handbook</span>
-            <a [href]="unit.unitLink" target="_blank" class="handbook-link">
+            <a [href]="unit.unitLink" target="_blank" rel="noopener noreferrer" class="handbook-link">
               View Official Handbook Page &rarr;
             </a>
           </div>
@@ -171,12 +179,11 @@
         <div class="review-header">
           <div class="user-info">
             <span class="user-name">
-              Anonymous
-              <span *ngIf="review.reviewerVerified" class="verified-badge" title="Verified Curtin student">
+              {{ reviewAuthorName(review.reviewerVerified) }}
+              <span *ngIf="review.reviewerVerified" class="verified-badge" title="Verified Curtin student" aria-label="Verified Curtin student">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
                   <path fill="currentColor" d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-1 14.59l-4.29-4.3 1.42-1.41L11 12.17l5.88-5.88 1.41 1.41L11 15.59z"/>
                 </svg>
-                Verified student
               </span>
             </span>
             <span class="review-meta">{{ review.semesterTaken }} • Prof. {{ review.professor }}</span>
