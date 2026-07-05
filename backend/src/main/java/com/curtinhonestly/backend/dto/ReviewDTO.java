@@ -2,6 +2,8 @@ package com.curtinhonestly.backend.dto;
 
 import lombok.Data;
 
+import java.time.Instant;
+
 @Data
 public class ReviewDTO {
 
@@ -16,4 +18,5 @@ public class ReviewDTO {
     private boolean wouldTakeAgain;
 
     private boolean reviewerVerified;
+    private Instant createdAt;
 }

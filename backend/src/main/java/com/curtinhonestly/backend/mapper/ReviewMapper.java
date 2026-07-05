@@ -21,6 +21,7 @@ public class ReviewMapper {
         dto.setWorkload(review.getWorkload());
         dto.setHasExam(review.isHasExam());
         dto.setWouldTakeAgain(review.isWouldTakeAgain());
+        dto.setCreatedAt(review.getCreatedAt());
 
         if (review.getUser() != null) {
             dto.setReviewerVerified(review.getUser().isVerifiedStudent());
