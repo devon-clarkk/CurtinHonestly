@@ -4,6 +4,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { UnitService } from '../../services/unit.service';
 import { AuthService } from '../../services/auth.service';
 import { SeoService } from '../../services/seo.service';
+import { reviewAuthorName } from '../../utils/unit-seo.utils';
 import { UnitDetails } from '../../models/unit.model';
 import { Observable, switchMap, map, of, tap } from 'rxjs';
 import { AddReviewComponent } from '../add-review/add-review.component';
@@ -24,6 +25,7 @@ export class UnitDetailComponent implements OnInit {
   private unitService = inject(UnitService);
   private seoService = inject(SeoService);
   authService = inject(AuthService);
+  reviewAuthorName = reviewAuthorName;
 
   // This will store all the unit information once it's fetched
   unit$: Observable<UnitDetails> | undefined;

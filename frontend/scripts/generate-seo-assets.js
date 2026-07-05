@@ -7,6 +7,7 @@ const path = require('path');
 const { resolveSeoBuildConfig } = require('./seo-build-config');
 
 const unitCodesPath = path.resolve(__dirname, '../src/generated/unit-codes.json');
+const sitemapMetaPath = path.resolve(__dirname, '../src/generated/unit-sitemap-meta.json');
 const publicDir = path.resolve(__dirname, '../public');
 
 const { siteUrl, seoEnabled } = resolveSeoBuildConfig();
@@ -15,6 +16,13 @@ let unitCodes = [];
 if (fs.existsSync(unitCodesPath)) {
   unitCodes = JSON.parse(fs.readFileSync(unitCodesPath, 'utf8'));
 }
+
+let sitemapMeta = [];
+if (fs.existsSync(sitemapMetaPath)) {
+  sitemapMeta = JSON.parse(fs.readFileSync(sitemapMetaPath, 'utf8'));
+}
+
+const sitemapMetaByCode = Object.fromEntries(sitemapMeta.map((e) => [e.code, e]));
 
 fs.mkdirSync(publicDir, { recursive: true });
 
@@ -47,14 +55,15 @@ const urlEntries = [
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>`,
-  ...unitCodes.map(
-    (code) => `  <url>
+  ...unitCodes.map((code) => {
+    const lastmod = sitemapMetaByCode[code]?.lastmod || today;
+    return `  <url>
     <loc>${siteUrl}/units/${encodeURIComponent(code)}</loc>
-    <lastmod>${today}</lastmod>
+    <lastmod>${lastmod}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
-  </url>`
-  ),
+  </url>`;
+  }),
 ];
 
 const sitemapXml = `<?xml version="1.0" encoding="UTF-8"?>

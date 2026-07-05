@@ -51,7 +51,7 @@ export class SeoService {
       return;
     }
 
-    const title = unitPageTitle(unit.code, unit.name);
+    const title = unitPageTitle(unit.code, unit.name, unit.numberOfReviews);
     const description = unitPageDescription(unit);
     const url = `${this.siteUrl}${unitPagePath(unit.code)}`;
 
@@ -67,11 +67,16 @@ export class SeoService {
     this.setJsonLd(buildUnitJsonLd(unit, this.siteUrl));
   }
 
-  private applyDevNoIndex(pageTitle: string): void {
+  /** Call from any route that must never be indexed (auth, account pages). */
+  noIndex(pageTitle: string): void {
     this.title.setTitle(pageTitle);
     this.meta.updateTag({ name: 'robots', content: 'noindex, nofollow' });
     this.removeCanonical();
     this.removeJsonLd();
+  }
+
+  private applyDevNoIndex(pageTitle: string): void {
+    this.noIndex(pageTitle);
   }
 
   private setDescription(description: string): void {
@@ -111,6 +116,7 @@ export class SeoService {
     this.meta.updateTag({ property: 'og:description', content: description });
     this.meta.updateTag({ property: 'og:url', content: url });
     this.meta.updateTag({ property: 'og:type', content: type });
+    this.meta.updateTag({ property: 'og:locale', content: 'en_AU' });
     this.meta.updateTag({ property: 'og:site_name', content: 'CurtinHonestly' });
     this.meta.updateTag({ property: 'og:image', content: image });
     this.meta.updateTag({ name: 'twitter:card', content: 'summary' });
