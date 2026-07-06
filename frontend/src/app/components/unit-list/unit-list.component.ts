@@ -1,5 +1,5 @@
-import { Component, inject, OnInit, OnDestroy, ElementRef, ViewChild } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, inject, OnInit, OnDestroy, ElementRef, ViewChild, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { UnitService } from '../../services/unit.service';
@@ -28,6 +28,7 @@ interface UnitListState {
 export class UnitListComponent implements OnInit, OnDestroy {
   private unitService = inject(UnitService);
   private seoService = inject(SeoService);
+  private platformId = inject(PLATFORM_ID);
 
   private destroy$ = new Subject<void>();
   private searchSubject = new Subject<void>();
@@ -91,7 +92,12 @@ export class UnitListComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.seoService.updateHomePage();
-    // Only search input is debounced; sort/faculty/level changes are immediate
+
+    // Skip all data fetching during SSR prerender — avoids CI build timeouts.
+    // The browser hydrates and fetches data client-side via the async pipe.
+    if (!isPlatformBrowser(this.platformId)) return;
+
+    // Search input is debounced; sort/faculty/level fire immediately
     this.searchSubject.pipe(debounceTime(300), takeUntil(this.destroy$)).subscribe(() => this.loadPage0());
     this.loadPage0();
   }
