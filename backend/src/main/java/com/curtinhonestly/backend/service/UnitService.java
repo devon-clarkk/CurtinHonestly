@@ -1,7 +1,6 @@
 package com.curtinhonestly.backend.service;
 
 import com.curtinhonestly.backend.domain.Faculty;
-import com.curtinhonestly.backend.domain.Review;
 import com.curtinhonestly.backend.domain.Unit;
 import com.curtinhonestly.backend.domain.UnitLevel;
 import com.curtinhonestly.backend.dto.UnitDetailsDTO;
@@ -9,7 +8,7 @@ import com.curtinhonestly.backend.dto.UnitSummaryDTO;
 import com.curtinhonestly.backend.mapper.UnitMapper;
 import com.curtinhonestly.backend.repo.UnitRepo;
 import com.curtinhonestly.backend.repo.UnitSpecification;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -22,12 +21,13 @@ import java.util.List;
 
 @Service
 @Slf4j
-@Transactional(rollbackOn = Exception.class)
+@Transactional(rollbackFor = Exception.class)
 @RequiredArgsConstructor
 public class UnitService {
 
     private final UnitRepo unitRepo;
 
+    @Transactional(readOnly = true)
     public Page<UnitSummaryDTO> getAllUnits(int page, int size, String search, List<Faculty> faculties, UnitLevel level, String sortBy) {
         Sort sort = Sort.by(Sort.Direction.ASC, "code"); // Default sort
 
@@ -42,7 +42,6 @@ public class UnitService {
                 case "code_desc":
                     sort = Sort.by(Sort.Direction.DESC, "code");
                     break;
-/*
                 case "most_reviewed":
                     sort = Sort.by(Sort.Direction.DESC, "reviewCount");
                     break;
@@ -67,7 +66,6 @@ public class UnitService {
                 case "highest_workload":
                     sort = Sort.by(Sort.Direction.DESC, "averageWorkload");
                     break;
-*/
             }
         }
 
