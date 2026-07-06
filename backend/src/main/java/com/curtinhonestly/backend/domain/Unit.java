@@ -6,13 +6,18 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.Formula;
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.UuidGenerator;
 
+import java.time.Instant;
 import java.util.List;
 
 @Entity
-@Table(name = "units")
+@Table(name = "units", indexes = {
+    @Index(name = "idx_units_faculty_level_code", columnList = "faculty, level, code"),
+    @Index(name = "idx_units_review_count", columnList = "review_count"),
+    @Index(name = "idx_units_average_rating", columnList = "average_rating")
+})
 @Getter
 @Setter
 @NoArgsConstructor
@@ -43,19 +48,23 @@ public class Unit {
     @Column(nullable = false)
     private UnitLevel level;
 
-/*
-    @Formula("(SELECT COUNT(*) FROM reviews r WHERE r.unit_id = id)")
-    private Integer reviewCount;
+    @Column(name = "review_count", nullable = false, columnDefinition = "INTEGER DEFAULT 0 NOT NULL")
+    private int reviewCount = 0;
 
-    @Formula("(SELECT COALESCE(AVG(r.rating), 0) FROM reviews r WHERE r.unit_id = id)")
-    private Double averageRating;
+    @Column(name = "average_rating", nullable = false, columnDefinition = "DOUBLE PRECISION DEFAULT 0 NOT NULL")
+    private double averageRating = 0;
 
-    @Formula("(SELECT COALESCE(AVG(r.workload), 0) FROM reviews r WHERE r.unit_id = id)")
-    private Double averageWorkload;
+    @Column(name = "average_workload", nullable = false, columnDefinition = "DOUBLE PRECISION DEFAULT 0 NOT NULL")
+    private double averageWorkload = 0;
 
-    @Formula("(SELECT COALESCE(AVG(r.final_grade), 0) FROM reviews r WHERE r.unit_id = id)")
-    private Double averageFinalGrade;
-*/
+    @Column(name = "average_final_grade", nullable = false, columnDefinition = "DOUBLE PRECISION DEFAULT 0 NOT NULL")
+    private double averageFinalGrade = 0;
+
+    @Column(name = "would_take_again_ratio", nullable = false, columnDefinition = "DOUBLE PRECISION DEFAULT 0 NOT NULL")
+    private double wouldTakeAgainRatio = 0;
+
+    @Column(name = "latest_review_at")
+    private Instant latestReviewAt;
 
     @Column(length = 255)
     private String area;
@@ -80,6 +89,7 @@ public class Unit {
     private List<UnitPrerequisiteGroup> prerequisiteGroups;
 
     @OneToMany(mappedBy = "unit", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonIgnoreProperties("unit") // Ignores the unit inside each review
+    @JsonIgnoreProperties("unit")
+    @BatchSize(size = 30)
     private List<Review> reviews;
 }

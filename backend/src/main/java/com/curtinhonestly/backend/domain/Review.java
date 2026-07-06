@@ -45,7 +45,7 @@ public class Review {
     private boolean hasExam; // Optional
     private boolean wouldTakeAgain;
 
-    @Column(nullable = false, updatable = false)
+    @Column(nullable = false, updatable = false, columnDefinition = "TIMESTAMPTZ DEFAULT NOW() NOT NULL")
     private Instant createdAt = Instant.now();
 
     @ManyToOne

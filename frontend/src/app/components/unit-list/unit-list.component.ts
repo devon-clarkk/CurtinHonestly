@@ -1,11 +1,22 @@
-import { Component, inject, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, inject, OnInit, OnDestroy, ElementRef, ViewChild, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { UnitService } from '../../services/unit.service';
 import { SeoService } from '../../services/seo.service';
 import { UnitSummary, Faculty, UnitLevel } from '../../models/unit.model';
-import { Observable, map, BehaviorSubject, switchMap, debounceTime, distinctUntilChanged } from 'rxjs';
+import { BehaviorSubject, Subject } from 'rxjs';
+import { debounceTime, takeUntil } from 'rxjs/operators';
+
+interface UnitListState {
+  units: UnitSummary[];
+  page: number;
+  totalPages: number;
+  loading: boolean;
+  loadingMore: boolean;
+  error: string | null;
+  hasMore: boolean;
+}
 
 @Component({
   selector: 'app-unit-list',
@@ -14,17 +25,23 @@ import { Observable, map, BehaviorSubject, switchMap, debounceTime, distinctUnti
   templateUrl: './unit-list.component.html',
   styleUrl: './unit-list.component.css'
 })
-export class UnitListComponent implements OnInit {
+export class UnitListComponent implements OnInit, OnDestroy {
   private unitService = inject(UnitService);
   private seoService = inject(SeoService);
-  
-  // Filter state
+  private platformId = inject(PLATFORM_ID);
+
+  private destroy$ = new Subject<void>();
+  private searchSubject = new Subject<void>();
+  private fetchCancel$ = new Subject<void>();
+  private observer?: IntersectionObserver;
+
+  readonly PAGE_SIZE = 24;
+
   searchQuery = '';
   selectedFaculties: Faculty[] = [];
   selectedLevel?: UnitLevel;
   sortBy = 'code';
 
-  // Options for dropdowns
   faculties = this.unitService.getFaculties();
   levels = this.unitService.getUnitLevels();
   sortOptions = [
@@ -42,61 +59,150 @@ export class UnitListComponent implements OnInit {
     { value: 'highest_workload', label: 'Highest Workload' }
   ];
 
-  // Subject to trigger refreshes
-  private filterSubject = new BehaviorSubject<void>(undefined);
-  
-  units$: Observable<UnitSummary[]> | undefined;
+  private stateSubject = new BehaviorSubject<UnitListState>({
+    units: [],
+    page: 0,
+    totalPages: 0,
+    loading: true,
+    loadingMore: false,
+    error: null,
+    hasMore: false
+  });
+
+  readonly state$ = this.stateSubject.asObservable();
+
+  // Reconnect IntersectionObserver whenever the sentinel appears/disappears
+  @ViewChild('scrollSentinel', { static: false })
+  set scrollSentinel(el: ElementRef<HTMLElement> | undefined) {
+    this.observer?.disconnect();
+    if (el) {
+      this.observer = new IntersectionObserver(
+        entries => {
+          if (entries[0].isIntersecting) {
+            this.loadNextPage();
+          }
+        },
+        { rootMargin: '200px' }
+      );
+      this.observer.observe(el.nativeElement);
+    } else {
+      this.observer = undefined;
+    }
+  }
 
   ngOnInit(): void {
     this.seoService.updateHomePage();
 
-    this.units$ = this.filterSubject.pipe(
-      debounceTime(300), // Small wait to avoid too many requests while typing
-      switchMap(() => this.unitService.getUnits(
-        0, 100, // Load a large first page for now
-        this.searchQuery,
-        this.selectedFaculties,
-        this.selectedLevel,
-        this.sortBy
-      )),
-      map(page => page.content.map(unit => ({
-        ...unit,
-        wouldTakeAgainRatio: unit.wouldTakeAgainRatio > 1 ? unit.wouldTakeAgainRatio / 100 : unit.wouldTakeAgainRatio
-      })))
-    );
+    // Skip all data fetching during SSR prerender — avoids CI build timeouts.
+    // The browser hydrates and fetches data client-side via the async pipe.
+    if (!isPlatformBrowser(this.platformId)) return;
+
+    // Search input is debounced; sort/faculty/level fire immediately
+    this.searchSubject.pipe(debounceTime(300), takeUntil(this.destroy$)).subscribe(() => this.loadPage0());
+    this.loadPage0();
   }
 
-  onFilterChange() {
-    this.filterSubject.next();
+  ngOnDestroy(): void {
+    this.fetchCancel$.next();
+    this.fetchCancel$.complete();
+    this.destroy$.next();
+    this.destroy$.complete();
+    this.observer?.disconnect();
   }
 
-  toggleFaculty(faculty: Faculty) {
+  loadPage0(): void {
+    this.fetchCancel$.next();
+    const current = this.stateSubject.value;
+    this.stateSubject.next({ ...current, loading: true, units: [], page: 0, error: null, hasMore: false });
+
+    this.fetchPage(0).pipe(takeUntil(this.fetchCancel$)).subscribe({
+      next: page => {
+        this.stateSubject.next({
+          units: this.normalizeRatios(page.content),
+          page: 0,
+          totalPages: page.totalPages,
+          loading: false,
+          loadingMore: false,
+          error: null,
+          hasMore: page.totalPages > 1
+        });
+      },
+      error: () => {
+        this.stateSubject.next({ ...this.stateSubject.value, loading: false, error: 'Failed to load units.' });
+      }
+    });
+  }
+
+  private loadNextPage(): void {
+    const state = this.stateSubject.value;
+    if (state.loading || state.loadingMore || !state.hasMore) return;
+
+    const nextPage = state.page + 1;
+    this.stateSubject.next({ ...state, loadingMore: true });
+
+    this.fetchPage(nextPage).pipe(takeUntil(this.fetchCancel$)).subscribe({
+      next: page => {
+        this.stateSubject.next({
+          units: [...state.units, ...this.normalizeRatios(page.content)],
+          page: nextPage,
+          totalPages: page.totalPages,
+          loading: false,
+          loadingMore: false,
+          error: null,
+          hasMore: nextPage < page.totalPages - 1
+        });
+      },
+      error: () => {
+        this.stateSubject.next({ ...this.stateSubject.value, loadingMore: false, error: 'Failed to load more units.' });
+      }
+    });
+  }
+
+  private fetchPage(page: number) {
+    return this.unitService.getUnits(page, this.PAGE_SIZE, this.searchQuery, this.selectedFaculties, this.selectedLevel, this.sortBy);
+  }
+
+  private normalizeRatios(units: UnitSummary[]): UnitSummary[] {
+    return units.map(unit => ({
+      ...unit,
+      wouldTakeAgainRatio: unit.wouldTakeAgainRatio > 1 ? unit.wouldTakeAgainRatio / 100 : unit.wouldTakeAgainRatio
+    }));
+  }
+
+  onSearchChange(): void {
+    this.searchSubject.next();
+  }
+
+  onFilterChange(): void {
+    this.loadPage0();
+  }
+
+  toggleFaculty(faculty: Faculty): void {
     const index = this.selectedFaculties.indexOf(faculty);
     if (index > -1) {
       this.selectedFaculties.splice(index, 1);
     } else {
       this.selectedFaculties.push(faculty);
     }
-    this.onFilterChange();
+    this.loadPage0();
   }
 
   isFacultySelected(faculty: Faculty): boolean {
     return this.selectedFaculties.includes(faculty);
   }
 
-  resetFilters() {
+  resetFilters(): void {
     this.searchQuery = '';
     this.selectedFaculties = [];
     this.selectedLevel = undefined;
     this.sortBy = 'code';
-    this.onFilterChange();
+    this.loadPage0();
   }
 
   getStarArray(rating: number): string[] {
     const stars: string[] = [];
     const fullStars = Math.floor(rating || 0);
     const hasHalfStar = (rating || 0) % 1 >= 0.5;
-
     for (let i = 1; i <= 5; i++) {
       if (i <= fullStars) {
         stars.push('full');
