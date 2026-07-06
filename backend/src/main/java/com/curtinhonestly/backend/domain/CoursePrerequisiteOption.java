@@ -30,6 +30,6 @@ public class CoursePrerequisiteOption {
     @Column(columnDefinition = "TEXT")
     private String title;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE NOT NULL")
     private boolean concurrent = false;
 }
