@@ -105,5 +105,6 @@ stages:
                           DATABASE_URL="$DATABASE_URL" \
                           DATABASE_USERNAME="$DATABASE_USERNAME" \
                           DATABASE_PASSWORD="$DATABASE_PASSWORD" \
-                          JWT_SECRET="$JWT_SECRET"
+                          JWT_SECRET="$JWT_SECRET" \
+                          SPRING_PROFILES_ACTIVE="${{ parameters.environment }}"
 
