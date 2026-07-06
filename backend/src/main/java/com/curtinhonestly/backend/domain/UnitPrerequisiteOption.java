@@ -28,6 +28,6 @@ public class UnitPrerequisiteOption {
     @Column(length = 255)
     private String title;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE NOT NULL")
     private boolean concurrent = false;
 }
