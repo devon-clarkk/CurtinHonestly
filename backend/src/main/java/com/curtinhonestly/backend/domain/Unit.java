@@ -48,19 +48,19 @@ public class Unit {
     @Column(nullable = false)
     private UnitLevel level;
 
-    @Column(name = "review_count", nullable = false)
+    @Column(name = "review_count", nullable = false, columnDefinition = "INTEGER DEFAULT 0 NOT NULL")
     private int reviewCount = 0;
 
-    @Column(name = "average_rating", nullable = false)
+    @Column(name = "average_rating", nullable = false, columnDefinition = "DOUBLE PRECISION DEFAULT 0 NOT NULL")
     private double averageRating = 0;
 
-    @Column(name = "average_workload", nullable = false)
+    @Column(name = "average_workload", nullable = false, columnDefinition = "DOUBLE PRECISION DEFAULT 0 NOT NULL")
     private double averageWorkload = 0;
 
-    @Column(name = "average_final_grade", nullable = false)
+    @Column(name = "average_final_grade", nullable = false, columnDefinition = "DOUBLE PRECISION DEFAULT 0 NOT NULL")
     private double averageFinalGrade = 0;
 
-    @Column(name = "would_take_again_ratio", nullable = false)
+    @Column(name = "would_take_again_ratio", nullable = false, columnDefinition = "DOUBLE PRECISION DEFAULT 0 NOT NULL")
     private double wouldTakeAgainRatio = 0;
 
     @Column(name = "latest_review_at")
