@@ -3,9 +3,7 @@ package com.curtinhonestly.backend.mapper;
 import com.curtinhonestly.backend.domain.*;
 import com.curtinhonestly.backend.dto.*;
 
-import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -16,25 +14,16 @@ public class UnitMapper {
     {
         UnitSummaryDTO dto = new UnitSummaryDTO();
 
-        // Base unit information
         dto.setName(unit.getName() != null ? unit.getName() : "");
         dto.setCode(unit.getCode() != null ? unit.getCode() : "");
         dto.setFaculty(unit.getFaculty() != null ? unit.getFaculty().getDisplayName() : "");
         dto.setLevel(unit.getLevel() != null ? unit.getLevel().getDisplayName() : "");
 
-        List<Review> reviews = unit.getReviews() != null ? unit.getReviews() : new ArrayList<>();
-
-        // Review-based information
-        dto.setNumberOfReviews(reviews.size());
-        dto.setAverageRating(calculateAverageRating(reviews));
-        dto.setWouldTakeAgainRatio(calculateWouldTakeAgainRatio(reviews));
-
-        Instant latestReviewAt = reviews.stream()
-                .map(Review::getCreatedAt)
-                .filter(Objects::nonNull)
-                .max(Comparator.naturalOrder())
-                .orElse(null);
-        dto.setLatestReviewAt(latestReviewAt);
+        // Read from denormalized columns — never touches the reviews table
+        dto.setNumberOfReviews(unit.getReviewCount());
+        dto.setAverageRating(unit.getAverageRating());
+        dto.setWouldTakeAgainRatio(unit.getWouldTakeAgainRatio());
+        dto.setLatestReviewAt(unit.getLatestReviewAt());
 
         return dto;
     }
