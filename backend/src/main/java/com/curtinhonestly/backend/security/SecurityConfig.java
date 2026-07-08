@@ -2,6 +2,7 @@ package com.curtinhonestly.backend.security;
 
 import com.curtinhonestly.backend.domain.UserRole;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -28,6 +29,7 @@ import java.util.List;
 @EnableWebSecurity
 @EnableMethodSecurity  // Enables @PreAuthorize
 @RequiredArgsConstructor
+@Slf4j
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
@@ -39,7 +41,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
-        System.out.println("SecurityConfig loaded");
+        log.debug("SecurityConfig loaded");
 
         http
                 .csrf(csrf -> csrf.disable())
