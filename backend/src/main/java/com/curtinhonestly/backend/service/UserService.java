@@ -24,6 +24,11 @@ public class UserService {
     public User createUser(String email, String password) {
         String normalizedEmail = EmailNormalizer.normalize(email);
         log.info("Creating user: {}", normalizedEmail);
+
+        if (userRepo.findByEmail(normalizedEmail).isPresent()) {
+            throw new IllegalArgumentException("That email is already registered.");
+        }
+
         User user = new User();
         user.setEmail(normalizedEmail);
         user.setPassword(passwordEncoder.encode(password));

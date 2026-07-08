@@ -13,7 +13,6 @@ import com.curtinhonestly.backend.service.UnitService;
 import com.curtinhonestly.backend.security.SecurityConstants;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -25,7 +24,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/units")
 @RequiredArgsConstructor
-@Slf4j
 public class UnitResource {
 
     private final UnitService unitService;
@@ -34,16 +32,9 @@ public class UnitResource {
     @PostMapping
     @PreAuthorize(SecurityConstants.HAS_ROLE_ADMIN)
     public ResponseEntity<?> createUnit(@Valid @RequestBody UnitCreateRequest request) {
-        try {
-            Unit savedUnit = unitService.createUnit(request);
-            return ResponseEntity.created(URI.create("/units/" + savedUnit.getId()))
-                    .body(savedUnit);
-        } catch (Exception e) {
-            log.error("Error creating unit via API: {}", e.getMessage(), e);
-            String message = e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName();
-            return ResponseEntity.internalServerError()
-                    .body("{\"error\": \"Failed to create unit: " + message + "\"}");
-        }
+        Unit savedUnit = unitService.createUnit(request);
+        return ResponseEntity.created(URI.create("/units/" + savedUnit.getId()))
+                .body(savedUnit);
     }
 
     @GetMapping
@@ -53,16 +44,7 @@ public class UnitResource {
                                                          @RequestParam(required = false) List<Faculty> faculties,
                                                          @RequestParam(required = false) UnitLevel level,
                                                          @RequestParam(required = false) String sortBy) {
-        try {
-            return ResponseEntity.ok(unitService.getAllUnits(page, size, search, faculties, level, sortBy));
-        } catch (Exception e) {
-            log.error("Error fetching units: {}", e.getMessage(), e);
-            String message = e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName();
-            // Provide a bit more context if it's a known error type
-            if (e instanceof NullPointerException) message = "NullPointerException at " + e.getStackTrace()[0];
-            return ResponseEntity.internalServerError()
-                    .body("{\"error\": \"Failed to fetch units: " + message + "\"}");
-        }
+        return ResponseEntity.ok(unitService.getAllUnits(page, size, search, faculties, level, sortBy));
     }
 
     @GetMapping("/{code}")
