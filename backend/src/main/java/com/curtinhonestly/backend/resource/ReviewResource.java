@@ -30,6 +30,7 @@ public class ReviewResource {
     }
 
     @GetMapping
+    @PreAuthorize(SecurityConstants.HAS_ROLE_ADMIN)
     public ResponseEntity<List<ReviewDTO>> getAllReviews() {
         return ResponseEntity.ok(ReviewMapper.mapToDTOs(reviewService.getAllReviews()));
     }
