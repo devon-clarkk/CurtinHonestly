@@ -5,6 +5,9 @@ import com.curtinhonestly.backend.dto.AccountDTO;
 import com.curtinhonestly.backend.dto.ErrorResponse;
 import com.curtinhonestly.backend.security.JwtUtil;
 import com.curtinhonestly.backend.service.UserService;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -26,14 +29,8 @@ public class AuthController {
     private final UserService userService;
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
+    public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {
         log.info("Registration attempt for email: {}", request.email());
-        if (!isValidEmail(request.email())) {
-            log.warn("Registration failed: Invalid email format {}", request.email());
-            return ResponseEntity
-                    .status(400)
-                    .body(new ErrorResponse("Please provide a valid email address."));
-        }
 
         User user = userService.createUser(request.email(), request.password());
         String token = jwtUtil.generateToken(
@@ -120,11 +117,7 @@ public class AuthController {
         return ResponseEntity.ok(new JwtResponse(token, user.isVerifiedStudent()));
     }
 
-    private boolean isValidEmail(String email) {
-        return email != null && email.contains("@") && email.contains(".");
-    }
-
-    public record RegisterRequest(String email, String password) {}
+    public record RegisterRequest(@NotBlank @Email String email, @NotBlank String password) {}
     public record LoginRequest(String email, String password) {}
     public record VerifyStudentRequest(String studentEmail, String password) {}
     public record UpdateEmailRequest(String newEmail, String password) {}
