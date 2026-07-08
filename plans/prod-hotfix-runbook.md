@@ -44,6 +44,26 @@ The default DB password (`CurtinHonestly`) was also committed and must be rotate
 3. Coordinate this with the JWT rotation and the deploy below so the DB and app cut over together —
    an old app revision with the old password will fail to connect once the DB password changes.
 
+## 4. Email de-duplication and case-insensitive unique index (for #3)
+
+The app now normalizes email to lowercase everywhere, but existing prod data may already contain
+case-variant duplicates (e.g. `Bob@x.com` and `bob@x.com` as separate accounts) from before this fix.
+`ddl-auto: update` cannot create a functional unique index on `LOWER(email)` — this project has no
+Flyway/Liquibase, so this must be run by hand against the production database. The users table is
+**`app_users`**, not `users`.
+
+1. **Run this first** — it must return zero rows before proceeding:
+   ```sql
+   SELECT LOWER(email), COUNT(*) FROM app_users GROUP BY 1 HAVING COUNT(*) > 1;
+   ```
+2. If it returns rows, resolve each duplicate manually (merge or rename one of the accounts) before continuing.
+3. Once zero duplicates are confirmed, add the case-insensitive unique index:
+   ```sql
+   CREATE UNIQUE INDEX CONCURRENTLY uk_app_users_lower_email ON app_users (LOWER(email));
+   ```
+   `CONCURRENTLY` avoids locking the table during index creation; run it outside a transaction block
+   (most `psql` sessions default to this — if using a tool that wraps DDL in a transaction, disable that).
+
 ## 5. Deploy order
 
 1. Set/rotate `jwt-secret` and `database-password` on the Container App (steps 2–3 above).
