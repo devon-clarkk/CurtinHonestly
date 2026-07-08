@@ -1,0 +1,16 @@
+spring:
+  datasource:
+    url: ${database-url:jdbc:postgresql://localhost:5432/postgres}
+    username: ${database-username:postgres}
+    password: ${database-password:test-only-database-password}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+logging:
+  level:
+    org.hibernate.SQL: WARN
+    com.curtinhonestly.backend: INFO
+jwt:
+  secret: ${jwt-secret:test-secret-for-ci-only-minimum-32-bytes-long}

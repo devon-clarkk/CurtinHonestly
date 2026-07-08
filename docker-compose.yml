@@ -4,7 +4,7 @@ services:
     environment:
       POSTGRES_DB: postgres
       POSTGRES_USER: ${DATABASE_USERNAME:-postgres}
-      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-CurtinHonestly}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:?set DATABASE_PASSWORD in .env}
     ports:
       - "5432:5432"
     volumes:
@@ -17,8 +17,8 @@ services:
     environment:
       - DATABASE_URL=${DATABASE_URL:-jdbc:postgresql://db:5432/postgres}
       - DATABASE_USERNAME=${DATABASE_USERNAME:-postgres}
-      - DATABASE_PASSWORD=${DATABASE_PASSWORD:-CurtinHonestly}
-      - JWT_SECRET=${JWT_SECRET:-tG4Mz8q7Rs2Lp9FnXKp7dWsYmYeTb4H3}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD:?set DATABASE_PASSWORD in .env}
+      - JWT_SECRET=${JWT_SECRET:?set JWT_SECRET in .env}
     depends_on:
       - db
 
