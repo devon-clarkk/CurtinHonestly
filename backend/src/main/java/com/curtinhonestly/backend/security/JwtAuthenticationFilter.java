@@ -6,6 +6,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -17,6 +18,7 @@ import java.io.IOException;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
@@ -57,14 +59,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     );
 
                     SecurityContextHolder.getContext().setAuthentication(authToken);
-                    System.out.println("Authentication set for: " + username);
+                    log.debug("Authentication set for user: {}", username);
                 } else {
-                    System.out.println("Token is invalid or user is disabled");
+                    log.debug("Token is invalid or user is disabled");
                 }
             }
         } catch (Exception e) {
-            System.err.println("JWT Authentication Error: " + e.getMessage());
-            e.printStackTrace();
+            // Expired/malformed tokens are routine client behaviour, not a server error -
+            // log at debug without a stack trace to avoid noise and info disclosure.
+            log.debug("JWT authentication error: {}", e.getMessage());
         }
 
         filterChain.doFilter(request, response);
