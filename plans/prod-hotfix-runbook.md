@@ -1,18 +1,39 @@
 # Production hotfix runbook — secret rotation & DB changes
 
 This runbook covers the manual, prod-side steps required by the `security/prod-hotfixes` branch.
-None of these steps can be done in code — they must be run against Azure / the production database
-by someone with access. **Do this before deploying the new backend image**, since the new image will
-refuse to boot without `jwt-secret` and `database-password` set.
+None of these steps can be done in code — they must be run against GitHub/ADO and the production
+database by someone with access. **Do this before deploying the new backend image**, since the new
+image will refuse to boot without `jwt-secret` and `database-password` set.
+
+## 0. Important: rotate the secret at its source, not just on the Container App
+
+**Both deploy pipelines push secrets into the Container App on every run**, overwriting whatever is
+currently set there:
+
+- `.github/workflows/deploy-backend.yml` sets `jwt-secret`/`database-password` from GitHub
+  **Environment** secrets (`secrets.JWT_SECRET`, `secrets.DATABASE_PASSWORD`) scoped to the `dev` and
+  `prod` GitHub Environments (repo Settings → Environments → `dev` / `prod` → Secrets).
+- `.azuredevops/pipelines/backend.yml` sets them from ADO pipeline variables
+  (`JWT_SECRET_DEV`/`JWT_SECRET_PROD`, `DATABASE_PASSWORD_DEV`/`DATABASE_PASSWORD_PROD`), typically in
+  a variable group under Pipelines → Library.
+
+If you only rotate the value directly on the Container App (e.g. via `az containerapp update`), the
+**next automatic deploy** (any push to `dev`/`main`, from either pipeline) will silently overwrite it
+back to the old, burned value with no error and no warning. Since it's not yet decided which pipeline
+is canonical (see the PR note on the #14 commit), **update the secret in both GitHub Environments and
+the ADO variable group**, not just Azure directly. This requires repo-admin / ADO project-admin access
+that only your team has — it cannot be done from this branch or by an agent.
 
 ## 1. Pre-deploy environment check
 
-Confirm the Azure Container App has the following env vars set (`az containerapp show` or the portal):
+Confirm the following are set as GitHub Environment secrets (`dev` and `prod`) **and** ADO pipeline
+variables (`_DEV`/`_PROD` suffixed), and that the live Container App reflects them
+(`az containerapp show` or the portal):
 
-- `jwt-secret`
-- `database-url`
-- `database-username`
-- `database-password`
+- `jwt-secret` / `JWT_SECRET`
+- `database-url` / `DATABASE_URL`
+- `database-username` / `DATABASE_USERNAME`
+- `database-password` / `DATABASE_PASSWORD`
 - `CORS_ALLOWED_ORIGINS` — only needed if the allowlist should differ from the built-in prod default
   (`https://curtinhonestly.com,https://admin.curtinhonestly.com`). Confirm the SWA custom domains for
   `curtinhonestly.com` (student) and `admin.curtinhonestly.com` (admin) are bound and DNS/Cloudflare is
@@ -20,7 +41,7 @@ Confirm the Azure Container App has the following env vars set (`az containerapp
 
 The new build hard-fails on startup with an unresolved-placeholder error if `jwt-secret` or
 `database-password` is missing — this is intentional (audit finding #1). Do not deploy until these
-are confirmed set.
+are confirmed set at the source (step 0), not just on the live Container App.
 
 ## 2. Rotate the JWT secret
 
@@ -30,11 +51,12 @@ The current JWT signing secret is committed to git history and must be treated a
    ```
    openssl rand -base64 48
    ```
-2. Set it as `jwt-secret` on the Container App:
-   ```
-   az containerapp update --name <CONTAINER_APP_NAME> --resource-group <RESOURCE_GROUP> \
-     --set-env-vars jwt-secret="<new-secret>"
-   ```
+2. Update it in **both** places so neither pipeline reverts the other:
+   - GitHub: Settings → Environments → `dev`/`prod` → update the `JWT_SECRET` environment secret.
+   - ADO: Pipelines → Library → update `JWT_SECRET_DEV` / `JWT_SECRET_PROD` in the variable group.
+   - Optionally also set it directly on the Container App (`az containerapp update ... --set-env-vars
+     jwt-secret="<new-secret>"`) for immediate effect before the next deploy runs — but treat this as a
+     stopgap only; the CI secret stores above are the source of truth.
 3. **Effect:** every existing JWT becomes invalid — all logged-in users will need to log in again.
    This is expected and acceptable.
 
@@ -44,7 +66,8 @@ The default DB password (`CurtinHonestly`) was also committed and must be rotate
 
 1. Change the Postgres user's password (via the Azure Postgres resource, or `ALTER ROLE ... WITH PASSWORD ...`
    if self-managed).
-2. Update `database-password` on the Container App to match.
+2. Update `DATABASE_PASSWORD` / `database-password` in the same two places as step 2 (GitHub Environment
+   secrets and the ADO variable group), plus the Container App directly if you need immediate effect.
 3. Coordinate this with the JWT rotation and the deploy below so the DB and app cut over together —
    an old app revision with the old password will fail to connect once the DB password changes.
 
@@ -70,9 +93,12 @@ Flyway/Liquibase, so this must be run by hand against the production database. T
 
 ## 5. Deploy order
 
-1. Set/rotate `jwt-secret` and `database-password` on the Container App (steps 2–3 above).
-2. Deploy the new backend image (`security/prod-hotfixes` merged, then normal CI/CD deploy).
-3. Confirm boot (step 6).
+1. Rotate `jwt-secret` and `database-password` **in GitHub Environment secrets and the ADO variable
+   group** (steps 2–3 above) — not just the live Container App.
+2. Run the email dedup check and index (step 4) against prod.
+3. Merge `security/prod-hotfixes` and let CI/CD deploy the new image — this deploy will also push the
+   rotated secrets to the Container App as part of its normal `--set-env-vars` step.
+4. Confirm boot (step 6).
 
 ## 6. Confirm the app booted with the new values
 
@@ -80,3 +106,6 @@ Flyway/Liquibase, so this must be run by hand against the production database. T
 - Log in as a test user and confirm a token is issued; confirm an **old** token (issued before rotation)
   is now rejected (401/403).
 - Confirm `SecurityConfig` / auth logs are quiet — no `System.out`/stack-trace noise (audit finding #15).
+- `az containerapp show` (or the portal) to confirm the live env vars match what you set in step 2/3 —
+  if a second, un-updated pipeline deploys later, it will silently revert them, so re-check after any
+  subsequent deploy until the team picks one canonical pipeline (see the #14 commit note).
