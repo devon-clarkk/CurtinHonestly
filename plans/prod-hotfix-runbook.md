@@ -4,10 +4,9 @@ This runbook covers the manual, prod-side steps required by the `security/prod-h
 None of these steps can be done in code — they must be run against GitHub and the production database
 by someone with access.
 
-Deploys are via **GitHub Actions only** (`.github/workflows/deploy-backend.yml`). There is a
-`.azuredevops/pipelines/backend.yml` file in the repo, but it is not actually wired up to a live ADO
-pipeline — ignore it for this rollout (worth deleting separately as dead config, but that's out of
-scope here).
+Deploys are via **GitHub Actions only** (`.github/workflows/deploy-backend.yml`). The unused
+`.azuredevops/pipelines/` files (confirmed dead: `trigger: none`/`pr: none`, and documented as legacy in
+`AZURE_DEPLOYMENT.md`) have been removed from the repo.
 
 ## 1. Secret rotation — not required
 
