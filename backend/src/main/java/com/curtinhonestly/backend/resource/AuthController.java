@@ -2,6 +2,7 @@ package com.curtinhonestly.backend.resource;
 
 import com.curtinhonestly.backend.domain.User;
 import com.curtinhonestly.backend.dto.AccountDTO;
+import com.curtinhonestly.backend.dto.ErrorResponse;
 import com.curtinhonestly.backend.security.JwtUtil;
 import com.curtinhonestly.backend.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -31,24 +32,17 @@ public class AuthController {
             log.warn("Registration failed: Invalid email format {}", request.email());
             return ResponseEntity
                     .status(400)
-                    .body("{\"error\": \"Please provide a valid email address.\"}");
+                    .body(new ErrorResponse("Please provide a valid email address."));
         }
 
-        try {
-            User user = userService.createUser(request.email(), request.password());
-            String token = jwtUtil.generateToken(
-                    user.getEmail(),
-                    user.getRoles().stream().map(Enum::name).toList()
-            );
+        User user = userService.createUser(request.email(), request.password());
+        String token = jwtUtil.generateToken(
+                user.getEmail(),
+                user.getRoles().stream().map(Enum::name).toList()
+        );
 
-            log.info("User registered successfully: {}", user.getId());
-            return ResponseEntity.ok(new JwtResponse(token, user.isVerifiedStudent()));
-        } catch (Exception ex) {
-            log.error("User registration failed for {}: {}", request.email(), ex.getMessage());
-            return ResponseEntity
-                    .status(400)
-                    .body("{\"error\": \"User registration failed: " + ex.getMessage() + "\"}");
-        }
+        log.info("User registered successfully: {}", user.getId());
+        return ResponseEntity.ok(new JwtResponse(token, user.isVerifiedStudent()));
     }
 
     @PostMapping("/login")
@@ -73,7 +67,7 @@ public class AuthController {
             log.warn("Login failed for {}: Invalid credentials", request.email());
             return ResponseEntity
                     .status(401)
-                    .body("{\"error\": \"Invalid email or password.\"}");
+                    .body(new ErrorResponse("Invalid email or password."));
         }
     }
 
@@ -88,28 +82,20 @@ public class AuthController {
     public ResponseEntity<?> updateEmail(@RequestBody UpdateEmailRequest request) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
 
-        try {
-            User user = userService.updateEmail(email, request.newEmail(), request.password());
-            String token = jwtUtil.generateToken(
-                    user.getEmail(),
-                    user.getRoles().stream().map(Enum::name).toList()
-            );
-            return ResponseEntity.ok(new JwtResponse(token, user.isVerifiedStudent()));
-        } catch (IllegalArgumentException ex) {
-            return ResponseEntity.status(400).body("{\"error\": \"" + ex.getMessage() + "\"}");
-        }
+        User user = userService.updateEmail(email, request.newEmail(), request.password());
+        String token = jwtUtil.generateToken(
+                user.getEmail(),
+                user.getRoles().stream().map(Enum::name).toList()
+        );
+        return ResponseEntity.ok(new JwtResponse(token, user.isVerifiedStudent()));
     }
 
     @DeleteMapping("/me")
     public ResponseEntity<?> deleteAccount(@RequestBody DeleteAccountRequest request) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
 
-        try {
-            userService.deleteAccount(email, request.password());
-            return ResponseEntity.noContent().build();
-        } catch (IllegalArgumentException ex) {
-            return ResponseEntity.status(400).body("{\"error\": \"" + ex.getMessage() + "\"}");
-        }
+        userService.deleteAccount(email, request.password());
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/verify-student")
@@ -123,21 +109,15 @@ public class AuthController {
         } catch (AuthenticationException ex) {
             return ResponseEntity
                     .status(401)
-                    .body("{\"error\": \"Invalid password.\"}");
+                    .body(new ErrorResponse("Invalid password."));
         }
 
-        try {
-            User user = userService.verifyStudentEmail(email, request.studentEmail());
-            String token = jwtUtil.generateToken(
-                    user.getEmail(),
-                    user.getRoles().stream().map(Enum::name).toList()
-            );
-            return ResponseEntity.ok(new JwtResponse(token, user.isVerifiedStudent()));
-        } catch (IllegalArgumentException | IllegalStateException ex) {
-            return ResponseEntity
-                    .status(400)
-                    .body("{\"error\": \"" + ex.getMessage() + "\"}");
-        }
+        User user = userService.verifyStudentEmail(email, request.studentEmail());
+        String token = jwtUtil.generateToken(
+                user.getEmail(),
+                user.getRoles().stream().map(Enum::name).toList()
+        );
+        return ResponseEntity.ok(new JwtResponse(token, user.isVerifiedStudent()));
     }
 
     private boolean isValidEmail(String email) {
