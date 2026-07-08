@@ -1,11 +1,13 @@
 package com.curtinhonestly.backend.resource;
 
 import com.curtinhonestly.backend.dto.MyReviewDTO;
+import com.curtinhonestly.backend.dto.ReviewCreateRequest;
 import com.curtinhonestly.backend.dto.ReviewDTO;
 import com.curtinhonestly.backend.mapper.ReviewMapper;
 import com.curtinhonestly.backend.domain.Review;
 import com.curtinhonestly.backend.service.ReviewService;
 import com.curtinhonestly.backend.security.SecurityConstants;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -36,9 +38,9 @@ public class ReviewResource {
 
     @PostMapping
     @PreAuthorize(SecurityConstants.HAS_ROLE_USER)
-    public ResponseEntity<?> createReview(@RequestBody Review review) {
+    public ResponseEntity<?> createReview(@Valid @RequestBody ReviewCreateRequest request) {
         try {
-            Review savedReview = reviewService.createReview(review);
+            Review savedReview = reviewService.createReview(request);
             return ResponseEntity.created(URI.create("/reviews/" + savedReview.getId()))
                     .body(ReviewMapper.mapToDTO(savedReview));
         } catch (Exception e) {

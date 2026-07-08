@@ -4,12 +4,14 @@ import com.curtinhonestly.backend.domain.Faculty;
 import com.curtinhonestly.backend.domain.Unit;
 import com.curtinhonestly.backend.domain.UnitLevel;
 import com.curtinhonestly.backend.dto.ReviewDTO;
+import com.curtinhonestly.backend.dto.UnitCreateRequest;
 import com.curtinhonestly.backend.dto.UnitDetailsDTO;
 import com.curtinhonestly.backend.dto.UnitSummaryDTO;
 import com.curtinhonestly.backend.mapper.ReviewMapper;
 import com.curtinhonestly.backend.service.ReviewService;
 import com.curtinhonestly.backend.service.UnitService;
 import com.curtinhonestly.backend.security.SecurityConstants;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -31,9 +33,9 @@ public class UnitResource {
 
     @PostMapping
     @PreAuthorize(SecurityConstants.HAS_ROLE_ADMIN)
-    public ResponseEntity<?> createUnit(@RequestBody Unit unit) {
+    public ResponseEntity<?> createUnit(@Valid @RequestBody UnitCreateRequest request) {
         try {
-            Unit savedUnit = unitService.createUnit(unit);
+            Unit savedUnit = unitService.createUnit(request);
             return ResponseEntity.created(URI.create("/units/" + savedUnit.getId()))
                     .body(savedUnit);
         } catch (Exception e) {
