@@ -13,6 +13,10 @@ Confirm the Azure Container App has the following env vars set (`az containerapp
 - `database-url`
 - `database-username`
 - `database-password`
+- `CORS_ALLOWED_ORIGINS` — only needed if the allowlist should differ from the built-in prod default
+  (`https://curtinhonestly.com,https://admin.curtinhonestly.com`). Confirm the SWA custom domains for
+  `curtinhonestly.com` (student) and `admin.curtinhonestly.com` (admin) are bound and DNS/Cloudflare is
+  pointing at them — CORS will reject requests from any origin not in this list.
 
 The new build hard-fails on startup with an unresolved-placeholder error if `jwt-secret` or
 `database-password` is missing — this is intentional (audit finding #1). Do not deploy until these
