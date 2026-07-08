@@ -4,7 +4,7 @@ spring:
     # Local/docker legacy: DATABASE_URL, DATABASE_USERNAME, DATABASE_PASSWORD (see Application.java)
     url: ${database-url:jdbc:postgresql://localhost:5432/postgres}
     username: ${database-username:postgres}
-    password: ${database-password:CurtinHonestly}
+    password: ${database-password:?Database password must be provided}
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -18,4 +18,4 @@ logging:
     org.hibernate.orm.jdbc.bind: TRACE
     com.curtinhonestly.backend: DEBUG
 jwt:
-  secret: ${jwt-secret:tG4Mz8q7Rs2Lp9FnXKp7dWsYmYeTb4H3}
+  secret: ${jwt-secret:?JWT secret must be provided}
