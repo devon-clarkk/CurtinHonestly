@@ -27,11 +27,13 @@ if either is missing:
 - `DATABASE_URL`, `DATABASE_USERNAME`
 
 Also confirm, if you want the CORS allowlist to differ from the built-in prod default
-(`https://curtinhonestly.com,https://admin.curtinhonestly.com`):
+(`https://curtinhonestly.com,https://www.curtinhonestly.com,https://admin.curtinhonestly.com` — `main`'s
+`10a5a33` SEO commit makes `www.curtinhonestly.com` the canonical student domain, so both the apex and
+`www` are allowed):
 
-- `CORS_ALLOWED_ORIGINS` — and that the SWA custom domains for `curtinhonestly.com` (student) and
-  `admin.curtinhonestly.com` (admin) are bound and DNS/Cloudflare is pointing at them. CORS will reject
-  requests from any origin not in the list.
+- `CORS_ALLOWED_ORIGINS` — and that the SWA custom domains for `curtinhonestly.com`/`www.curtinhonestly.com`
+  (student) and `admin.curtinhonestly.com` (admin) are bound and DNS/Cloudflare is pointing at them. CORS
+  will reject requests from any origin not in the list.
 
 ## 3. Email de-duplication and case-insensitive unique index (for #3)
 
@@ -106,5 +108,5 @@ CREATE UNIQUE INDEX CONCURRENTLY uk_app_users_lower_email ON app_users (LOWER(em
 
 - Check container logs: no "must be provided" / unresolved placeholder error at startup.
 - Confirm `SecurityConfig` / auth logs are quiet — no `System.out`/stack-trace noise (audit finding #15).
-- Spot-check CORS: a request from `https://curtinhonestly.com` and `https://admin.curtinhonestly.com`
-  succeeds; a request from an arbitrary third-party origin is rejected.
+- Spot-check CORS: a request from `https://curtinhonestly.com`, `https://www.curtinhonestly.com`, and
+  `https://admin.curtinhonestly.com` succeeds; a request from an arbitrary third-party origin is rejected.
