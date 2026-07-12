@@ -3,6 +3,7 @@ package com.curtinhonestly.backend.service;
 import com.curtinhonestly.backend.domain.Review;
 import com.curtinhonestly.backend.domain.Unit;
 import com.curtinhonestly.backend.domain.User;
+import com.curtinhonestly.backend.dto.ReviewCreateRequest;
 import com.curtinhonestly.backend.repo.ReviewRepo;
 import com.curtinhonestly.backend.repo.UnitRepo;
 import com.curtinhonestly.backend.repo.UserRepo;
@@ -15,6 +16,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.List;
 
 @Service
@@ -43,7 +45,7 @@ public class ReviewService {
         return reviewRepo.findById(id).orElseThrow(() -> new RuntimeException("Review not found"));
     }
 
-    public Review createReview(Review review) {
+    public Review createReview(ReviewCreateRequest request) {
         // Get authenticated user's email
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
 
@@ -51,32 +53,27 @@ public class ReviewService {
         User user = userRepo.findByEmail(username)
                 .orElseThrow(() -> new RuntimeException("User not found: " + username));
 
-        // Validate rating scale (0-5)
-        if (review.getRating() < 0 || review.getRating() > 5) {
-            throw new IllegalArgumentException("Rating must be between 0 and 5");
-        }
-
-        // Validate grade scale (0-100)
-        if (review.getFinalGrade() != null && (review.getFinalGrade() < 0 || review.getFinalGrade() > 100)) {
-            throw new IllegalArgumentException("Final grade must be between 0 and 100%");
-        }
-
         // Check for profanity
-        if (profanityFilterService.containsProfanity(review.getReviewText())) {
+        if (profanityFilterService.containsProfanity(request.reviewText())) {
             throw new IllegalArgumentException("Review contains inappropriate language. Please keep it professional.");
         }
 
-        // Extract unit code from incoming Review object
-        if (review.getUnit() == null || review.getUnit().getCode() == null) {
-            throw new IllegalArgumentException("Unit code must be provided in review");
-        }
-        String unitCode = review.getUnit().getCode();
-
         // Look up full Unit entity by code
-        Unit unit = unitRepo.findByCode(unitCode)
-                .orElseThrow(() -> new RuntimeException("Unit not found with code: " + unitCode));
+        Unit unit = unitRepo.findByCode(request.unitCode())
+                .orElseThrow(() -> new RuntimeException("Unit not found with code: " + request.unitCode()));
 
-        // Set the full Unit and User entities on the review before saving
+        // Build the Review server-side from only the user-settable fields.
+        // createdAt and id are never taken from client input.
+        Review review = new Review();
+        review.setRating(request.rating());
+        review.setFinalGrade(request.finalGrade());
+        review.setReviewText(request.reviewText());
+        review.setSemesterTaken(request.semesterTaken());
+        review.setProfessor(request.professor());
+        review.setWorkload(request.workload());
+        review.setHasExam(request.hasExam());
+        review.setWouldTakeAgain(request.wouldTakeAgain());
+        review.setCreatedAt(Instant.now());
         review.setUnit(unit);
         review.setUser(user);
 

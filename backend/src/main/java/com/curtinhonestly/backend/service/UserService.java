@@ -3,6 +3,7 @@ package com.curtinhonestly.backend.service;
 import com.curtinhonestly.backend.domain.User;
 import com.curtinhonestly.backend.domain.UserRole;
 import com.curtinhonestly.backend.repo.UserRepo;
+import com.curtinhonestly.backend.util.EmailNormalizer;
 import com.curtinhonestly.backend.util.StudentEmailValidator;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -21,11 +22,17 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
 
     public User createUser(String email, String password) {
-        log.info("Creating user: {}", email);
+        String normalizedEmail = EmailNormalizer.normalize(email);
+        log.info("Creating user: {}", normalizedEmail);
+
+        if (userRepo.findByEmail(normalizedEmail).isPresent()) {
+            throw new IllegalArgumentException("That email is already registered.");
+        }
+
         User user = new User();
-        user.setEmail(email);
+        user.setEmail(normalizedEmail);
         user.setPassword(passwordEncoder.encode(password));
-        user.setVerifiedStudent(StudentEmailValidator.isStudentEmail(email));
+        user.setVerifiedStudent(StudentEmailValidator.isStudentEmail(normalizedEmail));
         user.setRoles(List.of(UserRole.ROLE_USER));
 
         User savedUser = userRepo.saveAndFlush(user);
@@ -34,11 +41,12 @@ public class UserService {
     }
 
     public User createAdminUser(String email, String password) {
-        log.info("Creating admin user: {}", email);
+        String normalizedEmail = EmailNormalizer.normalize(email);
+        log.info("Creating admin user: {}", normalizedEmail);
         User user = new User();
-        user.setEmail(email);
+        user.setEmail(normalizedEmail);
         user.setPassword(passwordEncoder.encode(password));
-        user.setVerifiedStudent(StudentEmailValidator.isStudentEmail(email));
+        user.setVerifiedStudent(StudentEmailValidator.isStudentEmail(normalizedEmail));
         user.setRoles(List.of(UserRole.ROLE_ADMIN, UserRole.ROLE_USER));
 
         User savedUser = userRepo.saveAndFlush(user);
@@ -47,28 +55,29 @@ public class UserService {
     }
 
     public User getUserByEmail(String email) {
-        return userRepo.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
+        return userRepo.findByEmail(EmailNormalizer.normalize(email)).orElseThrow(() -> new RuntimeException("User not found"));
     }
 
     public User verifyStudentEmail(String email, String studentEmail) {
         User user = getUserByEmail(email);
+        String normalizedStudentEmail = EmailNormalizer.normalize(studentEmail);
 
         if (user.isVerifiedStudent()) {
             throw new IllegalStateException("Account is already verified as a student.");
         }
 
-        if (!StudentEmailValidator.isStudentEmail(studentEmail)) {
+        if (!StudentEmailValidator.isStudentEmail(normalizedStudentEmail)) {
             throw new IllegalArgumentException("A valid @student.curtin.edu.au email is required.");
         }
 
-        if (userRepo.findByEmail(studentEmail).filter(existing -> !existing.getId().equals(user.getId())).isPresent()) {
+        if (userRepo.findByEmail(normalizedStudentEmail).filter(existing -> !existing.getId().equals(user.getId())).isPresent()) {
             throw new IllegalArgumentException("That student email is already linked to another account.");
         }
 
-        user.setEmail(studentEmail);
+        user.setEmail(normalizedStudentEmail);
         user.setVerifiedStudent(true);
         User savedUser = userRepo.saveAndFlush(user);
-        log.info("User {} verified as student with email {}", savedUser.getId(), studentEmail);
+        log.info("User {} verified as student with email {}", savedUser.getId(), normalizedStudentEmail);
         return savedUser;
     }
 
@@ -83,7 +92,7 @@ public class UserService {
             throw new IllegalArgumentException("Please provide a valid email address.");
         }
 
-        String normalizedEmail = newEmail.trim().toLowerCase();
+        String normalizedEmail = EmailNormalizer.normalize(newEmail);
         userRepo.findByEmail(normalizedEmail)
                 .filter(existing -> !existing.getId().equals(user.getId()))
                 .ifPresent(existing -> {

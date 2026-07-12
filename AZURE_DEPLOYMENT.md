@@ -272,13 +272,6 @@ Dev + prod **share** the Container Apps free grant (per subscription/month).
 |---|---|
 | 502 / container not listening | Ingress target port must be **8080** |
 | DB connection refused | Check Supabase URL, `sslmode=require`, network restrictions |
-| CORS errors | Backend `SecurityConfig` allows `*` — ensure `API_URL` has no trailing slash mismatch |
+| CORS errors | Backend `SecurityConfig` reads `app.cors.allowed-origins` (env `CORS_ALLOWED_ORIGINS`) — confirm the requesting origin is in the allowlist |
 | ACR pull failed | Confirm OIDC app has **AcrPush** and `az acr login` works in workflow logs |
 | App scales to zero cold start | First request after idle may take 5–15s — normal on Consumption |
-
----
-
-## Legacy: Azure DevOps pipeline files
-
-`.azuredevops/pipelines/` and `trigger-azure-devops.yml` were an earlier approach.  
-You can ignore/delete them if using GitHub Actions only.

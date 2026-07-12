@@ -1,7 +1,9 @@
 package com.curtinhonestly.backend.resource;
 
 import com.curtinhonestly.backend.domain.User;
+import com.curtinhonestly.backend.dto.UserAdminDTO;
 import com.curtinhonestly.backend.repo.UserRepo;
+import com.curtinhonestly.backend.service.AdminService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -15,11 +17,12 @@ import java.util.List;
 public class UserResource {
 
     private final UserRepo userRepo;
+    private final AdminService adminService;
 
     @GetMapping
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
-    public ResponseEntity<List<User>> getAllUsers() {
-        return ResponseEntity.ok(userRepo.findAll());
+    public ResponseEntity<List<UserAdminDTO>> getAllUsers() {
+        return ResponseEntity.ok(adminService.listUsers());
     }
 
     @GetMapping("/{email}")
