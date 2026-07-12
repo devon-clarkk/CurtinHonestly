@@ -37,9 +37,18 @@ public class CampaignEntry {
     @OnDelete(action = OnDeleteAction.CASCADE)
     private User user;
 
-    @OneToOne(optional = false)
-    @JoinColumn(name = "review_id", nullable = false, unique = true)
-    @OnDelete(action = OnDeleteAction.CASCADE)
+    // The unit whose qualifying review triggered this entry. Kept even if the
+    // review itself is later deleted, so the per-unit re-earn gate in
+    // CampaignService still holds after a delete-and-resubmit cycle.
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "unit_id", nullable = false)
+    private Unit unit;
+
+    // Nullable + SET_NULL: deleting the review must not delete the entry (the
+    // user keeps a token they already earned), only detach it from the review.
+    @OneToOne
+    @JoinColumn(name = "review_id", unique = true)
+    @OnDelete(action = OnDeleteAction.SET_NULL)
     private Review review;
 
     @Column(nullable = false, updatable = false)
