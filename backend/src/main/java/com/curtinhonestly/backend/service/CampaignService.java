@@ -81,16 +81,21 @@ public class CampaignService {
         return Optional.ofNullable(campaign);
     }
 
+    // Not-found, expired, not-started, and limit-reached all return this same
+    // response so an unauthenticated caller can't enumerate which promo codes
+    // exist vs. which have simply run out (audit #10).
+    private static final String INVALID_CAMPAIGN_MESSAGE = "This referral link or promo code is invalid or no longer available.";
+
     public CampaignValidationDTO validateCampaign(String ref, String promoCode) {
         Optional<Campaign> campaignOpt = resolveCampaignForRegistration(ref, promoCode);
         if (campaignOpt.isEmpty()) {
-            return new CampaignValidationDTO(false, "Campaign not found.", null, null, null);
+            return new CampaignValidationDTO(false, INVALID_CAMPAIGN_MESSAGE, null, null, null);
         }
 
         Campaign campaign = campaignOpt.get();
         String message = validateCampaignState(campaign, true);
         if (message != null) {
-            return new CampaignValidationDTO(false, message, campaign.getName(), campaign.getPrizeDescription(), campaign.getEndsAt());
+            return new CampaignValidationDTO(false, INVALID_CAMPAIGN_MESSAGE, null, null, null);
         }
 
         return new CampaignValidationDTO(
