@@ -14,8 +14,7 @@ public interface CampaignEntryRepo extends JpaRepository<CampaignEntry, String> 
 
     @Query("""
             SELECT e FROM CampaignEntry e
-            JOIN FETCH e.review r
-            JOIN FETCH r.unit
+            JOIN FETCH e.unit
             JOIN FETCH e.campaign
             WHERE e.user.id = :userId
             ORDER BY e.createdAt DESC
@@ -24,8 +23,7 @@ public interface CampaignEntryRepo extends JpaRepository<CampaignEntry, String> 
 
     @Query("""
             SELECT e FROM CampaignEntry e
-            JOIN FETCH e.review r
-            JOIN FETCH r.unit
+            JOIN FETCH e.unit
             JOIN FETCH e.user
             WHERE e.campaign.id = :campaignId
             ORDER BY e.createdAt DESC
@@ -33,5 +31,5 @@ public interface CampaignEntryRepo extends JpaRepository<CampaignEntry, String> 
     List<CampaignEntry> findByCampaign_IdOrderByCreatedAtDesc(@Param("campaignId") String campaignId);
 
     Optional<CampaignEntry> findByEntryTokenIgnoreCase(String entryToken);
-    boolean existsByReview_Id(String reviewId);
+    boolean existsByCampaign_IdAndUser_IdAndUnit_Id(String campaignId, String userId, String unitId);
 }

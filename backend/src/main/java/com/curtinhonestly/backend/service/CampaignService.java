@@ -104,6 +104,14 @@ public class CampaignService {
             return new CampaignAwardResult(Optional.empty(), progress);
         }
 
+        // A unit whose review already produced an entry can't trigger another one.
+        // Without this, deleting and resubmitting a review for the same unit would
+        // free up the (user_id, unit_id) slot and let qualifyingCount recount it,
+        // looping indefinitely for unlimited entries.
+        if (campaignEntryRepo.existsByCampaign_IdAndUser_IdAndUnit_Id(campaign.getId(), user.getId(), triggeringReview.getUnit().getId())) {
+            return new CampaignAwardResult(Optional.empty(), progress);
+        }
+
         long qualifyingCount = countQualifyingReviews(user, campaign);
         int requiredReviewCount = Math.max(1, campaign.getRequiredReviewCount());
         int maxEntriesPerUser = Math.max(1, campaign.getMaxEntriesPerUser());
@@ -112,10 +120,11 @@ public class CampaignService {
         long entriesToCreate = entriesShouldHave - existingEntries;
 
         Optional<CampaignEntry> newEntry = Optional.empty();
-        for (long i = 0; i < entriesToCreate; i++) {
+        if (entriesToCreate > 0) {
             CampaignEntry entry = new CampaignEntry();
             entry.setCampaign(campaign);
             entry.setUser(user);
+            entry.setUnit(triggeringReview.getUnit());
             entry.setReview(triggeringReview);
             entry.setEntryToken(generateUniqueEntryToken());
             CampaignEntry saved = campaignEntryRepo.save(entry);
@@ -132,7 +141,7 @@ public class CampaignService {
                 .map(entry -> new CampaignEntrySummaryDTO(
                         entry.getEntryToken(),
                         entry.getCampaign().getName(),
-                        entry.getReview().getUnit().getCode(),
+                        entry.getUnit().getCode(),
                         entry.getCreatedAt()
                 ))
                 .toList();
@@ -214,7 +223,7 @@ public class CampaignService {
                         entry.getId(),
                         entry.getEntryToken(),
                         entry.getUser().getEmail(),
-                        entry.getReview().getUnit().getCode(),
+                        entry.getUnit().getCode(),
                         entry.getCreatedAt()
                 ))
                 .toList();
