@@ -335,7 +335,8 @@ public class CampaignService {
                 return token;
             }
         }
-        throw new IllegalStateException("Unable to generate a unique campaign entry token.");
+        log.error("Failed to generate a unique campaign entry token after {} attempts", 10);
+        throw new CampaignEntryTokenExhaustedException("Unable to generate a unique entry token right now. Please try again.");
     }
 
     private String randomTokenSuffix() {
