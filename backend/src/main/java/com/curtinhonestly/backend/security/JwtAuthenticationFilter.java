@@ -1,14 +1,13 @@
 package com.curtinhonestly.backend.security;
 
 import com.curtinhonestly.backend.service.UserDetailsServiceImpl;
-import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
@@ -16,11 +15,10 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
@@ -46,25 +44,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
-                if (jwtUtil.isTokenValid(token, userDetails.getUsername())) {
-                    Claims claims = jwtUtil.extractAllClaims(token);
-                    List<String> roles = (List<String>) claims.get("roles");
-                    
-                    List<SimpleGrantedAuthority> authorities;
-                    if (roles != null && !roles.isEmpty()) {
-                        authorities = roles.stream()
-                                .map(SimpleGrantedAuthority::new)
-                                .collect(Collectors.toList());
-                    } else {
-                        // Fallback to DB roles if not in token
-                        authorities = (List<SimpleGrantedAuthority>) userDetails.getAuthorities();
-                    }
-
+                if (jwtUtil.isTokenValid(token, userDetails.getUsername()) && userDetails.isEnabled()) {
+                    // Authorities always come from the DB, never the token's roles claim, so a
+                    // ban or role change takes effect immediately rather than at token expiry.
                     UsernamePasswordAuthenticationToken authToken =
                             new UsernamePasswordAuthenticationToken(
                                     userDetails,
                                     null,
-                                    authorities
+                                    userDetails.getAuthorities()
                             );
 
                     authToken.setDetails(
@@ -72,14 +59,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     );
 
                     SecurityContextHolder.getContext().setAuthentication(authToken);
-                    System.out.println("Authentication set for: " + username);
+                    log.debug("Authentication set for user: {}", username);
                 } else {
-                    System.out.println("Token is invalid");
+                    log.debug("Token is invalid or user is disabled");
                 }
             }
         } catch (Exception e) {
-            System.err.println("JWT Authentication Error: " + e.getMessage());
-            e.printStackTrace();
+            // Expired/malformed tokens are routine client behaviour, not a server error -
+            // log at debug without a stack trace to avoid noise and info disclosure.
+            log.debug("JWT authentication error: {}", e.getMessage());
         }
 
         filterChain.doFilter(request, response);

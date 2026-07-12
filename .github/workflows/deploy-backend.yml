@@ -90,7 +90,8 @@ jobs:
               database-url="$DATABASE_URL" \
               database-username="$DATABASE_USERNAME" \
               database-password="$DATABASE_PASSWORD" \
-              jwt-secret="$JWT_SECRET"
+              jwt-secret="$JWT_SECRET" \
+              SPRING_PROFILES_ACTIVE="$DEPLOY_ENV"
           az containerapp ingress update \
             --name "${{ secrets.CONTAINER_APP_NAME }}" \
             --resource-group "${{ secrets.RESOURCE_GROUP }}" \
