@@ -1,8 +1,13 @@
 package com.curtinhonestly.backend.service;
 
+import com.curtinhonestly.backend.domain.CoursePrerequisiteOption;
 import com.curtinhonestly.backend.domain.Faculty;
 import com.curtinhonestly.backend.domain.Unit;
 import com.curtinhonestly.backend.domain.UnitLevel;
+import com.curtinhonestly.backend.domain.UnitPrerequisiteGroup;
+import com.curtinhonestly.backend.domain.UnitPrerequisiteOption;
+import com.curtinhonestly.backend.domain.UnitTuitionPattern;
+import com.curtinhonestly.backend.dto.UnitCreateRequest;
 import com.curtinhonestly.backend.dto.UnitDetailsDTO;
 import com.curtinhonestly.backend.dto.UnitSummaryDTO;
 import com.curtinhonestly.backend.mapper.UnitMapper;
@@ -18,6 +23,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -88,38 +94,77 @@ public class UnitService {
     {
         return unitRepo.findByCode(code).orElseThrow(() -> new RuntimeException("Unit not found with code: " + code));
     }
-    public Unit createUnit(Unit unit)
+    public Unit createUnit(UnitCreateRequest request)
     {
         try {
-            log.info("Attempting to add/update unit: {}", unit.getCode());
-            
+            log.info("Attempting to add/update unit: {}", request.code());
+
+            Unit unit = new Unit();
+            unit.setCode(request.code());
+            unit.setName(request.name());
+            unit.setDescription(request.description());
+            unit.setUnitLink(request.unitLink());
+            unit.setFaculty(request.faculty());
+            unit.setLevel(request.level());
+            unit.setArea(request.area());
+            unit.setFieldOfEducation(request.fieldOfEducation());
+            unit.setCredits(request.credits());
+            unit.setContactHours(request.contactHours());
+            unit.setResultType(request.resultType());
+
             // Check if unit with same code already exists to avoid unique constraint violations
             unitRepo.findByCode(unit.getCode()).ifPresent(existing -> {
                 log.info("Unit with code {} already exists. Updating existing unit with ID: {}", unit.getCode(), existing.getId());
                 unit.setId(existing.getId());
             });
 
-            if (unit.getTuitionPatterns() != null) {
-                unit.getTuitionPatterns().forEach(pattern -> pattern.setUnit(unit));
+            if (request.tuitionPatterns() != null) {
+                unit.setTuitionPatterns(request.tuitionPatterns().stream().map(tp -> {
+                    UnitTuitionPattern pattern = new UnitTuitionPattern();
+                    pattern.setType(tp.type());
+                    pattern.setDuration(tp.duration());
+                    pattern.setUnit(unit);
+                    return pattern;
+                }).collect(Collectors.toList()));
             }
 
-            if (unit.getPrerequisiteGroups() != null) {
-                unit.getPrerequisiteGroups().forEach(group -> {
+            if (request.prerequisiteGroups() != null) {
+                unit.setPrerequisiteGroups(request.prerequisiteGroups().stream().map(g -> {
+                    UnitPrerequisiteGroup group = new UnitPrerequisiteGroup();
+                    group.setGroupName(g.groupName());
+                    group.setRequirement(g.requirement());
+                    group.setPosition(g.position());
                     group.setUnit(unit);
-                    if (group.getOptions() != null) {
-                        group.getOptions().forEach(option -> option.setGroup(group));
+                    if (g.options() != null) {
+                        group.setOptions(g.options().stream().map(o -> {
+                            UnitPrerequisiteOption option = new UnitPrerequisiteOption();
+                            option.setCode(o.code());
+                            option.setTitle(o.title());
+                            option.setConcurrent(o.concurrent());
+                            option.setGroup(group);
+                            return option;
+                        }).collect(Collectors.toList()));
                     }
-                    if (group.getCourseOptions() != null) {
-                        group.getCourseOptions().forEach(option -> option.setGroup(group));
+                    if (g.courseOptions() != null) {
+                        group.setCourseOptions(g.courseOptions().stream().map(o -> {
+                            CoursePrerequisiteOption option = new CoursePrerequisiteOption();
+                            option.setCourseCode(o.courseCode());
+                            option.setCredits(o.credits());
+                            option.setTitle(o.title());
+                            option.setConcurrent(o.concurrent());
+                            option.setGroup(group);
+                            return option;
+                        }).collect(Collectors.toList()));
                     }
-                });
+                    return group;
+                }).collect(Collectors.toList()));
             }
 
             Unit savedUnit = unitRepo.save(unit);
             log.info("Successfully saved unit: {} with ID: {}", savedUnit.getCode(), savedUnit.getId());
             return savedUnit;
         } catch (Exception e) {
-            log.error("Failed to create unit {}: {}", unit.getCode(), e.getMessage(), e);
+            log.error("Failed to create unit {}: {}", request.code(), e.getMessage(), e);
             throw e;
         }
     }
