@@ -36,9 +36,34 @@ public class CampaignService {
     private final CampaignEntryRepo campaignEntryRepo;
     private final UserRepo userRepo;
     private final ReviewRepo reviewRepo;
+    private final UserService userService;
     private final SecureRandom secureRandom = new SecureRandom();
 
     public record CampaignAwardResult(Optional<CampaignEntry> newEntry, CampaignProgressDTO progress) {}
+
+    // Resolves attribution, locks the campaign row, re-validates its state under
+    // that lock, then creates the user - all in this one transaction. Holding the
+    // lock across the whole count-and-insert (not just the initial read) is what
+    // stops two concurrent registrations from both winning the last redemption slot.
+    public User registerUserWithCampaign(String email, String password, String ref, String promoCode) {
+        boolean hasAttribution = normalize(ref).isPresent() || normalize(promoCode).isPresent();
+        if (!hasAttribution) {
+            return userService.createUser(email, password, null, null);
+        }
+
+        Campaign resolved = resolveCampaignForRegistration(ref, promoCode)
+                .orElseThrow(() -> new IllegalArgumentException("Campaign not found. Check your referral link or promo code."));
+
+        Campaign locked = campaignRepo.findByIdForUpdate(resolved.getId())
+                .orElseThrow(() -> new IllegalArgumentException("Campaign not found. Check your referral link or promo code."));
+
+        String stateError = validateCampaignState(locked, true);
+        if (stateError != null) {
+            throw new IllegalArgumentException(stateError);
+        }
+
+        return userService.createUser(email, password, locked, ref);
+    }
 
     public Optional<Campaign> resolveCampaignForRegistration(String ref, String promoCode) {
         Campaign byRef = normalize(ref)

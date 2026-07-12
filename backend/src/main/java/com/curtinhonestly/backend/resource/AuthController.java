@@ -1,6 +1,5 @@
 package com.curtinhonestly.backend.resource;
 
-import com.curtinhonestly.backend.domain.Campaign;
 import com.curtinhonestly.backend.domain.User;
 import com.curtinhonestly.backend.dto.AccountDTO;
 import com.curtinhonestly.backend.dto.ErrorResponse;
@@ -38,18 +37,8 @@ public class AuthController {
     public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {
         log.info("Registration attempt for email: {}", request.email());
 
-        Campaign campaign = null;
-        if (hasCampaignAttribution(request)) {
-            campaign = campaignService.resolveCampaignForRegistration(request.ref(), request.promoCode())
-                    .orElseThrow(() -> new IllegalArgumentException("Campaign not found. Check your referral link or promo code."));
-
-            var validation = campaignService.validateCampaign(request.ref(), request.promoCode());
-            if (!validation.isValid()) {
-                throw new IllegalArgumentException(validation.getMessage());
-            }
-        }
-
-        User user = userService.createUser(request.email(), request.password(), campaign, request.ref());
+        User user = campaignService.registerUserWithCampaign(
+                request.email(), request.password(), request.ref(), request.promoCode());
         String token = jwtUtil.generateToken(
                 user.getEmail(),
                 user.getRoles().stream().map(Enum::name).toList()
@@ -143,11 +132,6 @@ public class AuthController {
                 user.getRoles().stream().map(Enum::name).toList()
         );
         return ResponseEntity.ok(new JwtResponse(token, user.isVerifiedStudent()));
-    }
-
-    private boolean hasCampaignAttribution(RegisterRequest request) {
-        return (request.ref() != null && !request.ref().isBlank())
-                || (request.promoCode() != null && !request.promoCode().isBlank());
     }
 
     public record RegisterRequest(@NotBlank @Email String email, @NotBlank String password, String ref, String promoCode) {}
