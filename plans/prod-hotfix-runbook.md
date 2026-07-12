@@ -37,6 +37,9 @@ Also confirm, if you want the CORS allowlist to differ from the built-in prod de
 
 ## 3. Email de-duplication and case-insensitive unique index (for #3)
 
+**Status: verified clean on both dev and prod (3a returned zero rows on both) — 3b (dedup) was not
+needed. Only 3c (create the index) is left to run, on both databases.**
+
 The app now normalizes email to lowercase everywhere, but existing dev/prod data may already contain
 case-variant duplicates (e.g. `Bob@x.com` and `bob@x.com` as separate accounts) from before this fix.
 `ddl-auto: update` cannot create a functional unique index on `LOWER(email)` — this project has no
