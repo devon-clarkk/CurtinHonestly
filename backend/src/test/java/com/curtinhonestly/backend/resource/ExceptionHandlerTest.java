@@ -76,7 +76,7 @@ class ExceptionHandlerTest {
         String token = jwtUtil.generateToken(user.getEmail(), List.of("ROLE_USER"));
 
         Map<String, Object> invalidPayload = Map.of(
-                "rating", 99, // out of the 0-5 range
+                "rating", 99, // out of the 1-5 range
                 "workload", 5,
                 "unitCode", "SOME-CODE"
         );
