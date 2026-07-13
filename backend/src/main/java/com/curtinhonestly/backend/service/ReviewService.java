@@ -34,7 +34,7 @@ public class ReviewService {
 
     public List<Review> getReviewsByUnitCode(String unitCode) {
         Unit unit = unitService.getUnitByCode(unitCode);
-        return reviewRepo.findByUnit_Id(unit.getId());
+        return reviewRepo.findByUnit_IdOrderByCreatedAtDesc(unit.getId());
     }
 
     public Page<Review> getPageOfReviews(int page, int size) {
