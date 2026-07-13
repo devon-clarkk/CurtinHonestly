@@ -8,7 +8,7 @@ import jakarta.validation.constraints.Size;
 // Only the fields a user is allowed to set on a review. createdAt and id are
 // always assigned server-side - never bind the Review entity directly here.
 public record ReviewCreateRequest(
-        @Min(0) @Max(5) int rating,
+        @Min(1) @Max(5) int rating,
         @Min(0) @Max(100) Integer finalGrade,
         @Size(max = 2000) String reviewText,
         String semesterTaken,

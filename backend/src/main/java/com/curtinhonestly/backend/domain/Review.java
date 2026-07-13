@@ -34,7 +34,7 @@ public class Review {
     @UuidGenerator
     private String id;
 
-    private int rating; // 0-5
+    private int rating; // 1-5
     private Integer finalGrade; // Optional
     @Column(length = 2000)
     private String reviewText;
