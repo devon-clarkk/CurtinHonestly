@@ -6,6 +6,8 @@ import {
   AdminAnalytics,
   AdminOverview,
   AdminReview,
+  CampaignAdmin,
+  CampaignEntryAdmin,
   PagedReviews,
   UserAdmin
 } from '../models/admin.model';
@@ -53,5 +55,33 @@ export class AdminService {
 
   deleteReview(id: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/reviews/${id}`);
+  }
+
+  listCampaigns(): Observable<CampaignAdmin[]> {
+    return this.http.get<CampaignAdmin[]>(`${this.apiUrl}/campaigns`);
+  }
+
+  createCampaign(payload: {
+    slug: string;
+    code: string;
+    name: string;
+    prizeDescription: string;
+    startsAt: string;
+    endsAt: string;
+    maxRedemptions: number | null;
+    minReviewLength: number;
+    maxEntriesPerUser: number;
+    requireVerifiedStudent: boolean;
+    requiredReviewCount: number;
+  }): Observable<CampaignAdmin> {
+    return this.http.post<CampaignAdmin>(`${this.apiUrl}/campaigns`, payload);
+  }
+
+  setCampaignActive(id: string, active: boolean): Observable<CampaignAdmin> {
+    return this.http.patch<CampaignAdmin>(`${this.apiUrl}/campaigns/${id}/active`, { active });
+  }
+
+  listCampaignEntries(id: string): Observable<CampaignEntryAdmin[]> {
+    return this.http.get<CampaignEntryAdmin[]>(`${this.apiUrl}/campaigns/${id}/entries`);
   }
 }

@@ -19,6 +19,24 @@
       </div>
 
       <div class="form-group">
+        <label for="promoCode">Promo code <span class="optional">(optional)</span></label>
+        <input
+          type="text"
+          id="promoCode"
+          name="promoCode"
+          [(ngModel)]="promoCode"
+          (ngModelChange)="onPromoCodeChange()"
+          placeholder="e.g. CURTIN-JUL26"
+          autocomplete="off"
+        >
+        <div class="hint">Enter a promo code from a Discord post or outreach campaign to join a prize draw.</div>
+      </div>
+
+      @if (campaignMessage()) {
+        <div class="campaign-banner">{{ campaignMessage() }}</div>
+      }
+
+      <div class="form-group">
         <label for="password">Password</label>
         <input 
           type="password" 
