@@ -73,6 +73,8 @@ export class AdminService {
     maxEntriesPerUser: number;
     requireVerifiedStudent: boolean;
     requiredReviewCount: number;
+    minLikesReceived: number;
+    minLikesGiven: number;
   }): Observable<CampaignAdmin> {
     return this.http.post<CampaignAdmin>(`${this.apiUrl}/campaigns`, payload);
   }

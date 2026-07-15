@@ -48,6 +48,10 @@ public class Review {
     private boolean hasExam; // Optional
     private boolean wouldTakeAgain;
 
+    // Denormalized count of rows in review_likes for this review. Kept in sync by ReviewLikeService.
+    @Column(nullable = false)
+    private int likeCount = 0;
+
     @Column(nullable = false, updatable = false, columnDefinition = "TIMESTAMPTZ DEFAULT NOW() NOT NULL")
     private Instant createdAt = Instant.now();
 

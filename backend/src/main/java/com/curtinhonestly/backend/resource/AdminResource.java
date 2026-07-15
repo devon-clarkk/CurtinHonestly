@@ -104,7 +104,9 @@ public class AdminResource {
                 request.minReviewLength(),
                 request.maxEntriesPerUser(),
                 request.requireVerifiedStudent(),
-                request.requiredReviewCount()
+                request.requiredReviewCount(),
+                request.minLikesReceived(),
+                request.minLikesGiven()
         ));
     }
 
@@ -133,7 +135,9 @@ public class AdminResource {
             int minReviewLength,
             int maxEntriesPerUser,
             boolean requireVerifiedStudent,
-            int requiredReviewCount
+            int requiredReviewCount,
+            int minLikesReceived,
+            int minLikesGiven
     ) {}
 
     public record SetCampaignActiveRequest(boolean active) {}

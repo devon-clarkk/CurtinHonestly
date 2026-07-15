@@ -128,8 +128,17 @@ export class AddReviewComponent {
       return 'Verify your student email to earn draw entries.';
     }
 
+    if (progress.minLikesGiven > 0 && progress.likesGiven < progress.minLikesGiven) {
+      const needed = progress.minLikesGiven - progress.likesGiven;
+      return `Mark ${needed} more review${needed === 1 ? '' : 's'} as helpful to unlock draw entries (${progress.likesGiven}/${progress.minLikesGiven}).`;
+    }
+
     if (progress.entriesEarned >= progress.maxEntries) {
       return 'You have earned the maximum draw entries for this campaign.';
+    }
+
+    if (progress.minLikesReceived > 0 && progress.qualifyingReviews === 0) {
+      return `Your review needs at least ${progress.minLikesReceived} helpful mark${progress.minLikesReceived === 1 ? '' : 's'} before it counts toward a draw entry.`;
     }
 
     const remainder = progress.qualifyingReviews % progress.requiredReviews;

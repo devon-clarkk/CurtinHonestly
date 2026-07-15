@@ -36,6 +36,9 @@ export interface CampaignProgress {
   entriesEarned: number;
   maxEntries: number;
   requireVerifiedStudent: boolean;
+  minLikesReceived: number;
+  minLikesGiven: number;
+  likesGiven: number;
 }
 
 export interface AccountStatus {

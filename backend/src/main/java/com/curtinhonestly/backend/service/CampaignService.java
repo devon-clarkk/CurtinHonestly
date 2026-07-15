@@ -11,6 +11,7 @@ import com.curtinhonestly.backend.dto.CampaignProgressDTO;
 import com.curtinhonestly.backend.dto.CampaignValidationDTO;
 import com.curtinhonestly.backend.repo.CampaignEntryRepo;
 import com.curtinhonestly.backend.repo.CampaignRepo;
+import com.curtinhonestly.backend.repo.ReviewLikeRepo;
 import com.curtinhonestly.backend.repo.ReviewRepo;
 import com.curtinhonestly.backend.repo.UserRepo;
 import jakarta.transaction.Transactional;
@@ -36,6 +37,7 @@ public class CampaignService {
     private final CampaignEntryRepo campaignEntryRepo;
     private final UserRepo userRepo;
     private final ReviewRepo reviewRepo;
+    private final ReviewLikeRepo reviewLikeRepo;
     private final UserService userService;
     private final SecureRandom secureRandom = new SecureRandom();
 
@@ -126,6 +128,10 @@ public class CampaignService {
             return new CampaignAwardResult(Optional.empty(), progress);
         }
 
+        if (!userMeetsLikeGiveRequirement(user, campaign)) {
+            return new CampaignAwardResult(Optional.empty(), progress);
+        }
+
         if (!reviewQualifies(triggeringReview, campaign)) {
             return new CampaignAwardResult(Optional.empty(), progress);
         }
@@ -166,6 +172,65 @@ public class CampaignService {
         return new CampaignAwardResult(newEntry, progress);
     }
 
+    /**
+     * Recomputes whether a user is owed any campaign entries based on current
+     * qualifying reviews + like thresholds. Used when likes push either
+     * minLikesReceived (review author) or minLikesGiven (liker) over the line.
+     */
+    public CampaignAwardResult reconcileCampaignEntries(User user) {
+        if (user == null || user.getCampaign() == null || user.isBanned()) {
+            return new CampaignAwardResult(Optional.empty(), null);
+        }
+
+        Campaign campaign = user.getCampaign();
+        Optional<CampaignEntry> latestEntry = Optional.empty();
+
+        // Award all outstanding entries (e.g. a likes-given gate unlocking several
+        // already-posted reviews at once), stopping when nothing new can be created.
+        while (true) {
+            CampaignAwardResult result = tryAwardNextOutstandingEntry(user, campaign);
+            if (result.newEntry().isEmpty()) {
+                return new CampaignAwardResult(latestEntry, result.progress());
+            }
+            latestEntry = result.newEntry();
+        }
+    }
+
+    private CampaignAwardResult tryAwardNextOutstandingEntry(User user, Campaign campaign) {
+        CampaignProgressDTO progress = buildProgress(user, campaign);
+
+        if (campaign.isRequireVerifiedStudent() && !user.isVerifiedStudent()) {
+            return new CampaignAwardResult(Optional.empty(), progress);
+        }
+        if (!userMeetsLikeGiveRequirement(user, campaign)) {
+            return new CampaignAwardResult(Optional.empty(), progress);
+        }
+        if (validateCampaignState(campaign, false) != null) {
+            return new CampaignAwardResult(Optional.empty(), progress);
+        }
+
+        long qualifyingCount = countQualifyingReviews(user, campaign);
+        int requiredReviewCount = Math.max(1, campaign.getRequiredReviewCount());
+        int maxEntriesPerUser = Math.max(1, campaign.getMaxEntriesPerUser());
+        long entriesShouldHave = Math.min(qualifyingCount / requiredReviewCount, maxEntriesPerUser);
+        long existingEntries = campaignEntryRepo.countByCampaign_IdAndUser_Id(campaign.getId(), user.getId());
+        if (entriesShouldHave <= existingEntries) {
+            return new CampaignAwardResult(Optional.empty(), progress);
+        }
+
+        Optional<Review> trigger = reviewRepo.findByUser_IdOrderByCreatedAtDesc(user.getId()).stream()
+                .filter(review -> reviewQualifies(review, campaign))
+                .filter(review -> !campaignEntryRepo.existsByCampaign_IdAndUser_IdAndUnit_Id(
+                        campaign.getId(), user.getId(), review.getUnit().getId()))
+                .findFirst();
+
+        if (trigger.isEmpty()) {
+            return new CampaignAwardResult(Optional.empty(), progress);
+        }
+
+        return tryAwardCampaignEntries(user, trigger.get());
+    }
+
     public List<CampaignEntrySummaryDTO> getEntriesForUser(User user) {
         return campaignEntryRepo.findByUser_IdOrderByCreatedAtDesc(user.getId()).stream()
                 .map(entry -> new CampaignEntrySummaryDTO(
@@ -194,7 +259,9 @@ public class CampaignService {
             int minReviewLength,
             int maxEntriesPerUser,
             boolean requireVerifiedStudent,
-            int requiredReviewCount
+            int requiredReviewCount,
+            int minLikesReceived,
+            int minLikesGiven
     ) {
         String normalizedSlug = requireNormalized(slug, "Campaign slug");
         String normalizedCode = requireNormalized(code, "Promo code").toUpperCase();
@@ -218,6 +285,12 @@ public class CampaignService {
         if (requiredReviewCount <= 0) {
             requiredReviewCount = 1;
         }
+        if (minLikesReceived < 0) {
+            minLikesReceived = 0;
+        }
+        if (minLikesGiven < 0) {
+            minLikesGiven = 0;
+        }
 
         Campaign campaign = new Campaign();
         campaign.setSlug(normalizedSlug);
@@ -231,6 +304,8 @@ public class CampaignService {
         campaign.setMaxEntriesPerUser(maxEntriesPerUser);
         campaign.setRequireVerifiedStudent(requireVerifiedStudent);
         campaign.setRequiredReviewCount(requiredReviewCount);
+        campaign.setMinLikesReceived(minLikesReceived);
+        campaign.setMinLikesGiven(minLikesGiven);
         campaign.setActive(true);
 
         return toAdminDTO(campaignRepo.save(campaign));
@@ -269,22 +344,47 @@ public class CampaignService {
         if (!isWithinWindow(campaign, review.getCreatedAt())) {
             return false;
         }
-        return review.getReviewText() != null
-                && review.getReviewText().trim().length() >= campaign.getMinReviewLength();
+        if (review.getReviewText() == null
+                || review.getReviewText().trim().length() < campaign.getMinReviewLength()) {
+            return false;
+        }
+        return review.getLikeCount() >= Math.max(0, campaign.getMinLikesReceived());
+    }
+
+    private boolean userMeetsLikeGiveRequirement(User user, Campaign campaign) {
+        int required = Math.max(0, campaign.getMinLikesGiven());
+        if (required == 0) {
+            return true;
+        }
+        return countLikesGivenInWindow(user, campaign) >= required;
+    }
+
+    private long countLikesGivenInWindow(User user, Campaign campaign) {
+        return reviewLikeRepo.countByUser_IdAndCreatedAtGreaterThanEqualAndCreatedAtLessThanEqual(
+                user.getId(), campaign.getStartsAt(), campaign.getEndsAt());
     }
 
     private CampaignProgressDTO buildProgress(User user, Campaign campaign) {
         long qualifyingReviews = countQualifyingReviews(user, campaign);
         int requiredReviewCount = Math.max(1, campaign.getRequiredReviewCount());
         int maxEntriesPerUser = Math.max(1, campaign.getMaxEntriesPerUser());
-        long entriesEarned = Math.min(qualifyingReviews / requiredReviewCount, maxEntriesPerUser);
+        long existingEntries = campaignEntryRepo.countByCampaign_IdAndUser_Id(campaign.getId(), user.getId());
+        long computedEntries = userMeetsLikeGiveRequirement(user, campaign)
+                ? Math.min(qualifyingReviews / requiredReviewCount, maxEntriesPerUser)
+                : 0;
+        // Never report fewer earned entries than tokens already issued (likes/reviews
+        // dropping below a threshold do not revoke draw entries).
+        long entriesEarned = Math.max(computedEntries, existingEntries);
 
         return new CampaignProgressDTO(
                 (int) qualifyingReviews,
                 requiredReviewCount,
                 (int) entriesEarned,
                 maxEntriesPerUser,
-                campaign.isRequireVerifiedStudent()
+                campaign.isRequireVerifiedStudent(),
+                Math.max(0, campaign.getMinLikesReceived()),
+                Math.max(0, campaign.getMinLikesGiven()),
+                (int) countLikesGivenInWindow(user, campaign)
         );
     }
 
@@ -303,6 +403,8 @@ public class CampaignService {
                 campaign.getMaxEntriesPerUser(),
                 campaign.isRequireVerifiedStudent(),
                 campaign.getRequiredReviewCount(),
+                campaign.getMinLikesReceived(),
+                campaign.getMinLikesGiven(),
                 userRepo.countByCampaign_Id(campaign.getId()),
                 campaignEntryRepo.countByCampaign_Id(campaign.getId()),
                 campaign.getCreatedAt()

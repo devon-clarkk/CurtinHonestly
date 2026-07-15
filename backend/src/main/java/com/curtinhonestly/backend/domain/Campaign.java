@@ -58,6 +58,14 @@ public class Campaign {
     @Column(nullable = false)
     private int requiredReviewCount = 1;
 
+    // Review must have received at least this many likes to count as qualifying (0 = no requirement).
+    @Column(nullable = false)
+    private int minLikesReceived = 0;
+
+    // User must have liked at least this many reviews within the campaign window before earning entries (0 = no requirement).
+    @Column(nullable = false)
+    private int minLikesGiven = 0;
+
     @Column(nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
 }

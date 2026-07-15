@@ -60,6 +60,8 @@ export interface CampaignAdmin {
   maxEntriesPerUser: number;
   requireVerifiedStudent: boolean;
   requiredReviewCount: number;
+  minLikesReceived: number;
+  minLikesGiven: number;
   signupCount: number;
   entryCount: number;
   createdAt: string;

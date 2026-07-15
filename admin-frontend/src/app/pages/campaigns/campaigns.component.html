@@ -27,6 +27,14 @@
     <input type="number" placeholder="Min review length" [(ngModel)]="minReviewLength" name="minReviewLength" />
     <input type="number" placeholder="Required reviews for entry" [(ngModel)]="requiredReviewCount" name="requiredReviewCount" />
     <input type="number" placeholder="Max draw entries per user" [(ngModel)]="maxEntriesPerUser" name="maxEntriesPerUser" />
+    <label>
+      Min likes on review to qualify
+      <input type="number" min="0" [(ngModel)]="minLikesReceived" name="minLikesReceived" />
+    </label>
+    <label>
+      Min likes user must give
+      <input type="number" min="0" [(ngModel)]="minLikesGiven" name="minLikesGiven" />
+    </label>
     <label class="checkbox">
       <input type="checkbox" [(ngModel)]="requireVerifiedStudent" name="requireVerifiedStudent" />
       Require verified student
@@ -65,6 +73,12 @@
               {{ campaign.requiredReviewCount }} review(s) ·
               {{ campaign.requireVerifiedStudent ? 'verified only' : 'any account' }} ·
               min {{ campaign.minReviewLength }} chars
+              @if (campaign.minLikesReceived > 0) {
+                · ≥{{ campaign.minLikesReceived }} like(s) on review
+              }
+              @if (campaign.minLikesGiven > 0) {
+                · give ≥{{ campaign.minLikesGiven }} like(s)
+              }
             </div>
           </td>
           <td>

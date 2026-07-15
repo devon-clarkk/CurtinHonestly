@@ -30,6 +30,8 @@ export class CampaignsComponent implements OnInit {
   maxEntriesPerUser = 1;
   requireVerifiedStudent = true;
   requiredReviewCount = 1;
+  minLikesReceived = 0;
+  minLikesGiven = 0;
 
   ngOnInit(): void {
     this.refreshCampaigns();
@@ -57,7 +59,9 @@ export class CampaignsComponent implements OnInit {
       minReviewLength: this.minReviewLength,
       maxEntriesPerUser: this.maxEntriesPerUser,
       requireVerifiedStudent: this.requireVerifiedStudent,
-      requiredReviewCount: this.requiredReviewCount
+      requiredReviewCount: this.requiredReviewCount,
+      minLikesReceived: this.minLikesReceived,
+      minLikesGiven: this.minLikesGiven
     }).subscribe({
       next: () => {
         this.successMessage.set('Campaign created.');
@@ -66,6 +70,8 @@ export class CampaignsComponent implements OnInit {
         this.name = '';
         this.prizeDescription = '';
         this.maxRedemptions = null;
+        this.minLikesReceived = 0;
+        this.minLikesGiven = 0;
         this.setDefaultDates();
         this.refreshCampaigns();
       },
