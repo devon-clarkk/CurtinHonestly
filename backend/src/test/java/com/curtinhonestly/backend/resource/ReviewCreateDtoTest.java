@@ -90,8 +90,11 @@ class ReviewCreateDtoTest {
                 .andExpect(status().isCreated())
                 .andReturn();
 
+        // POST /reviews now returns a CreateReviewResponseDTO envelope (review +
+        // campaign entry fields) rather than the bare ReviewDTO, since the campaign
+        // work wraps review creation to award entries in the same call.
         JsonNode body = objectMapper.readTree(result.getResponse().getContentAsString());
-        Instant returnedCreatedAt = Instant.parse(body.get("createdAt").asText());
+        Instant returnedCreatedAt = Instant.parse(body.get("review").get("createdAt").asText());
 
         assertThat(returnedCreatedAt).isCloseTo(Instant.now(), org.assertj.core.api.Assertions.within(1, ChronoUnit.MINUTES));
         assertThat(result.getResponse().getHeader("Location")).doesNotContain("client-supplied-id-should-be-ignored");

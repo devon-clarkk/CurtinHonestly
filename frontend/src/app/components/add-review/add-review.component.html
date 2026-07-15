@@ -66,6 +66,10 @@
       {{ errorMessage() }}
     </div>
 
+    @if (successMessage()) {
+      <div class="success-box">{{ successMessage() }}</div>
+    }
+
     <div class="form-actions">
       <button type="button" (click)="onCancel()" class="btn btn-secondary" [disabled]="isLoading()">Cancel</button>
       <button type="submit" class="btn btn-primary" [disabled]="isLoading() || !reviewText() || reviewText().length < 10">

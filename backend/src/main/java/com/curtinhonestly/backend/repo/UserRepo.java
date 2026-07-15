@@ -11,4 +11,5 @@ public interface UserRepo extends JpaRepository<User, String> {
     Optional<User> findByEmail(String email);
     long countByCreatedAtAfter(Instant since);
     List<User> findByCreatedAtAfter(Instant since);
+    long countByCampaign_Id(String campaignId);
 }

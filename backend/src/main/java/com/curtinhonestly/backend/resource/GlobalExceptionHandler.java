@@ -1,7 +1,9 @@
 package com.curtinhonestly.backend.resource;
 
 import com.curtinhonestly.backend.dto.ErrorResponse;
+import com.curtinhonestly.backend.service.CampaignEntryTokenExhaustedException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -16,6 +18,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler({IllegalArgumentException.class, IllegalStateException.class})
     public ResponseEntity<ErrorResponse> handleBadRequest(RuntimeException ex) {
         return ResponseEntity.badRequest().body(new ErrorResponse(ex.getMessage()));
+    }
+
+    @ExceptionHandler(CampaignEntryTokenExhaustedException.class)
+    public ResponseEntity<ErrorResponse> handleServiceUnavailable(CampaignEntryTokenExhaustedException ex) {
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(new ErrorResponse(ex.getMessage()));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

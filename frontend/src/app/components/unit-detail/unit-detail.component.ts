@@ -29,9 +29,12 @@ export class UnitDetailComponent implements OnInit {
 
   // This will store all the unit information once it's fetched
   unit$: Observable<UnitDetails> | undefined;
-  
+
   // Track if we should show the add review form
   showAddReviewForm = signal(false);
+
+  // Set when the backend rejects a submission because the user already reviewed this unit
+  duplicateReviewMessage = signal<string | null>(null);
 
   ngOnInit(): void {
     this.loadUnit();
@@ -63,12 +66,20 @@ export class UnitDetailComponent implements OnInit {
   }
 
   toggleAddReviewForm() {
+    this.duplicateReviewMessage.set(null);
     this.showAddReviewForm.update(v => !v);
   }
 
   onReviewAdded() {
     this.showAddReviewForm.set(false);
     this.loadUnit();
+  }
+
+  onReviewError(message: string) {
+    if (message.toLowerCase().includes('already reviewed')) {
+      this.showAddReviewForm.set(false);
+      this.duplicateReviewMessage.set(message);
+    }
   }
 
   getStarArray(rating: number): string[] {
