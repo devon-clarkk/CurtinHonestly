@@ -10,6 +10,9 @@ export interface CampaignProgress {
   entriesEarned: number;
   maxEntries: number;
   requireVerifiedStudent: boolean;
+  minLikesReceived: number;
+  minLikesGiven: number;
+  likesGiven: number;
 }
 
 export interface CreateReviewResponse {
@@ -17,6 +20,12 @@ export interface CreateReviewResponse {
   campaignEntryToken: string | null;
   campaignName: string | null;
   campaignProgress: CampaignProgress | null;
+}
+
+export interface ReviewLikeResponse {
+  reviewId: string;
+  likeCount: number;
+  likedByCurrentUser: boolean;
 }
 
 @Injectable({
@@ -36,5 +45,13 @@ export class ReviewService {
 
   deleteReview(id: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
+
+  likeReview(id: string): Observable<ReviewLikeResponse> {
+    return this.http.post<ReviewLikeResponse>(`${this.apiUrl}/${id}/likes`, {});
+  }
+
+  unlikeReview(id: string): Observable<ReviewLikeResponse> {
+    return this.http.delete<ReviewLikeResponse>(`${this.apiUrl}/${id}/likes`);
   }
 }

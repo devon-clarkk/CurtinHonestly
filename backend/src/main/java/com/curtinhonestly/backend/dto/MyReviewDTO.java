@@ -14,5 +14,6 @@ public record MyReviewDTO(
         int workload,
         boolean hasExam,
         boolean wouldTakeAgain,
+        int likeCount,
         Instant createdAt
 ) {}
