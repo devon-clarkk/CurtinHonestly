@@ -37,7 +37,9 @@ public class UserService {
         User user = new User();
         user.setEmail(normalizedEmail);
         user.setPassword(passwordEncoder.encode(password));
-        user.setVerifiedStudent(StudentEmailValidator.isStudentEmail(normalizedEmail));
+        // Verified status is now earned by confirming an emailed link (VerificationService),
+        // never granted by the email suffix alone. New accounts start unverified.
+        user.setVerifiedStudent(false);
         user.setRoles(List.of(UserRole.ROLE_USER));
 
         if (campaign != null) {
@@ -70,29 +72,6 @@ public class UserService {
         return userRepo.findByEmail(EmailNormalizer.normalize(email)).orElseThrow(() -> new RuntimeException("User not found"));
     }
 
-    public User verifyStudentEmail(String email, String studentEmail) {
-        User user = getUserByEmail(email);
-        String normalizedStudentEmail = EmailNormalizer.normalize(studentEmail);
-
-        if (user.isVerifiedStudent()) {
-            throw new IllegalStateException("Account is already verified as a student.");
-        }
-
-        if (!StudentEmailValidator.isStudentEmail(normalizedStudentEmail)) {
-            throw new IllegalArgumentException("A valid @student.curtin.edu.au email is required.");
-        }
-
-        if (userRepo.findByEmail(normalizedStudentEmail).filter(existing -> !existing.getId().equals(user.getId())).isPresent()) {
-            throw new IllegalArgumentException("That student email is already linked to another account.");
-        }
-
-        user.setEmail(normalizedStudentEmail);
-        user.setVerifiedStudent(true);
-        User savedUser = userRepo.saveAndFlush(user);
-        log.info("User {} verified as student with email {}", savedUser.getId(), normalizedStudentEmail);
-        return savedUser;
-    }
-
     public User updateEmail(String currentEmail, String newEmail, String password) {
         User user = getUserByEmail(currentEmail);
 
@@ -112,7 +91,9 @@ public class UserService {
                 });
 
         user.setEmail(normalizedEmail);
-        user.setVerifiedStudent(StudentEmailValidator.isStudentEmail(normalizedEmail));
+        // Changing the login email drops verified status — it must be re-earned by
+        // confirming a link sent to the new address (VerificationService).
+        user.setVerifiedStudent(false);
         User savedUser = userRepo.saveAndFlush(user);
         log.info("User {} updated email", savedUser.getId());
         return savedUser;

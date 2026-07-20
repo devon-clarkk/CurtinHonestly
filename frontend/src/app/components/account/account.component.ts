@@ -113,12 +113,12 @@ export class AccountComponent implements OnInit {
       studentEmail: this.studentEmail,
       password: this.verifyPassword
     }).subscribe({
-      next: () => {
+      next: (response) => {
         this.isLoading.set(false);
-        this.successMessage.set('Your account is now verified as a Curtin student.');
+        this.successMessage.set(response.message
+          || 'Check your student email for a confirmation link to finish verifying.');
         this.studentEmail = '';
         this.verifyPassword = '';
-        this.refreshAccount();
       },
       error: (err) => {
         this.isLoading.set(false);
