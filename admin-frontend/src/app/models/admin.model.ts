@@ -45,3 +45,32 @@ export interface PagedReviews {
   totalPages: number;
   number: number;
 }
+
+export interface CampaignAdmin {
+  id: string;
+  slug: string;
+  code: string;
+  name: string;
+  prizeDescription: string | null;
+  startsAt: string;
+  endsAt: string;
+  active: boolean;
+  maxRedemptions: number | null;
+  minReviewLength: number;
+  maxEntriesPerUser: number;
+  requireVerifiedStudent: boolean;
+  requiredReviewCount: number;
+  minLikesReceived: number;
+  minLikesGiven: number;
+  signupCount: number;
+  entryCount: number;
+  createdAt: string;
+}
+
+export interface CampaignEntryAdmin {
+  id: string;
+  entryToken: string;
+  userEmail: string;
+  unitCode: string;
+  createdAt: string;
+}

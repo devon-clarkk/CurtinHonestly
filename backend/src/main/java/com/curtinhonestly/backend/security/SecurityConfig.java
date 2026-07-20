@@ -34,6 +34,7 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+    private final RateLimitFilter rateLimitFilter;
 
     @Value("${app.cors.allowed-origins}")
     private List<String> corsAllowedOrigins;
@@ -54,6 +55,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/units", "/units/**").permitAll()
                         .requestMatchers("/actuator/health").permitAll()
                         .requestMatchers("/auth/register", "/auth/login").permitAll()
+                        .requestMatchers("/campaigns/validate").permitAll()
                         .requestMatchers("/auth/me", "/auth/verify-student").authenticated()
                         .requestMatchers("/error").permitAll()
 
@@ -70,6 +72,9 @@ public class SecurityConfig {
 
                         // User endpoints - Use name() to get "ROLE_USER"
                         .requestMatchers(HttpMethod.POST, "/reviews", "/reviews/**").hasAnyAuthority(UserRole.ROLE_USER.name(), UserRole.ROLE_ADMIN.name())
+                        // Unlike is DELETE /reviews/{id}/likes (owner of the like). Review delete itself
+                        // is further gated by @PreAuthorize(IS_ADMIN_OR_OWNER) on the resource method.
+                        .requestMatchers(HttpMethod.DELETE, "/reviews/*/likes").hasAnyAuthority(UserRole.ROLE_USER.name(), UserRole.ROLE_ADMIN.name())
 
                         // Default
                         .anyRequest().authenticated()
@@ -77,6 +82,7 @@ public class SecurityConfig {
                 .exceptionHandling(ex -> ex.authenticationEntryPoint(jwtAuthenticationEntryPoint))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(rateLimitFilter, JwtAuthenticationFilter.class)
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable);
 
