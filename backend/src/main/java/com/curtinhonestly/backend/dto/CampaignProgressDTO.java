@@ -11,4 +11,7 @@ public class CampaignProgressDTO {
     private int entriesEarned;
     private int maxEntries;
     private boolean requireVerifiedStudent;
+    private int minLikesReceived;
+    private int minLikesGiven;
+    private int likesGiven;
 }

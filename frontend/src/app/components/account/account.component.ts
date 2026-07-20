@@ -53,6 +53,18 @@ export class AccountComponent implements OnInit {
       return `You have ${progress.entriesEarned} draw ${progress.entriesEarned === 1 ? 'entry' : 'entries'}.`;
     }
 
+    if (progress.minLikesGiven > 0 && progress.likesGiven < progress.minLikesGiven) {
+      const needed = progress.minLikesGiven - progress.likesGiven;
+      return `Mark ${needed} more review${needed === 1 ? '' : 's'} as helpful (${progress.likesGiven}/${progress.minLikesGiven}) to unlock draw entries.`;
+    }
+
+    if (progress.minLikesReceived > 0) {
+      const remainder = progress.qualifyingReviews % progress.requiredReviews;
+      if (remainder === 0 && progress.qualifyingReviews === 0) {
+        return `Leave reviews that receive at least ${progress.minLikesReceived} helpful mark${progress.minLikesReceived === 1 ? '' : 's'} to enter the draw.`;
+      }
+    }
+
     const remainder = progress.qualifyingReviews % progress.requiredReviews;
     if (remainder === 0 && progress.qualifyingReviews === 0) {
       return `Leave ${progress.requiredReviews} qualifying review${progress.requiredReviews === 1 ? '' : 's'} on different units to enter the draw.`;
