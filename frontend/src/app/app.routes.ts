@@ -5,6 +5,7 @@ import { LoginComponent } from './components/login/login.component';
 import { RegisterComponent } from './components/register/register.component';
 import { AccountComponent } from './components/account/account.component';
 import { MyReviewsComponent } from './components/my-reviews/my-reviews.component';
+import { VerifyStudentConfirmComponent } from './components/verify-student-confirm/verify-student-confirm.component';
 import { authGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
@@ -13,6 +14,7 @@ export const routes: Routes = [
   { path: 'register', component: RegisterComponent },
   { path: 'account', component: AccountComponent, canActivate: [authGuard] },
   { path: 'my-reviews', component: MyReviewsComponent, canActivate: [authGuard] },
+  { path: 'verify-student/confirm', component: VerifyStudentConfirmComponent },
   { path: 'units/:code', component: UnitDetailComponent },
   { path: '**', redirectTo: '' }
 ];
