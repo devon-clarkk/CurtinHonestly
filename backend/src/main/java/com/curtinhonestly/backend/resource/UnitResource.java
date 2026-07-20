@@ -6,14 +6,13 @@ import com.curtinhonestly.backend.domain.UnitLevel;
 import com.curtinhonestly.backend.dto.ReviewDTO;
 import com.curtinhonestly.backend.dto.UnitCreateRequest;
 import com.curtinhonestly.backend.dto.UnitDetailsDTO;
-import com.curtinhonestly.backend.dto.UnitSummaryDTO;
 import com.curtinhonestly.backend.mapper.ReviewMapper;
+import com.curtinhonestly.backend.service.ReviewLikeService;
 import com.curtinhonestly.backend.service.ReviewService;
 import com.curtinhonestly.backend.service.UnitService;
 import com.curtinhonestly.backend.security.SecurityConstants;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -28,6 +27,7 @@ public class UnitResource {
 
     private final UnitService unitService;
     private final ReviewService reviewService;
+    private final ReviewLikeService reviewLikeService;
 
     @PostMapping
     @PreAuthorize(SecurityConstants.HAS_ROLE_ADMIN)
@@ -49,12 +49,16 @@ public class UnitResource {
 
     @GetMapping("/{code}")
     public ResponseEntity<UnitDetailsDTO> getUnit(@PathVariable String code) {
-        return ResponseEntity.ok().body(unitService.getUnitDetailsDTOByCode(code));
+        UnitDetailsDTO details = unitService.getUnitDetailsDTOByCode(code);
+        reviewLikeService.enrichReviewsWithCurrentUserLikes(details.getReviews());
+        return ResponseEntity.ok().body(details);
     }
 
     @GetMapping("/{unitCode}/reviews")
     public ResponseEntity<List<ReviewDTO>> getReviewsForUnit(@PathVariable String unitCode) {
-        return ResponseEntity.ok(ReviewMapper.mapToDTOs(reviewService.getReviewsByUnitCode(unitCode)));
+        List<ReviewDTO> reviews = ReviewMapper.mapToDTOs(reviewService.getReviewsByUnitCode(unitCode));
+        reviewLikeService.enrichReviewsWithCurrentUserLikes(reviews);
+        return ResponseEntity.ok(reviews);
     }
 
     @DeleteMapping("/{id}")

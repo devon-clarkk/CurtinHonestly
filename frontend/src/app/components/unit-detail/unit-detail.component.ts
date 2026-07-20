@@ -3,9 +3,10 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { UnitService } from '../../services/unit.service';
 import { AuthService } from '../../services/auth.service';
+import { ReviewService } from '../../services/review.service';
 import { SeoService } from '../../services/seo.service';
 import { reviewAuthorName } from '../../utils/unit-seo.utils';
-import { UnitDetails } from '../../models/unit.model';
+import { Review, UnitDetails } from '../../models/unit.model';
 import { Observable, switchMap, map, of, tap } from 'rxjs';
 import { AddReviewComponent } from '../add-review/add-review.component';
 
@@ -23,6 +24,7 @@ import { AddReviewComponent } from '../add-review/add-review.component';
 export class UnitDetailComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private unitService = inject(UnitService);
+  private reviewService = inject(ReviewService);
   private seoService = inject(SeoService);
   authService = inject(AuthService);
   reviewAuthorName = reviewAuthorName;
@@ -35,6 +37,9 @@ export class UnitDetailComponent implements OnInit {
 
   // Set when the backend rejects a submission because the user already reviewed this unit
   duplicateReviewMessage = signal<string | null>(null);
+
+  likeErrorMessage = signal<string | null>(null);
+  likingReviewId = signal<string | null>(null);
 
   ngOnInit(): void {
     this.loadUnit();
@@ -80,6 +85,31 @@ export class UnitDetailComponent implements OnInit {
       this.showAddReviewForm.set(false);
       this.duplicateReviewMessage.set(message);
     }
+  }
+
+  toggleLike(review: Review): void {
+    if (!this.authService.isLoggedIn() || !review.id || this.likingReviewId()) {
+      return;
+    }
+
+    this.likeErrorMessage.set(null);
+    this.likingReviewId.set(review.id);
+
+    const request$ = review.likedByCurrentUser
+      ? this.reviewService.unlikeReview(review.id)
+      : this.reviewService.likeReview(review.id);
+
+    request$.subscribe({
+      next: (result) => {
+        review.likeCount = result.likeCount;
+        review.likedByCurrentUser = result.likedByCurrentUser;
+        this.likingReviewId.set(null);
+      },
+      error: (err) => {
+        this.likingReviewId.set(null);
+        this.likeErrorMessage.set(err.error?.error || 'Could not update like. Please try again.');
+      }
+    });
   }
 
   getStarArray(rating: number): string[] {

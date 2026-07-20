@@ -21,6 +21,8 @@ public class CampaignAdminDTO {
     private int maxEntriesPerUser;
     private boolean requireVerifiedStudent;
     private int requiredReviewCount;
+    private int minLikesReceived;
+    private int minLikesGiven;
     private long signupCount;
     private long entryCount;
     private Instant createdAt;

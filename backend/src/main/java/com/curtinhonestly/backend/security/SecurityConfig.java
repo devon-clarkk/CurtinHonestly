@@ -72,6 +72,9 @@ public class SecurityConfig {
 
                         // User endpoints - Use name() to get "ROLE_USER"
                         .requestMatchers(HttpMethod.POST, "/reviews", "/reviews/**").hasAnyAuthority(UserRole.ROLE_USER.name(), UserRole.ROLE_ADMIN.name())
+                        // Unlike is DELETE /reviews/{id}/likes (owner of the like). Review delete itself
+                        // is further gated by @PreAuthorize(IS_ADMIN_OR_OWNER) on the resource method.
+                        .requestMatchers(HttpMethod.DELETE, "/reviews/*/likes").hasAnyAuthority(UserRole.ROLE_USER.name(), UserRole.ROLE_ADMIN.name())
 
                         // Default
                         .anyRequest().authenticated()

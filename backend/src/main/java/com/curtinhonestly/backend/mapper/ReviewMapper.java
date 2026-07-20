@@ -12,7 +12,7 @@ public class ReviewMapper {
     public static ReviewDTO mapToDTO(Review review) {
         ReviewDTO dto = new ReviewDTO();
 
-        // Review details
+        dto.setId(review.getId());
         dto.setRating(review.getRating());
         dto.setFinalGrade(review.getFinalGrade());
         dto.setReviewText(review.getReviewText());
@@ -21,6 +21,8 @@ public class ReviewMapper {
         dto.setWorkload(review.getWorkload());
         dto.setHasExam(review.isHasExam());
         dto.setWouldTakeAgain(review.isWouldTakeAgain());
+        dto.setLikeCount(review.getLikeCount());
+        dto.setLikedByCurrentUser(false);
         dto.setCreatedAt(review.getCreatedAt());
 
         if (review.getUser() != null) {
@@ -45,6 +47,7 @@ public class ReviewMapper {
                 review.getWorkload(),
                 review.isHasExam(),
                 review.isWouldTakeAgain(),
+                review.getLikeCount(),
                 review.getCreatedAt()
         );
     }
