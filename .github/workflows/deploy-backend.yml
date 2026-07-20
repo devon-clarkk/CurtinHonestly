@@ -74,6 +74,14 @@ jobs:
           DATABASE_USERNAME: ${{ secrets.DATABASE_USERNAME }}
           DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          MAIL_HOST: ${{ secrets.MAIL_HOST }}
+          # Fallback keeps the port a valid integer even if the secret is unset,
+          # so the app boots (email just stays in log-only mode) instead of failing to parse.
+          MAIL_PORT: ${{ secrets.MAIL_PORT || '587' }}
+          MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
+          MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
+          MAIL_FROM: ${{ secrets.MAIL_FROM }}
+          FRONTEND_BASE_URL: ${{ secrets.FRONTEND_BASE_URL }}
         run: |
           set -euo pipefail
           IMAGE="${{ secrets.ACR_LOGIN_SERVER }}/curtinhonestly-backend:${IMAGE_TAG}"
@@ -91,7 +99,13 @@ jobs:
               database-username="$DATABASE_USERNAME" \
               database-password="$DATABASE_PASSWORD" \
               jwt-secret="$JWT_SECRET" \
-              SPRING_PROFILES_ACTIVE="$DEPLOY_ENV"
+              SPRING_PROFILES_ACTIVE="$DEPLOY_ENV" \
+              MAIL_HOST="$MAIL_HOST" \
+              MAIL_PORT="$MAIL_PORT" \
+              MAIL_USERNAME="$MAIL_USERNAME" \
+              MAIL_PASSWORD="$MAIL_PASSWORD" \
+              MAIL_FROM="$MAIL_FROM" \
+              FRONTEND_BASE_URL="$FRONTEND_BASE_URL"
           az containerapp ingress update \
             --name "${{ secrets.CONTAINER_APP_NAME }}" \
             --resource-group "${{ secrets.RESOURCE_GROUP }}" \
