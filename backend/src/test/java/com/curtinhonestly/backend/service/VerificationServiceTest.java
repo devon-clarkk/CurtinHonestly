@@ -9,9 +9,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -32,12 +32,14 @@ class VerificationServiceTest {
     @Mock VerificationTokenRepo tokenRepo;
     @Mock UserRepo userRepo;
     @Mock EmailService emailService;
+    @Mock PasswordEncoder passwordEncoder;
 
     @Captor ArgumentCaptor<VerificationToken> tokenCaptor;
     @Captor ArgumentCaptor<String> bodyCaptor;
 
     private VerificationService service() {
-        return new VerificationService(tokenRepo, userRepo, emailService, "https://curtinhonestly.com/", 24);
+        return new VerificationService(tokenRepo, userRepo, emailService, passwordEncoder,
+                "https://curtinhonestly.com/", 24, 1);
     }
 
     private User unverifiedUser() {
@@ -187,6 +189,114 @@ class VerificationServiceTest {
         when(userRepo.findByEmail("bob@student.curtin.edu.au")).thenReturn(Optional.of(other));
 
         assertThatThrownBy(() -> service().confirmStudentVerification("raw-token"))
+                .isInstanceOf(IllegalArgumentException.class);
+        verify(userRepo, never()).saveAndFlush(any());
+    }
+
+    // ---- requestPasswordReset ----
+
+    @Test
+    void requestReset_issuesResetTokenAndEmailsLinkMatchingStoredHash() throws Exception {
+        User user = unverifiedUser();
+        when(userRepo.findByEmail("alice@gmail.com")).thenReturn(Optional.of(user));
+
+        service().requestPasswordReset("  Alice@Gmail.com ");
+
+        verify(tokenRepo).invalidateOutstanding(user, VerificationPurpose.PASSWORD_RESET);
+        verify(tokenRepo).save(tokenCaptor.capture());
+        verify(emailService).send(eq("alice@gmail.com"), anyString(), bodyCaptor.capture());
+
+        VerificationToken saved = tokenCaptor.getValue();
+        assertThat(saved.getPurpose()).isEqualTo(VerificationPurpose.PASSWORD_RESET);
+        // reset TTL is 1h in the test config
+        assertThat(saved.getExpiresAt()).isBefore(Instant.now().plus(2, ChronoUnit.HOURS));
+
+        Matcher m = Pattern.compile("token=([^\\s]+)").matcher(bodyCaptor.getValue());
+        assertThat(m.find()).isTrue();
+        assertThat(saved.getTokenHash()).isEqualTo(sha256(m.group(1)));
+        assertThat(bodyCaptor.getValue()).contains("/reset-password?token=");
+    }
+
+    @Test
+    void requestReset_isSilentForUnknownEmail() {
+        when(userRepo.findByEmail("nobody@gmail.com")).thenReturn(Optional.empty());
+
+        service().requestPasswordReset("nobody@gmail.com");
+
+        verify(tokenRepo, never()).save(any());
+        verifyNoInteractions(emailService);
+    }
+
+    // ---- resetPassword ----
+
+    private VerificationToken usableResetToken(User user) {
+        VerificationToken token = new VerificationToken();
+        token.setUser(user);
+        token.setPurpose(VerificationPurpose.PASSWORD_RESET);
+        token.setExpiresAt(Instant.now().plus(30, ChronoUnit.MINUTES));
+        return token;
+    }
+
+    @Test
+    void resetPassword_setsEncodedPasswordAndConsumesToken() throws Exception {
+        User user = unverifiedUser();
+        user.setPassword("old-hash");
+        VerificationToken token = usableResetToken(user);
+        when(tokenRepo.findByTokenHash(sha256("raw-token"))).thenReturn(Optional.of(token));
+        when(passwordEncoder.encode("new-password-123")).thenReturn("new-hash");
+
+        service().resetPassword("raw-token", "new-password-123");
+
+        assertThat(user.getPassword()).isEqualTo("new-hash");
+        assertThat(token.getUsedAt()).isNotNull();
+        verify(userRepo).saveAndFlush(user);
+        verify(tokenRepo).save(token);
+    }
+
+    @Test
+    void resetPassword_rejectsTooShortPasswordBeforeTouchingToken() {
+        assertThatThrownBy(() -> service().resetPassword("raw-token", "short"))
+                .isInstanceOf(IllegalArgumentException.class);
+        verify(tokenRepo, never()).findByTokenHash(anyString());
+    }
+
+    @Test
+    void resetPassword_rejectsUnknownToken() {
+        when(tokenRepo.findByTokenHash(anyString())).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service().resetPassword("nope", "new-password-123"))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void resetPassword_rejectsExpiredToken() throws Exception {
+        VerificationToken token = usableResetToken(unverifiedUser());
+        token.setExpiresAt(Instant.now().minus(1, ChronoUnit.MINUTES));
+        when(tokenRepo.findByTokenHash(sha256("raw-token"))).thenReturn(Optional.of(token));
+
+        assertThatThrownBy(() -> service().resetPassword("raw-token", "new-password-123"))
+                .isInstanceOf(IllegalArgumentException.class);
+        verify(userRepo, never()).saveAndFlush(any());
+    }
+
+    @Test
+    void resetPassword_rejectsUsedToken() throws Exception {
+        VerificationToken token = usableResetToken(unverifiedUser());
+        token.setUsedAt(Instant.now().minus(1, ChronoUnit.MINUTES));
+        when(tokenRepo.findByTokenHash(sha256("raw-token"))).thenReturn(Optional.of(token));
+
+        assertThatThrownBy(() -> service().resetPassword("raw-token", "new-password-123"))
+                .isInstanceOf(IllegalArgumentException.class);
+        verify(userRepo, never()).saveAndFlush(any());
+    }
+
+    @Test
+    void resetPassword_rejectsTokenOfWrongPurpose() throws Exception {
+        VerificationToken token = usableResetToken(unverifiedUser());
+        token.setPurpose(VerificationPurpose.STUDENT_VERIFICATION);
+        when(tokenRepo.findByTokenHash(sha256("raw-token"))).thenReturn(Optional.of(token));
+
+        assertThatThrownBy(() -> service().resetPassword("raw-token", "new-password-123"))
                 .isInstanceOf(IllegalArgumentException.class);
         verify(userRepo, never()).saveAndFlush(any());
     }

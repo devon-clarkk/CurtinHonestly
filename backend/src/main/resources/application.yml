@@ -42,3 +42,4 @@ app:
   mail:
     from: ${MAIL_FROM:no-reply@curtinhonestly.com}
     verification-token-ttl-hours: ${VERIFICATION_TOKEN_TTL_HOURS:24}
+    reset-token-ttl-hours: ${RESET_TOKEN_TTL_HOURS:1}
