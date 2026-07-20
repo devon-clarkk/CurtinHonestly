@@ -128,6 +128,16 @@
   border: 1px solid #feb2b2;
 }
 
+.success-box {
+  background-color: #eff6ff;
+  color: #1d4ed8;
+  padding: 12px;
+  border-radius: var(--radius-none);
+  margin-bottom: 15px;
+  border: 1px solid #bfdbfe;
+  line-height: 1.5;
+}
+
 .btn-secondary {
   background-color: var(--surface-muted);
   color: var(--text-primary);

@@ -7,7 +7,13 @@ public record MyReviewDTO(
         String unitCode,
         String unitName,
         int rating,
+        Integer finalGrade,
         String reviewText,
         String semesterTaken,
+        String professor,
+        int workload,
+        boolean hasExam,
+        boolean wouldTakeAgain,
+        int likeCount,
         Instant createdAt
 ) {}

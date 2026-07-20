@@ -12,7 +12,9 @@ import java.util.Optional;
 public interface ReviewRepo extends JpaRepository<Review, String> {
     Optional<Review> findById(String id);
     List<Review> findByUnit_Id(String unitId);
+    List<Review> findByUnit_IdOrderByCreatedAtDesc(String unitId);
     List<Review> findByUser_IdOrderByCreatedAtDesc(String userId);
+    boolean existsByUser_IdAndUnit_Id(String userId, String unitId);
     long countByCreatedAtAfter(Instant since);
     List<Review> findByCreatedAtAfter(Instant since);
 }

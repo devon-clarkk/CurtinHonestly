@@ -152,25 +152,31 @@
         <h3 class="section-heading">Student Reviews</h3>
         
         <!-- Button to show the add review form -->
-        <button *ngIf="authService.isLoggedIn() && !showAddReviewForm()" 
-                (click)="toggleAddReviewForm()" 
+        <button *ngIf="authService.isLoggedIn() && !showAddReviewForm()"
+                (click)="toggleAddReviewForm()"
                 class="btn btn-primary add-review-btn">
           Add Review
         </button>
       </div>
 
       <!-- The Add Review Form (hidden by default) -->
-      <app-add-review 
-        *ngIf="showAddReviewForm()" 
-        [unitCode]="unit.code" 
+      <app-add-review
+        *ngIf="showAddReviewForm()"
+        [unitCode]="unit.code"
         (reviewAdded)="onReviewAdded()"
+        (reviewError)="onReviewError($event)"
         (cancel)="toggleAddReviewForm()">
       </app-add-review>
+
+      <div *ngIf="duplicateReviewMessage()" class="error-box">
+        {{ duplicateReviewMessage() }}
+        <a routerLink="/my-reviews">Go to My Reviews</a> to update or delete it.
+      </div>
 
       <div *ngIf="!authService.isLoggedIn()" class="login-to-review">
         <p>Want to share your experience? <a routerLink="/login">Log in</a> to leave a review!</p>
       </div>
-      
+
       <div *ngIf="unit.reviews.length === 0" class="no-reviews">
         No reviews yet. Be the first to write one!
       </div>
@@ -207,8 +213,30 @@
           </span>
           <span class="footer-tag">Grade: {{ review.finalGrade }}%</span>
           <span class="footer-tag">Workload: {{ review.workload }}/10</span>
+          @if (authService.isLoggedIn()) {
+            <button
+              type="button"
+              class="like-btn"
+              [class.liked]="review.likedByCurrentUser"
+              [disabled]="likingReviewId() === review.id"
+              (click)="toggleLike(review)"
+              [attr.aria-pressed]="review.likedByCurrentUser"
+              [attr.aria-label]="review.likedByCurrentUser ? 'Unlike review' : 'Mark review as helpful'">
+              <span class="like-icon" aria-hidden="true">{{ review.likedByCurrentUser ? '♥' : '♡' }}</span>
+              <span>{{ review.likedByCurrentUser ? 'Helpful' : 'Mark helpful' }}</span>
+              <span class="like-count">{{ review.likeCount || 0 }}</span>
+            </button>
+          } @else {
+            <span class="like-count-readonly" title="Log in to mark reviews as helpful">
+              ♡ {{ review.likeCount || 0 }}
+            </span>
+          }
         </div>
       </div>
+
+      @if (likeErrorMessage()) {
+        <div class="error-box">{{ likeErrorMessage() }}</div>
+      }
     </section>
   </div>
 </div>

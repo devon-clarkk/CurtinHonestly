@@ -1,10 +1,13 @@
 package com.curtinhonestly.backend.resource;
 
+import com.curtinhonestly.backend.dto.CreateReviewResponseDTO;
 import com.curtinhonestly.backend.dto.MyReviewDTO;
 import com.curtinhonestly.backend.dto.ReviewCreateRequest;
 import com.curtinhonestly.backend.dto.ReviewDTO;
+import com.curtinhonestly.backend.dto.ReviewLikeResponseDTO;
 import com.curtinhonestly.backend.mapper.ReviewMapper;
 import com.curtinhonestly.backend.domain.Review;
+import com.curtinhonestly.backend.service.ReviewLikeService;
 import com.curtinhonestly.backend.service.ReviewService;
 import com.curtinhonestly.backend.security.SecurityConstants;
 import jakarta.validation.Valid;
@@ -22,6 +25,7 @@ import java.util.List;
 public class ReviewResource {
 
     private final ReviewService reviewService;
+    private final ReviewLikeService reviewLikeService;
 
     @GetMapping("/me")
     @PreAuthorize(SecurityConstants.HAS_ROLE_USER)
@@ -38,9 +42,32 @@ public class ReviewResource {
     @PostMapping
     @PreAuthorize(SecurityConstants.HAS_ROLE_USER)
     public ResponseEntity<?> createReview(@Valid @RequestBody ReviewCreateRequest request) {
-        Review savedReview = reviewService.createReview(request);
-        return ResponseEntity.created(URI.create("/reviews/" + savedReview.getId()))
-                .body(ReviewMapper.mapToDTO(savedReview));
+        ReviewService.ReviewCreationResult result = reviewService.createReviewWithCampaignEntry(request);
+        Review savedReview = result.review();
+        ReviewDTO reviewDto = ReviewMapper.mapToDTO(savedReview);
+
+        String entryToken = null;
+        String campaignName = null;
+        if (result.campaignEntry().isPresent()) {
+            var entry = result.campaignEntry().get();
+            entryToken = entry.getEntryToken();
+            campaignName = entry.getCampaign().getName();
+        }
+
+        CreateReviewResponseDTO response = new CreateReviewResponseDTO(reviewDto, entryToken, campaignName, result.campaignProgress());
+        return ResponseEntity.created(URI.create("/reviews/" + savedReview.getId())).body(response);
+    }
+
+    @PostMapping("/{id}/likes")
+    @PreAuthorize(SecurityConstants.HAS_ROLE_USER)
+    public ResponseEntity<ReviewLikeResponseDTO> likeReview(@PathVariable String id) {
+        return ResponseEntity.ok(reviewLikeService.likeReview(id));
+    }
+
+    @DeleteMapping("/{id}/likes")
+    @PreAuthorize(SecurityConstants.HAS_ROLE_USER)
+    public ResponseEntity<ReviewLikeResponseDTO> unlikeReview(@PathVariable String id) {
+        return ResponseEntity.ok(reviewLikeService.unlikeReview(id));
     }
 
     @DeleteMapping("/{id}")

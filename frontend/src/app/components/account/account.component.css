@@ -108,6 +108,57 @@
   font-size: 0.9rem;
 }
 
+.campaign-section {
+  border-color: #bfdbfe;
+}
+
+.campaign-note {
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.campaign-progress {
+  margin: 12px 0 0;
+  font-weight: 600;
+  color: #1d4ed8;
+}
+
+.entries-heading {
+  margin: 16px 0 8px;
+  font-size: 1rem;
+}
+
+.entry-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.entry-list li {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.entry-list li:last-child {
+  border-bottom: none;
+}
+
+.entry-token {
+  font-family: monospace;
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: #1d4ed8;
+}
+
+.entry-meta {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
 .page-footer {
   margin-top: 8px;
   font-size: 0.9rem;

@@ -1,0 +1,137 @@
+<h1 class="page-title">Campaigns</h1>
+<p class="page-subtitle">Create outreach campaigns with referral links, promo codes, and draw entry tracking.</p>
+
+@if (errorMessage()) {
+  <div class="error-banner">{{ errorMessage() }}</div>
+}
+@if (successMessage()) {
+  <div class="success-banner">{{ successMessage() }}</div>
+}
+
+<section class="card section">
+  <h2>Create campaign</h2>
+  <div class="form-grid">
+    <input type="text" placeholder="Slug (ref param), e.g. discord-computing-jul26" [(ngModel)]="slug" name="slug" />
+    <input type="text" placeholder="Promo code, e.g. CURTIN-JUL26" [(ngModel)]="code" name="code" />
+    <input type="text" placeholder="Campaign name" [(ngModel)]="name" name="name" />
+    <input type="text" placeholder="Prize description" [(ngModel)]="prizeDescription" name="prizeDescription" />
+    <label>
+      Starts
+      <input type="datetime-local" [(ngModel)]="startsAt" name="startsAt" />
+    </label>
+    <label>
+      Ends
+      <input type="datetime-local" [(ngModel)]="endsAt" name="endsAt" />
+    </label>
+    <input type="number" placeholder="Max signups (optional)" [(ngModel)]="maxRedemptions" name="maxRedemptions" />
+    <input type="number" placeholder="Min review length" [(ngModel)]="minReviewLength" name="minReviewLength" />
+    <input type="number" placeholder="Required reviews for entry" [(ngModel)]="requiredReviewCount" name="requiredReviewCount" />
+    <input type="number" placeholder="Max draw entries per user" [(ngModel)]="maxEntriesPerUser" name="maxEntriesPerUser" />
+    <label>
+      Min likes on review to qualify
+      <input type="number" min="0" [(ngModel)]="minLikesReceived" name="minLikesReceived" />
+    </label>
+    <label>
+      Min likes user must give
+      <input type="number" min="0" [(ngModel)]="minLikesGiven" name="minLikesGiven" />
+    </label>
+    <label class="checkbox">
+      <input type="checkbox" [(ngModel)]="requireVerifiedStudent" name="requireVerifiedStudent" />
+      Require verified student
+    </label>
+  </div>
+  <button type="button" class="btn btn-primary" (click)="createCampaign()">Create campaign</button>
+</section>
+
+<section class="card section">
+  <h2>Campaigns</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Slug / Code</th>
+        <th>Window</th>
+        <th>Signups</th>
+        <th>Entries</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (campaign of campaigns(); track campaign.id) {
+        <tr>
+          <td>
+            <strong>{{ campaign.name }}</strong>
+            @if (campaign.prizeDescription) {
+              <div class="subtle">{{ campaign.prizeDescription }}</div>
+            }
+          </td>
+          <td>
+            <div><code>{{ campaign.slug }}</code></div>
+            <div><code>{{ campaign.code }}</code></div>
+            <div class="subtle">
+              {{ campaign.requiredReviewCount }} review(s) ·
+              {{ campaign.requireVerifiedStudent ? 'verified only' : 'any account' }} ·
+              min {{ campaign.minReviewLength }} chars
+              @if (campaign.minLikesReceived > 0) {
+                · ≥{{ campaign.minLikesReceived }} like(s) on review
+              }
+              @if (campaign.minLikesGiven > 0) {
+                · give ≥{{ campaign.minLikesGiven }} like(s)
+              }
+            </div>
+          </td>
+          <td>
+            {{ campaign.startsAt | date: 'mediumDate' }} –
+            {{ campaign.endsAt | date: 'mediumDate' }}
+          </td>
+          <td>{{ campaign.signupCount }}</td>
+          <td>{{ campaign.entryCount }}</td>
+          <td>
+            @if (campaign.active) {
+              <span class="badge badge-active">Active</span>
+            } @else {
+              <span class="badge">Inactive</span>
+            }
+          </td>
+          <td class="actions">
+            <button type="button" class="btn" (click)="copyLink(campaign)">Copy link</button>
+            <button type="button" class="btn" (click)="viewEntries(campaign)">Entries</button>
+            <button type="button" class="btn" (click)="toggleActive(campaign)">
+              {{ campaign.active ? 'Deactivate' : 'Activate' }}
+            </button>
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</section>
+
+@if (selectedEntries().length) {
+  <section class="card section">
+    <div class="section-header">
+      <h2>Draw entries</h2>
+      <button type="button" class="btn btn-primary" (click)="exportEntriesCsv()">Export CSV</button>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Entry token</th>
+          <th>User</th>
+          <th>Unit</th>
+          <th>Created</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (entry of selectedEntries(); track entry.id) {
+          <tr>
+            <td><code>{{ entry.entryToken }}</code></td>
+            <td>{{ entry.userEmail }}</td>
+            <td>{{ entry.unitCode }}</td>
+            <td>{{ entry.createdAt | date: 'short' }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </section>
+}

@@ -15,7 +15,10 @@ import java.time.Instant;
 @Entity
 
 // Map to the "reviews" table
-@Table(name = "reviews")
+@Table(
+        name = "reviews",
+        uniqueConstraints = @UniqueConstraint(name = "uk_reviews_user_unit", columnNames = {"user_id", "unit_id"})
+)
 
 // Lombok getters/setters
 @Getter
@@ -34,7 +37,7 @@ public class Review {
     @UuidGenerator
     private String id;
 
-    private int rating; // 0-5
+    private int rating; // 1-5
     private Integer finalGrade; // Optional
     @Column(length = 2000)
     private String reviewText;
@@ -44,6 +47,10 @@ public class Review {
     private int workload; // 0-10
     private boolean hasExam; // Optional
     private boolean wouldTakeAgain;
+
+    // Denormalized count of rows in review_likes for this review. Kept in sync by ReviewLikeService.
+    @Column(nullable = false)
+    private int likeCount = 0;
 
     @Column(nullable = false, updatable = false, columnDefinition = "TIMESTAMPTZ DEFAULT NOW() NOT NULL")
     private Instant createdAt = Instant.now();

@@ -35,6 +35,7 @@ export interface UnitSummary {
 }
 
 export interface Review {
+  id?: string;
   rating: number;
   finalGrade?: number;
   reviewText: string;
@@ -43,6 +44,8 @@ export interface Review {
   workload: number;
   hasExam: boolean;
   wouldTakeAgain: boolean;
+  likeCount?: number;
+  likedByCurrentUser?: boolean;
   reviewerVerified: boolean;
   createdAt?: string;
 }
@@ -52,8 +55,14 @@ export interface MyReview {
   unitCode: string;
   unitName: string;
   rating: number;
+  finalGrade?: number | null;
   reviewText: string;
   semesterTaken: string;
+  professor?: string;
+  workload?: number;
+  hasExam?: boolean;
+  wouldTakeAgain?: boolean;
+  likeCount?: number;
   createdAt: string;
 }
 

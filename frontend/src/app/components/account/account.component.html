@@ -27,6 +27,45 @@
     </dl>
   </section>
 
+  @if (account()?.campaignName) {
+    <section class="account-section card campaign-section">
+      <h2>Campaign</h2>
+      <p class="section-hint">
+        You joined via <strong>{{ account()?.campaignName }}</strong>.
+        @if (account()?.campaignPrizeDescription) {
+          Prize: {{ account()?.campaignPrizeDescription }}.
+        }
+        @if (account()?.campaignEndsAt) {
+          Draw entries close {{ account()?.campaignEndsAt | date: 'mediumDate' }}.
+        }
+      </p>
+
+      @if (account()?.campaignProgress?.requireVerifiedStudent && !authService.verifiedStudent()) {
+        <p class="campaign-note">Verify your student email below to earn draw entries when you leave qualifying reviews.</p>
+      } @else if (account()?.campaignProgress && !account()?.campaignProgress?.requireVerifiedStudent) {
+        <p class="campaign-note">This campaign accepts unverified accounts (e.g. alumni). One review per unit counts toward your entry.</p>
+      }
+
+      @if (campaignProgressLabel()) {
+        <p class="campaign-progress">{{ campaignProgressLabel() }}</p>
+      }
+
+      @if (account()?.campaignEntries?.length) {
+        <h3 class="entries-heading">Your draw entries</h3>
+        <ul class="entry-list">
+          @for (entry of account()?.campaignEntries; track entry.entryToken) {
+            <li>
+              <span class="entry-token">{{ entry.entryToken }}</span>
+              <span class="entry-meta">{{ entry.unitCode }} · {{ entry.createdAt | date: 'medium' }}</span>
+            </li>
+          }
+        </ul>
+      } @else if (authService.verifiedStudent() || !account()?.campaignProgress?.requireVerifiedStudent) {
+        <p class="campaign-note">Leave qualifying reviews on different units to receive a draw entry token.</p>
+      }
+    </section>
+  }
+
   <section class="account-section card">
     <h2>Update email</h2>
     <p class="section-hint">Change the email you use to sign in. You will need your current password.</p>
