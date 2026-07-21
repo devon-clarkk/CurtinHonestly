@@ -7,7 +7,7 @@ import { ReviewService } from '../../services/review.service';
 import { SeoService } from '../../services/seo.service';
 import { reviewAuthorName } from '../../utils/unit-seo.utils';
 import { Review, UnitDetails } from '../../models/unit.model';
-import { Observable, switchMap, map, of, tap } from 'rxjs';
+import { Observable, switchMap, map, of, tap, catchError } from 'rxjs';
 import { AddReviewComponent } from '../add-review/add-review.component';
 
 /**
@@ -41,18 +41,32 @@ export class UnitDetailComponent implements OnInit {
   likeErrorMessage = signal<string | null>(null);
   likingReviewId = signal<string | null>(null);
 
+  // Set when the unit fails to load (bad/removed code, or a network error) —
+  // distinguishes "still loading" from "genuinely failed" so the spinner
+  // doesn't spin forever (quick-fixes.md #2).
+  loadError = signal(false);
+
   ngOnInit(): void {
     this.loadUnit();
   }
 
   loadUnit() {
+    this.loadError.set(false);
     // 1. Listen to changes in the URL parameters (like /units/COMP1000)
     // 2. Use 'switchMap' to switch from the URL stream to the API data stream
     this.unit$ = this.route.paramMap.pipe(
       switchMap(params => {
         const code = params.get('code') || '';
-        if (!code) return of(null as any);
-        return this.unitService.getUnitByCode(code);
+        if (!code) {
+          this.loadError.set(true);
+          return of(null as any);
+        }
+        return this.unitService.getUnitByCode(code).pipe(
+          catchError(() => {
+            this.loadError.set(true);
+            return of(null as any);
+          })
+        );
       }),
       map((unit: UnitDetails) => {
         if (!unit) return unit;

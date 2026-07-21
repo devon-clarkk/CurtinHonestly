@@ -25,11 +25,7 @@
       <div class="form-group">
         <label for="semester">Semester Taken</label>
         <select id="semester" [ngModel]="semesterTaken()" (ngModelChange)="semesterTaken.set($event)" name="semesterTaken" class="form-control">
-          <option value="Semester 1, 2026">Semester 1, 2026</option>
-          <option value="Summer, 2025/26">Summer, 2025/26</option>
-          <option value="Semester 2, 2025">Semester 2, 2025</option>
-          <option value="Semester 1, 2025">Semester 1, 2025</option>
-          <option value="Summer, 2024/25">Summer, 2024/25</option>
+          <option *ngFor="let option of semesterOptions" [value]="option">{{ option }}</option>
         </select>
       </div>
 
