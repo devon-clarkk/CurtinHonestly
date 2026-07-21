@@ -21,6 +21,7 @@ public class ReviewMapper {
         dto.setWorkload(review.getWorkload());
         dto.setHasExam(review.isHasExam());
         dto.setWouldTakeAgain(review.isWouldTakeAgain());
+        dto.setTags(review.getTags());
         dto.setLikeCount(review.getLikeCount());
         dto.setLikedByCurrentUser(false);
         dto.setCreatedAt(review.getCreatedAt());
@@ -47,6 +48,7 @@ public class ReviewMapper {
                 review.getWorkload(),
                 review.isHasExam(),
                 review.isWouldTakeAgain(),
+                review.getTags(),
                 review.getLikeCount(),
                 review.getCreatedAt()
         );

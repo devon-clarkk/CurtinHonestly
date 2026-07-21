@@ -161,6 +161,22 @@
   border-radius: var(--radius-none);
 }
 
+.tag-summary-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: -24px 0 32px;
+}
+
+.tag-summary-item {
+  padding: 6px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  background-color: var(--card-background);
+}
+
 .stat-card {
   background-color: var(--card-background);
   padding: 20px;

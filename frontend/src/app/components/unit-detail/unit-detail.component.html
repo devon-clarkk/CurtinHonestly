@@ -71,6 +71,13 @@
     content may have changed since.
   </p>
 
+  <!-- Assessment/experience tag summary (review-experience.md #4) -->
+  <div class="tag-summary-row" *ngIf="unit.tagSummary && unit.tagSummary.length > 0">
+    <span class="tag-summary-item" *ngFor="let entry of unit.tagSummary">
+      {{ entry.count }} of {{ unit.numberOfReviews }} reviewers: {{ entry.label }}
+    </span>
+  </div>
+
   <!-- Content Section -->
   <div class="content-grid">
     <!-- Left: Description -->
@@ -300,6 +307,7 @@
           <span class="footer-tag" [class.positive]="review.hasExam">
             {{ review.hasExam ? 'Had an exam' : 'No exam' }}
           </span>
+          <span class="footer-tag tag-chip-readonly" *ngFor="let tag of review.tags">{{ tagLabel(tag) }}</span>
           @if (authService.isLoggedIn()) {
             <button
               type="button"

@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CampaignProgress, CreateReviewResponse, ReviewService } from '../../services/review.service';
 import { generateSemesterOptions } from '../../utils/semester-options.util';
-import { MyReview } from '../../models/unit.model';
+import { MyReview, REVIEW_TAGS } from '../../models/unit.model';
 
 @Component({
   selector: 'app-add-review',
@@ -35,6 +35,11 @@ export class AddReviewComponent implements OnInit {
   wouldTakeAgain = signal(true);
   finalGrade = signal<number | null>(null);
 
+  // Assessment/experience tags (review-experience.md #4) — predefined chips,
+  // not free text, so the aggregate summary stays meaningful.
+  reviewTags = REVIEW_TAGS;
+  selectedTags = signal<Set<string>>(new Set());
+
   isLoading = signal(false);
   errorMessage = signal<string | null>(null);
   successMessage = signal<string | null>(null);
@@ -56,6 +61,21 @@ export class AddReviewComponent implements OnInit {
     this.hasExam.set(existing.hasExam ?? false);
     this.wouldTakeAgain.set(existing.wouldTakeAgain ?? true);
     this.finalGrade.set(existing.finalGrade ?? null);
+    this.selectedTags.set(new Set(existing.tags ?? []));
+  }
+
+  isTagSelected(tag: string): boolean {
+    return this.selectedTags().has(tag);
+  }
+
+  toggleTag(tag: string): void {
+    const current = new Set(this.selectedTags());
+    if (current.has(tag)) {
+      current.delete(tag);
+    } else {
+      current.add(tag);
+    }
+    this.selectedTags.set(current);
   }
 
   onSubmit() {
@@ -86,7 +106,8 @@ export class AddReviewComponent implements OnInit {
       hasExam: this.hasExam(),
       wouldTakeAgain: this.wouldTakeAgain(),
       finalGrade: this.finalGrade(),
-      unitCode: this.unitCode()
+      unitCode: this.unitCode(),
+      tags: [...this.selectedTags()]
     };
 
     const editing = this.editReview();
@@ -188,6 +209,7 @@ export class AddReviewComponent implements OnInit {
     this.hasExam.set(false);
     this.wouldTakeAgain.set(true);
     this.finalGrade.set(null);
+    this.selectedTags.set(new Set());
     this.successMessage.set(null);
   }
 

@@ -99,7 +99,7 @@ class ReviewLikeCampaignTest {
 
         ReviewCreateRequest request = new ReviewCreateRequest(
                 4, 80, "This review is long enough to qualify once it receives a like.",
-                "Semester 1, 2026", "Prof Test", 5, true, true, authorUnit.getCode());
+                "Semester 1, 2026", "Prof Test", 5, true, true, authorUnit.getCode(), null);
 
         var created = reviewService.createReviewWithCampaignEntry(request);
         assertThat(created.campaignEntry()).isEmpty();
@@ -178,7 +178,7 @@ class ReviewLikeCampaignTest {
 
         ReviewCreateRequest request = new ReviewCreateRequest(
                 5, 85, "Author review that qualifies on length but waits on the likes-given gate.",
-                "Semester 1, 2026", "Prof Gate", 4, false, true, authorUnit.getCode());
+                "Semester 1, 2026", "Prof Gate", 4, false, true, authorUnit.getCode(), null);
 
         var created = reviewService.createReviewWithCampaignEntry(request);
         assertThat(created.campaignEntry()).isEmpty();

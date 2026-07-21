@@ -54,6 +54,21 @@
     </div>
 
     <div class="form-group">
+      <label>What was it actually like? (Optional)</label>
+      <div class="tag-chip-list">
+        <button
+          type="button"
+          *ngFor="let tag of reviewTags"
+          class="tag-chip"
+          [class.selected]="isTagSelected(tag.value)"
+          [attr.aria-pressed]="isTagSelected(tag.value)"
+          (click)="toggleTag(tag.value)">
+          {{ tag.label }}
+        </button>
+      </div>
+    </div>
+
+    <div class="form-group">
       <label for="reviewText">Your Review (min 10 characters)</label>
       <textarea id="reviewText" [ngModel]="reviewText()" (ngModelChange)="reviewText.set($event)" name="reviewText" rows="4" class="form-control" placeholder="What did you think of this unit? Was it hard? Interesting?"></textarea>
     </div>
