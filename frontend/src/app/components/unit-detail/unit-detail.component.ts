@@ -65,6 +65,7 @@ export class UnitDetailComponent implements OnInit {
 
   loadUnit() {
     this.loadError.set(false);
+    this.selectedLecturer.set(null);
     // 1. Listen to changes in the URL parameters (like /units/COMP1000)
     // 2. Use 'switchMap' to switch from the URL stream to the API data stream
     this.unit$ = this.route.paramMap.pipe(
@@ -248,5 +249,47 @@ export class UnitDetailComponent implements OnInit {
       return !max || d > max ? d : max;
     }, null);
     return !!latest && latest.getFullYear() < new Date().getFullYear();
+  }
+
+  // Lecturer-aware review display (review-experience.md #5). Deliberately
+  // stops at "filter the review list by lecturer" — no standalone professor
+  // pages, to avoid defamation/moderation exposure.
+  selectedLecturer = signal<string | null>(null);
+
+  // Both methods below are called directly from the template with `unit.reviews`.
+  // Without memoization each call would allocate a new array, and returning a
+  // fresh reference on every change-detection pass never lets the view
+  // stabilize (NG0103: infinite change detection) — caught during browser
+  // verification. Caching on reference/selection equality fixes it: `reviews`
+  // keeps the same array identity for the life of one unit$ emission.
+  private lecturerSummaryCache: { reviews: Review[]; result: { name: string; count: number }[] } | null = null;
+
+  lecturerSummary(reviews: Review[]): { name: string; count: number }[] {
+    if (this.lecturerSummaryCache?.reviews === reviews) {
+      return this.lecturerSummaryCache.result;
+    }
+    const counts = new Map<string, number>();
+    for (const review of reviews || []) {
+      const name = review.professor?.trim();
+      if (!name) continue;
+      counts.set(name, (counts.get(name) || 0) + 1);
+    }
+    const result = [...counts.entries()]
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+    this.lecturerSummaryCache = { reviews, result };
+    return result;
+  }
+
+  private filteredReviewsCache: { reviews: Review[]; lecturer: string | null; result: Review[] } | null = null;
+
+  filteredReviews(reviews: Review[]): Review[] {
+    const lecturer = this.selectedLecturer();
+    if (this.filteredReviewsCache?.reviews === reviews && this.filteredReviewsCache.lecturer === lecturer) {
+      return this.filteredReviewsCache.result;
+    }
+    const result = lecturer ? reviews.filter(review => review.professor === lecturer) : reviews;
+    this.filteredReviewsCache = { reviews, lecturer, result };
+    return result;
   }
 }

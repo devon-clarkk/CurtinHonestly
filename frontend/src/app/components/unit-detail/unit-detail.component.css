@@ -221,6 +221,28 @@
   padding: 8px 16px;
 }
 
+.lecturer-filter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
+  font-size: 0.85rem;
+}
+
+.lecturer-summary {
+  color: var(--text-secondary);
+}
+
+.lecturer-select {
+  padding: 6px 10px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-none);
+  font-size: 0.85rem;
+  background-color: var(--card-background);
+}
+
 .login-to-review {
   background-color: var(--surface-muted);
   padding: 15px;
