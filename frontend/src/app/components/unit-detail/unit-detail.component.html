@@ -118,6 +118,22 @@
         </ng-template>
       </div>
 
+      <!-- Grade distribution histogram — gated to avoid de-anonymizing a
+           single reviewer when very few grades have been reported -->
+      <div class="info-block" *ngIf="gradedReviewCount(unit.reviews) >= MIN_GRADED_REVIEWS_FOR_HISTOGRAM">
+        <h3>Grade Distribution</h3>
+        <p class="tips-hint">What {{ gradedReviewCount(unit.reviews) }} reviewers actually scored.</p>
+        <div class="grade-histogram">
+          <div class="grade-bar-row" *ngFor="let band of gradeDistribution(unit.reviews)">
+            <span class="grade-bar-label">{{ band.label }}</span>
+            <div class="grade-bar-track">
+              <div class="grade-bar-fill" [style.width.%]="band.percent"></div>
+            </div>
+            <span class="grade-bar-value">{{ band.count }} ({{ band.percent }}%)</span>
+          </div>
+        </div>
+      </div>
+
       <!-- Unit Information -->
       <div class="info-block">
         <h3>Unit Details</h3>
