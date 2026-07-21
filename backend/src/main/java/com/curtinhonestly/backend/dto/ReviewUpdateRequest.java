@@ -1,0 +1,19 @@
+package com.curtinhonestly.backend.dto;
+
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Size;
+
+// Same user-settable fields as ReviewCreateRequest, minus unitCode — you can't
+// move a review to a different unit on edit. createdAt/id/unit/user are never
+// touched here either.
+public record ReviewUpdateRequest(
+        @Min(1) @Max(5) int rating,
+        @Min(0) @Max(100) Integer finalGrade,
+        @Size(max = 2000) String reviewText,
+        String semesterTaken,
+        String professor,
+        @Min(0) @Max(10) int workload,
+        boolean hasExam,
+        boolean wouldTakeAgain
+) {}

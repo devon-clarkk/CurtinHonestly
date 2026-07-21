@@ -5,6 +5,7 @@ import com.curtinhonestly.backend.dto.MyReviewDTO;
 import com.curtinhonestly.backend.dto.ReviewCreateRequest;
 import com.curtinhonestly.backend.dto.ReviewDTO;
 import com.curtinhonestly.backend.dto.ReviewLikeResponseDTO;
+import com.curtinhonestly.backend.dto.ReviewUpdateRequest;
 import com.curtinhonestly.backend.mapper.ReviewMapper;
 import com.curtinhonestly.backend.domain.Review;
 import com.curtinhonestly.backend.service.ReviewLikeService;
@@ -68,6 +69,13 @@ public class ReviewResource {
     @PreAuthorize(SecurityConstants.HAS_ROLE_USER)
     public ResponseEntity<ReviewLikeResponseDTO> unlikeReview(@PathVariable String id) {
         return ResponseEntity.ok(reviewLikeService.unlikeReview(id));
+    }
+
+    @PutMapping("/{id}")
+    @PreAuthorize(SecurityConstants.IS_ADMIN_OR_OWNER)
+    public ResponseEntity<ReviewDTO> updateReview(@PathVariable String id, @Valid @RequestBody ReviewUpdateRequest request) {
+        Review updated = reviewService.updateReview(id, request);
+        return ResponseEntity.ok(ReviewMapper.mapToDTO(updated));
     }
 
     @DeleteMapping("/{id}")

@@ -1,8 +1,9 @@
-import { Component, inject, input, output, signal } from '@angular/core';
+import { Component, inject, input, output, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CampaignProgress, CreateReviewResponse, ReviewService } from '../../services/review.service';
 import { generateSemesterOptions } from '../../utils/semester-options.util';
+import { MyReview } from '../../models/unit.model';
 
 @Component({
   selector: 'app-add-review',
@@ -11,10 +12,13 @@ import { generateSemesterOptions } from '../../utils/semester-options.util';
   templateUrl: './add-review.component.html',
   styleUrl: './add-review.component.css'
 })
-export class AddReviewComponent {
+export class AddReviewComponent implements OnInit {
   private reviewService = inject(ReviewService);
 
   unitCode = input.required<string>();
+  // When set, the form edits this existing review (PUT) instead of creating
+  // a new one (POST) — pre-filled from its current values.
+  editReview = input<MyReview | null>(null);
   reviewAdded = output<void>();
   reviewError = output<string>();
   cancel = output<void>();
@@ -34,6 +38,25 @@ export class AddReviewComponent {
   isLoading = signal(false);
   errorMessage = signal<string | null>(null);
   successMessage = signal<string | null>(null);
+
+  get isEditing(): boolean {
+    return !!this.editReview();
+  }
+
+  ngOnInit() {
+    const existing = this.editReview();
+    if (!existing) {
+      return;
+    }
+    this.rating.set(existing.rating);
+    this.reviewText.set(existing.reviewText);
+    this.semesterTaken.set(existing.semesterTaken || this.semesterOptions[0]);
+    this.professor.set(existing.professor || '');
+    this.workload.set(existing.workload ?? 5);
+    this.hasExam.set(existing.hasExam ?? false);
+    this.wouldTakeAgain.set(existing.wouldTakeAgain ?? true);
+    this.finalGrade.set(existing.finalGrade ?? null);
+  }
 
   onSubmit() {
     if (!this.reviewText() || this.reviewText().length < 10) {
@@ -65,6 +88,24 @@ export class AddReviewComponent {
       finalGrade: this.finalGrade(),
       unitCode: this.unitCode()
     };
+
+    const editing = this.editReview();
+    if (editing) {
+      this.reviewService.updateReview(editing.id, reviewData).subscribe({
+        next: () => {
+          this.isLoading.set(false);
+          this.successMessage.set('Review updated!');
+          setTimeout(() => this.reviewAdded.emit(), 1000);
+        },
+        error: (err) => {
+          this.isLoading.set(false);
+          const message = err.error?.error || 'Failed to update review. Please try again.';
+          this.errorMessage.set(message);
+          this.reviewError.emit(message);
+        }
+      });
+      return;
+    }
 
     this.reviewService.createReview(reviewData).subscribe({
       next: (response: CreateReviewResponse) => {
