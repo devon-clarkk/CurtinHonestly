@@ -67,6 +67,12 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/reviews", "/reviews/**").hasAuthority(UserRole.ROLE_ADMIN.name())
                         .requestMatchers(HttpMethod.GET, "/users", "/users/**").hasAuthority(UserRole.ROLE_ADMIN.name())
 
+                        // Unit tips: read is covered by the public GET /units/** rule above.
+                        // Write access is narrower than the blanket /units/** admin rules
+                        // below, so these must be declared first (first match wins).
+                        .requestMatchers(HttpMethod.POST, "/units/*/tips").hasAnyAuthority(UserRole.ROLE_USER.name(), UserRole.ROLE_ADMIN.name())
+                        .requestMatchers(HttpMethod.DELETE, "/units/*/tips/*").hasAnyAuthority(UserRole.ROLE_USER.name(), UserRole.ROLE_ADMIN.name())
+
                         // Admin only endpoints - Use name() to get "ROLE_ADMIN"
                         .requestMatchers(HttpMethod.DELETE, "/units/**").hasAuthority(UserRole.ROLE_ADMIN.name())
                         .requestMatchers(HttpMethod.POST, "/units", "/units/**").hasAuthority(UserRole.ROLE_ADMIN.name())

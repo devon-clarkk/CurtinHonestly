@@ -70,4 +70,35 @@ class RateLimitFilterTest {
 
         verify(chain).doFilter(request, response);
     }
+
+    @Test
+    void tipCreationIsThrottledAcrossDifferentUnitsViaSuffixMatch() throws Exception {
+        // The unit code segment varies per request, so this exercises the SUFFIX
+        // matcher — all of these still share the same rate-limit bucket.
+        for (int i = 0; i < 10; i++) {
+            hit("POST", "/units/UNIT" + i + "/tips");
+        }
+        MockHttpServletRequest eleventh = new MockHttpServletRequest("POST", "/units/UNIT-NEW/tips");
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        FilterChain chain = mock(FilterChain.class);
+
+        filter.doFilter(eleventh, response, chain);
+
+        assertThat(response.getStatus()).isEqualTo(429);
+        verifyNoInteractions(chain);
+    }
+
+    @Test
+    void tipDeletionIsNeverThrottled() throws Exception {
+        for (int i = 0; i < 30; i++) {
+            hit("DELETE", "/units/UNIT1/tips/tip-" + i);
+        }
+        MockHttpServletRequest request = new MockHttpServletRequest("DELETE", "/units/UNIT1/tips/tip-30");
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        FilterChain chain = mock(FilterChain.class);
+
+        filter.doFilter(request, response, chain);
+
+        verify(chain).doFilter(request, response);
+    }
 }
