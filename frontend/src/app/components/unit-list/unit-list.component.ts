@@ -1,6 +1,6 @@
 import { Component, inject, OnInit, OnDestroy, ElementRef, ViewChild, PLATFORM_ID, signal } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { UnitService } from '../../services/unit.service';
 import { SeoService } from '../../services/seo.service';
@@ -32,6 +32,7 @@ export class UnitListComponent implements OnInit, OnDestroy {
   private seoService = inject(SeoService);
   private unitRequestService = inject(UnitRequestService);
   private platformId = inject(PLATFORM_ID);
+  private router = inject(Router);
 
   private destroy$ = new Subject<void>();
   private searchSubject = new Subject<void>();
@@ -215,6 +216,39 @@ export class UnitListComponent implements OnInit, OnDestroy {
     this.selectedLevel = undefined;
     this.sortBy = 'code';
     this.loadPage0();
+  }
+
+  // Side-by-side comparison — "which of these electives do I pick"
+  // (catalog-and-growth.md #3). Capped at 4 so the comparison table stays readable.
+  readonly MAX_COMPARE = 4;
+  selectedForCompare = signal<string[]>([]);
+
+  isSelectedForCompare(code: string): boolean {
+    return this.selectedForCompare().includes(code);
+  }
+
+  toggleCompareSelection(code: string): void {
+    const current = this.selectedForCompare();
+    if (current.includes(code)) {
+      this.selectedForCompare.set(current.filter(c => c !== code));
+      return;
+    }
+    if (current.length >= this.MAX_COMPARE) {
+      return;
+    }
+    this.selectedForCompare.set([...current, code]);
+  }
+
+  clearCompareSelection(): void {
+    this.selectedForCompare.set([]);
+  }
+
+  goToCompare(): void {
+    const codes = this.selectedForCompare();
+    if (codes.length < 2) {
+      return;
+    }
+    this.router.navigate(['/compare'], { queryParams: { units: codes.join(',') } });
   }
 
   // "Can't find your unit? Request it" — captured from the highest-intent
