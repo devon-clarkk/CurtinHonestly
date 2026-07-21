@@ -2,7 +2,7 @@ import { Component, inject, input, output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CampaignProgress, CreateReviewResponse, ReviewService } from '../../services/review.service';
-import { BANNED_WORDS } from '../../models/profanity-list';
+import { generateSemesterOptions } from '../../utils/semester-options.util';
 
 @Component({
   selector: 'app-add-review',
@@ -19,9 +19,12 @@ export class AddReviewComponent {
   reviewError = output<string>();
   cancel = output<void>();
 
+  // Generated from today's date instead of a hardcoded list — see quick-fixes.md #4.
+  semesterOptions = generateSemesterOptions();
+
   rating = signal(5);
   reviewText = signal('');
-  semesterTaken = signal('Semester 1, 2026');
+  semesterTaken = signal(this.semesterOptions[0]);
   professor = signal('');
   workload = signal(5);
   hasExam = signal(false);
@@ -31,20 +34,6 @@ export class AddReviewComponent {
   isLoading = signal(false);
   errorMessage = signal<string | null>(null);
   successMessage = signal<string | null>(null);
-
-  private readonly profanityRegex = new RegExp(
-    `\\b(${BANNED_WORDS.map(word => this.escapeRegExp(word)).join('|')})\\b`,
-    'i'
-  );
-
-  private escapeRegExp(string: string) {
-    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  }
-
-  private containsProfanity(text: string): boolean {
-    if (!text) return false;
-    return this.profanityRegex.test(text);
-  }
 
   onSubmit() {
     if (!this.reviewText() || this.reviewText().length < 10) {
@@ -57,10 +46,9 @@ export class AddReviewComponent {
       return;
     }
 
-    if (this.containsProfanity(this.reviewText())) {
-      this.errorMessage.set('Your review contains language that violates our community standards. Please keep it professional.');
-      return;
-    }
+    // Profanity is enforced server-side (ProfanityFilterService) — no client-side
+    // word list here (quick-fixes.md #5: avoid shipping the banned-word list in
+    // the bundle). A rejection surfaces via the error handler below.
 
     this.isLoading.set(true);
     this.errorMessage.set(null);
@@ -153,7 +141,7 @@ export class AddReviewComponent {
   resetForm() {
     this.rating.set(5);
     this.reviewText.set('');
-    this.semesterTaken.set('Semester 1, 2026');
+    this.semesterTaken.set(this.semesterOptions[0]);
     this.professor.set('');
     this.workload.set(5);
     this.hasExam.set(false);

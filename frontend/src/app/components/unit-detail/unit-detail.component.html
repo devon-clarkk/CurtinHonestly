@@ -255,10 +255,17 @@
   </div>
 </div>
 
-<!-- Simple loading template -->
+<!-- Loading / not-found template -->
 <ng-template #loading>
-  <div class="loading-state">
-    <div class="spinner"></div>
-    <p>Loading unit details...</p>
+  <div *ngIf="loadError(); else stillLoading" class="error-state">
+    <h2>Unit not found</h2>
+    <p>We couldn't find that unit. It may have been removed, or the link may be incorrect.</p>
+    <a routerLink="/" class="btn btn-primary">&larr; Back to all units</a>
   </div>
+  <ng-template #stillLoading>
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading unit details...</p>
+    </div>
+  </ng-template>
 </ng-template>
