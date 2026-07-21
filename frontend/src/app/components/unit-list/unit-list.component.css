@@ -46,6 +46,37 @@
   max-width: 38ch;
 }
 
+/* Seasonal review-prompt banner */
+.seasonal-banner {
+  max-width: var(--unit-catalog-max);
+  margin: 0 auto 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 18px;
+  background-color: var(--card-background);
+  border: 1px solid var(--primary-color);
+  border-left: 4px solid var(--primary-color);
+  border-radius: var(--radius-none);
+}
+
+.seasonal-banner p {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--text-primary);
+}
+
+.seasonal-banner-dismiss {
+  background: none;
+  border: none;
+  font-size: 1.4rem;
+  line-height: 1;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 0 4px;
+}
+
 /* Filter Bar Styling */
 .filter-bar {
   background-color: var(--card-background);
