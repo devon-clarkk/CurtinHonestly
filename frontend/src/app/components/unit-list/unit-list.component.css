@@ -289,6 +289,42 @@
   box-shadow: none;
 }
 
+.unit-card.compare-selected {
+  border-color: var(--primary-color);
+  border-width: 2px;
+}
+
+.compare-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 20px 0;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.compare-bar {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 20px;
+  background-color: var(--text-primary);
+  color: #fff;
+  border-radius: 6px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  z-index: 50;
+}
+
+.compare-bar .btn-text {
+  color: #fff;
+  text-decoration: underline;
+}
+
 /* Header of the card with tags */
 .card-header {
   padding: 15px 20px;

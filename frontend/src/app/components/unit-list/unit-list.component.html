@@ -118,7 +118,7 @@
       <!-- The grid of unit cards -->
       <div class="unit-grid">
         @for (unit of state.units; track unit.code) {
-          <div class="unit-card">
+          <div class="unit-card" [class.compare-selected]="isSelectedForCompare(unit.code)">
             <div class="card-header">
               <div class="header-tags">
                 <span class="faculty-tag">{{ unit.faculty }}</span>
@@ -126,6 +126,15 @@
               </div>
               <span class="unit-code">{{ unit.code }}</span>
             </div>
+
+            <label class="compare-checkbox">
+              <input
+                type="checkbox"
+                [checked]="isSelectedForCompare(unit.code)"
+                [disabled]="!isSelectedForCompare(unit.code) && selectedForCompare().length >= MAX_COMPARE"
+                (change)="toggleCompareSelection(unit.code)" />
+              Compare
+            </label>
 
             <div class="card-body">
               <h2 class="unit-name">{{ unit.name }}</h2>
@@ -181,4 +190,20 @@
     }
   }
   </div>
+
+  @if (selectedForCompare().length > 0) {
+    <div class="compare-bar">
+      <span>{{ selectedForCompare().length }} unit{{ selectedForCompare().length === 1 ? '' : 's' }} selected</span>
+      <div class="compare-bar-actions">
+        <button type="button" class="btn-text" (click)="clearCompareSelection()">Clear</button>
+        <button
+          type="button"
+          class="btn btn-primary"
+          [disabled]="selectedForCompare().length < 2"
+          (click)="goToCompare()">
+          Compare
+        </button>
+      </div>
+    </div>
+  }
 </div>
