@@ -2,7 +2,7 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AdminService } from '../../services/admin.service';
-import { AdminReview, UnitRequestAdmin, UserAdmin } from '../../models/admin.model';
+import { AdminReview, FlaggedReviewAdmin, UnitRequestAdmin, UserAdmin } from '../../models/admin.model';
 
 @Component({
   selector: 'app-operations',
@@ -16,6 +16,7 @@ export class OperationsComponent implements OnInit {
   users = signal<UserAdmin[]>([]);
   reviews = signal<AdminReview[]>([]);
   unitRequests = signal<UnitRequestAdmin[]>([]);
+  flaggedReviews = signal<FlaggedReviewAdmin[]>([]);
   errorMessage = signal<string | null>(null);
   successMessage = signal<string | null>(null);
 
@@ -27,6 +28,7 @@ export class OperationsComponent implements OnInit {
     this.refreshUsers();
     this.refreshReviews();
     this.refreshUnitRequests();
+    this.refreshFlaggedReviews();
   }
 
   refreshUsers(): void {
@@ -108,6 +110,37 @@ export class OperationsComponent implements OnInit {
         this.refreshUnitRequests();
       },
       error: () => this.errorMessage.set('Failed to dismiss unit request.')
+    });
+  }
+
+  refreshFlaggedReviews(): void {
+    this.adminService.listFlaggedReviews().subscribe({
+      next: (data) => this.flaggedReviews.set(data),
+      error: () => this.errorMessage.set('Failed to load flagged reviews.')
+    });
+  }
+
+  deleteFlaggedReview(flagged: FlaggedReviewAdmin): void {
+    if (!confirm(`Delete review for ${flagged.unitCode}?`)) return;
+    this.clearMessages();
+    this.adminService.deleteReview(flagged.reviewId).subscribe({
+      next: () => {
+        this.successMessage.set('Review deleted.');
+        this.refreshFlaggedReviews();
+        this.refreshReviews();
+      },
+      error: () => this.errorMessage.set('Failed to delete review.')
+    });
+  }
+
+  dismissFlags(flagged: FlaggedReviewAdmin): void {
+    this.clearMessages();
+    this.adminService.dismissReviewFlags(flagged.reviewId).subscribe({
+      next: () => {
+        this.successMessage.set('Flags dismissed — review kept.');
+        this.refreshFlaggedReviews();
+      },
+      error: () => this.errorMessage.set('Failed to dismiss flags.')
     });
   }
 
