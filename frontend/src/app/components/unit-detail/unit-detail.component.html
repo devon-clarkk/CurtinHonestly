@@ -302,11 +302,24 @@
               ♡ {{ review.likeCount || 0 }}
             </span>
           }
+          @if (authService.isLoggedIn()) {
+            <button
+              type="button"
+              class="report-btn"
+              [disabled]="isFlagged(review)"
+              (click)="flagReview(review)"
+              [attr.aria-label]="isFlagged(review) ? 'Review reported' : 'Report this review'">
+              {{ isFlagged(review) ? 'Reported' : 'Report' }}
+            </button>
+          }
         </div>
       </div>
 
       @if (likeErrorMessage()) {
         <div class="error-box">{{ likeErrorMessage() }}</div>
+      }
+      @if (flagErrorMessage()) {
+        <div class="error-box">{{ flagErrorMessage() }}</div>
       }
     </section>
   </div>

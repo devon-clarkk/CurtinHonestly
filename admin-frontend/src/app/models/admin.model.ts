@@ -81,3 +81,10 @@ export interface UnitRequestAdmin {
   note: string | null;
   createdAt: string;
 }
+
+export interface FlaggedReviewAdmin {
+  reviewId: string;
+  unitCode: string;
+  reviewText: string;
+  flagCount: number;
+}

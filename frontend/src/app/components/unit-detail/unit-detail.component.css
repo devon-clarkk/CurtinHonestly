@@ -412,6 +412,27 @@
   font-size: 0.85rem;
 }
 
+.report-btn {
+  border: 1px solid var(--border-color);
+  background: transparent;
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 0.8rem;
+  padding: 4px 10px;
+  cursor: pointer;
+  margin-left: 8px;
+}
+
+.report-btn:hover:not(:disabled) {
+  border-color: #c0392b;
+  color: #c0392b;
+}
+
+.report-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
 /* Loading state */
 .loading-state {
   text-align: center;

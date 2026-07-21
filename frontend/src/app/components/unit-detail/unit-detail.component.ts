@@ -46,6 +46,12 @@ export class UnitDetailComponent implements OnInit {
   likeErrorMessage = signal<string | null>(null);
   likingReviewId = signal<string | null>(null);
 
+  // Report/flag (review-experience.md #8). Tracked client-side per page load —
+  // the backend flag is idempotent either way, so this only affects whether the
+  // button re-shows "Report" after a refresh, not whether a duplicate flag is created.
+  flaggedReviewIds = signal<Set<string>>(new Set());
+  flagErrorMessage = signal<string | null>(null);
+
   // Set when the unit fails to load (bad/removed code, or a network error) —
   // distinguishes "still loading" from "genuinely failed" so the spinner
   // doesn't spin forever (quick-fixes.md #2).
@@ -177,6 +183,29 @@ export class UnitDetailComponent implements OnInit {
       error: (err) => {
         this.likingReviewId.set(null);
         this.likeErrorMessage.set(err.error?.error || 'Could not update like. Please try again.');
+      }
+    });
+  }
+
+  isFlagged(review: Review): boolean {
+    return !!review.id && this.flaggedReviewIds().has(review.id);
+  }
+
+  flagReview(review: Review): void {
+    if (!this.authService.isLoggedIn() || !review.id || this.isFlagged(review)) {
+      return;
+    }
+    if (!confirm('Report this review to moderators for review?')) {
+      return;
+    }
+
+    this.flagErrorMessage.set(null);
+    this.reviewService.flagReview(review.id).subscribe({
+      next: () => {
+        this.flaggedReviewIds.update(ids => new Set(ids).add(review.id!));
+      },
+      error: (err) => {
+        this.flagErrorMessage.set(err.error?.error || 'Could not report review. Please try again.');
       }
     });
   }

@@ -58,4 +58,8 @@ export class ReviewService {
   unlikeReview(id: string): Observable<ReviewLikeResponse> {
     return this.http.delete<ReviewLikeResponse>(`${this.apiUrl}/${id}/likes`);
   }
+
+  flagReview(id: string, reason?: string): Observable<void> {
+    return this.http.post<void>(`${this.apiUrl}/${id}/flags`, { reason });
+  }
 }

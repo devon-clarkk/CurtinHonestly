@@ -8,6 +8,7 @@ import {
   AdminReview,
   CampaignAdmin,
   CampaignEntryAdmin,
+  FlaggedReviewAdmin,
   PagedReviews,
   UnitRequestAdmin,
   UserAdmin
@@ -94,5 +95,13 @@ export class AdminService {
 
   deleteUnitRequest(id: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/unit-requests/${id}`);
+  }
+
+  listFlaggedReviews(): Observable<FlaggedReviewAdmin[]> {
+    return this.http.get<FlaggedReviewAdmin[]>(`${this.apiUrl}/review-flags`);
+  }
+
+  dismissReviewFlags(reviewId: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/review-flags/${reviewId}`);
   }
 }

@@ -101,4 +101,19 @@ class RateLimitFilterTest {
 
         verify(chain).doFilter(request, response);
     }
+
+    @Test
+    void reviewFlaggingIsThrottledAcrossDifferentReviewsViaSuffixMatch() throws Exception {
+        for (int i = 0; i < 10; i++) {
+            hit("POST", "/reviews/review-" + i + "/flags");
+        }
+        MockHttpServletRequest eleventh = new MockHttpServletRequest("POST", "/reviews/review-new/flags");
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        FilterChain chain = mock(FilterChain.class);
+
+        filter.doFilter(eleventh, response, chain);
+
+        assertThat(response.getStatus()).isEqualTo(429);
+        verifyNoInteractions(chain);
+    }
 }
