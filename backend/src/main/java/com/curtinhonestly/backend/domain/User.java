@@ -10,7 +10,9 @@ import org.hibernate.annotations.UuidGenerator;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 
 @Entity
@@ -70,6 +72,13 @@ public class User {
 
     @Column(length = 100)
     private String registeredViaRef;
+
+    // Self-reported completed unit codes, used by the prerequisite checker
+    // (roadmap 4.4) to evaluate a unit's UnitPrerequisiteGroup/Option data.
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "user_completed_units", joinColumns = @JoinColumn(name = "user_id"))
+    @Column(name = "unit_code", length = 30)
+    private Set<String> completedUnitCodes = new HashSet<>();
 
 }
 

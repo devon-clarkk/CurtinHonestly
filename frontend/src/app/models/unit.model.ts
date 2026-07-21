@@ -120,6 +120,11 @@ export interface PrerequisiteGroup {
   position: number;
   options: PrerequisiteOption[];
   courseOptions: CoursePrerequisiteOption[];
+  // Eligibility (roadmap 4.4) — only populated when logged in. `satisfied`
+  // is null (not false) when it can't be fully checked from completed-unit
+  // data alone (see `unverifiable`).
+  satisfied?: boolean | null;
+  unverifiable?: boolean;
 }
 
 export interface UnitDetails {
@@ -138,6 +143,9 @@ export interface UnitDetails {
   resultType: string;
   tuitionPatterns: TuitionPattern[];
   prerequisiteGroups: PrerequisiteGroup[];
+  // Overall eligibility across all groups (roadmap 4.4) — only populated when
+  // logged in; null also when some group can't be fully checked.
+  prerequisitesEligible?: boolean | null;
 
   // Review stats
   numberOfReviews: number;

@@ -21,11 +21,21 @@
           See ratings, workload, grades, and honest feedback from Curtin students.
         </p>
         
-        <div class="header-actions" *ngIf="unit.unitLink">
-          <a [href]="unit.unitLink" target="_blank" rel="noopener noreferrer" class="btn btn-handbook">
+        <div class="header-actions" *ngIf="unit.unitLink || authService.isLoggedIn()">
+          <a *ngIf="unit.unitLink" [href]="unit.unitLink" target="_blank" rel="noopener noreferrer" class="btn btn-handbook">
             View in Curtin Handbook
           </a>
+          <button
+            *ngIf="authService.isLoggedIn()"
+            type="button"
+            class="btn completed-toggle"
+            [class.completed-toggle-active]="isUnitCompleted(unit.code)"
+            [disabled]="isUpdatingCompletedUnits()"
+            (click)="toggleUnitCompleted(unit.code)">
+            {{ isUnitCompleted(unit.code) ? '✓ Marked as completed' : 'Mark as completed' }}
+          </button>
         </div>
+        <div *ngIf="completedUnitsError()" class="error-box">{{ completedUnitsError() }}</div>
       </div>
       
       <div class="header-right" *ngIf="unit.numberOfReviews > 0">
@@ -188,11 +198,28 @@
       <!-- Prerequisites -->
       <div class="info-block" *ngIf="unit.prerequisiteGroups && unit.prerequisiteGroups.length > 0">
         <h3>Prerequisites</h3>
+
+        <div class="eligibility-banner" *ngIf="authService.isLoggedIn()" [ngClass]="eligibilityBannerClass(unit.prerequisitesEligible)">
+          <span *ngIf="unit.prerequisitesEligible === true">✅ You meet the prerequisites for this unit.</span>
+          <span *ngIf="unit.prerequisitesEligible === false">❌ You don't yet meet all the prerequisites below.</span>
+          <span *ngIf="unit.prerequisitesEligible !== true && unit.prerequisitesEligible !== false">
+            ⚠️ Some prerequisites can't be checked automatically (e.g. course-credit requirements) — review them below.
+          </span>
+        </div>
+        <p class="eligibility-login-hint" *ngIf="!authService.isLoggedIn()">
+          <a routerLink="/login">Log in</a> and mark your completed units to check your eligibility automatically.
+        </p>
+
         <div class="prereq-container">
           <div *ngFor="let group of unit.prerequisiteGroups" class="prereq-group">
             <div class="prereq-header">
               <span class="group-name">{{ group.groupName }}</span>
-              <span class="group-req badge">{{ requirementLabel(group.requirement) }}</span>
+              <span class="prereq-header-badges">
+                <span class="group-req badge">{{ requirementLabel(group.requirement) }}</span>
+                <span class="group-status badge" *ngIf="authService.isLoggedIn()" [ngClass]="groupStatusClass(group)">
+                  {{ groupStatusLabel(group) }}
+                </span>
+              </span>
             </div>
             <ul class="prereq-options" *ngIf="group.options?.length">
               <li *ngFor="let option of group.options">

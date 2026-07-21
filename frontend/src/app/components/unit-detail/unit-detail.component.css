@@ -779,7 +779,68 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
   margin-bottom: 8px;
+}
+
+.prereq-header-badges {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+/* Prerequisite eligibility (roadmap 4.4) */
+.eligibility-banner {
+  padding: 10px 12px;
+  border-radius: var(--radius-none);
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 12px;
+  border: 1px solid var(--border-color);
+}
+
+.eligibility-login-hint {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+}
+
+.status-met {
+  background-color: #eff9f0;
+  color: #1e7e34;
+  border-color: #bfe6c8;
+}
+
+.status-unmet {
+  background-color: #fff5f5;
+  color: #c53030;
+  border-color: #feb2b2;
+}
+
+.status-unverifiable {
+  background-color: #fffaf0;
+  color: #9c6b00;
+  border-color: #fbd38d;
+}
+
+.completed-toggle {
+  display: inline-block;
+  background-color: var(--surface-muted);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  margin-left: 12px;
+}
+
+.completed-toggle:hover:not(:disabled) {
+  border-color: var(--primary-color);
+}
+
+.completed-toggle-active {
+  background-color: #eff9f0;
+  color: #1e7e34;
+  border-color: #bfe6c8;
 }
 
 .group-name {
