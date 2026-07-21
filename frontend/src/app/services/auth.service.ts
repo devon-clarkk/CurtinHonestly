@@ -115,8 +115,10 @@ export class AuthService {
     );
   }
 
-  deleteAccount(password: string): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/me`, { body: { password } });
+  // By default, deleting an account anonymizes (detaches) the user's reviews
+  // rather than deleting them. Pass deleteReviews=true for full removal.
+  deleteAccount(password: string, deleteReviews: boolean = false): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/me`, { body: { password, deleteReviews } });
   }
 
   refreshAccountStatus(): Observable<AccountStatus> {

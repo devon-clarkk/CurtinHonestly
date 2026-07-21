@@ -8,6 +8,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.hibernate.annotations.UuidGenerator;
 
 import java.time.Instant;
@@ -59,8 +61,13 @@ public class Review {
     @JoinColumn(name = "unit_id", nullable = false)
     private Unit unit;
 
+    // Nullable: account deletion anonymizes reviews (detaches the author) by
+    // default rather than deleting them — the review content is the site's
+    // asset, not the identity. @OnDelete mirrors that at the DB level too, so
+    // even a row deleted outside the app doesn't orphan-delete its reviews.
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id")
+    @OnDelete(action = OnDeleteAction.SET_NULL)
     @JsonIgnore
     private User user;
 
