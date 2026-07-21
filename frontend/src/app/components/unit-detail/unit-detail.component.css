@@ -679,6 +679,44 @@
   margin: 0;
 }
 
+/* Grade Distribution */
+.grade-histogram {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.grade-bar-row {
+  display: grid;
+  grid-template-columns: 110px 1fr 70px;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+}
+
+.grade-bar-label {
+  color: var(--text-secondary);
+}
+
+.grade-bar-track {
+  height: 10px;
+  background-color: var(--surface-muted);
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.grade-bar-fill {
+  height: 100%;
+  background-color: var(--primary-color);
+  border-radius: 5px;
+}
+
+.grade-bar-value {
+  text-align: right;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
 /* Tuition Patterns */
 .pattern-list {
   list-style: none;

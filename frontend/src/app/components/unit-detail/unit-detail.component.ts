@@ -8,6 +8,7 @@ import { ReviewService } from '../../services/review.service';
 import { TipService } from '../../services/tip.service';
 import { SeoService } from '../../services/seo.service';
 import { reviewAuthorName } from '../../utils/unit-seo.utils';
+import { GradeBand, gradeDistribution, gradedReviewCount } from '../../utils/grade-distribution.util';
 import { Review, Tip, UnitDetails } from '../../models/unit.model';
 import { Observable, switchMap, map, of, tap, catchError } from 'rxjs';
 import { AddReviewComponent } from '../add-review/add-review.component';
@@ -319,6 +320,24 @@ export class UnitDetailComponent implements OnInit {
     }
     const result = lecturer ? reviews.filter(review => review.professor === lecturer) : reviews;
     this.filteredReviewsCache = { reviews, lecturer, result };
+    return result;
+  }
+
+  // Grade distribution histogram (review-experience.md #7), gated at >= 5
+  // graded reviews to avoid de-anonymizing a single reviewer. Memoized on
+  // array reference for the same NG0103 reason as the two methods above —
+  // gradeDistribution() otherwise allocates a fresh array on every call.
+  readonly MIN_GRADED_REVIEWS_FOR_HISTOGRAM = 5;
+  gradedReviewCount = gradedReviewCount;
+
+  private gradeDistributionCache: { reviews: Review[]; result: GradeBand[] } | null = null;
+
+  gradeDistribution(reviews: Review[]): GradeBand[] {
+    if (this.gradeDistributionCache?.reviews === reviews) {
+      return this.gradeDistributionCache.result;
+    }
+    const result = gradeDistribution(reviews);
+    this.gradeDistributionCache = { reviews, result };
     return result;
   }
 }
