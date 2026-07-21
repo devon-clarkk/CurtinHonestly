@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { UnitService } from '../../services/unit.service';
 import { SeoService } from '../../services/seo.service';
 import { UnitRequestService } from '../../services/unit-request.service';
+import { isResultsSeasonWindow } from '../../utils/results-season.util';
 import { UnitSummary, Faculty, UnitLevel } from '../../models/unit.model';
 import { BehaviorSubject, Subject } from 'rxjs';
 import { debounceTime, takeUntil } from 'rxjs/operators';
@@ -92,6 +93,12 @@ export class UnitListComponent implements OnInit, OnDestroy {
     }
   }
 
+  // Homepage nudge shown only in the ~2-week window after results release,
+  // when students are actually motivated to write a review
+  // (catalog-and-growth.md #4). Session-dismissible, not permanent.
+  private readonly SEASONAL_BANNER_DISMISS_KEY = 'seasonal-review-banner-dismissed';
+  showSeasonalBanner = signal(false);
+
   ngOnInit(): void {
     this.seoService.updateHomePage();
 
@@ -99,9 +106,18 @@ export class UnitListComponent implements OnInit, OnDestroy {
     // The browser hydrates and fetches data client-side via the async pipe.
     if (!isPlatformBrowser(this.platformId)) return;
 
+    if (isResultsSeasonWindow() && sessionStorage.getItem(this.SEASONAL_BANNER_DISMISS_KEY) !== 'true') {
+      this.showSeasonalBanner.set(true);
+    }
+
     // Search input is debounced; sort/faculty/level fire immediately
     this.searchSubject.pipe(debounceTime(300), takeUntil(this.destroy$)).subscribe(() => this.loadPage0());
     this.loadPage0();
+  }
+
+  dismissSeasonalBanner(): void {
+    this.showSeasonalBanner.set(false);
+    sessionStorage.setItem(this.SEASONAL_BANNER_DISMISS_KEY, 'true');
   }
 
   ngOnDestroy(): void {

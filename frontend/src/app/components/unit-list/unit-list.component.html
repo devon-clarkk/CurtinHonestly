@@ -5,6 +5,13 @@
     <p class="list-lead">Read honest student reviews for Curtin units — ratings, workload, grades, and would-take-again scores to help you choose the right units for your degree.</p>
   </header>
 
+  @if (showSeasonalBanner()) {
+    <div class="seasonal-banner">
+      <p>Results are out — which units did you just finish? <a routerLink="/my-reviews">Write a review</a> while it's fresh.</p>
+      <button type="button" class="seasonal-banner-dismiss" (click)="dismissSeasonalBanner()" aria-label="Dismiss">×</button>
+    </div>
+  }
+
   <div class="catalog">
   <!-- Filter Bar -->
   <div class="filter-bar">
