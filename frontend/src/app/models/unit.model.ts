@@ -50,6 +50,14 @@ export interface Review {
   createdAt?: string;
 }
 
+export interface Tip {
+  id: string;
+  text: string;
+  authorVerified: boolean;
+  ownedByCurrentUser: boolean;
+  createdAt: string;
+}
+
 export interface MyReview {
   id: string;
   unitCode: string;

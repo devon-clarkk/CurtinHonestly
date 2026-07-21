@@ -1,14 +1,18 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { UnitService } from '../../services/unit.service';
 import { AuthService } from '../../services/auth.service';
 import { ReviewService } from '../../services/review.service';
+import { TipService } from '../../services/tip.service';
 import { SeoService } from '../../services/seo.service';
 import { reviewAuthorName } from '../../utils/unit-seo.utils';
-import { Review, UnitDetails } from '../../models/unit.model';
+import { Review, Tip, UnitDetails } from '../../models/unit.model';
 import { Observable, switchMap, map, of, tap, catchError } from 'rxjs';
 import { AddReviewComponent } from '../add-review/add-review.component';
+
+const MAX_TIP_LENGTH = 200;
 
 /**
  * This component shows all the details for a single unit, including its reviews.
@@ -17,7 +21,7 @@ import { AddReviewComponent } from '../add-review/add-review.component';
 @Component({
   selector: 'app-unit-detail',
   standalone: true,
-  imports: [CommonModule, RouterLink, AddReviewComponent],
+  imports: [CommonModule, FormsModule, RouterLink, AddReviewComponent],
   templateUrl: './unit-detail.component.html',
   styleUrl: './unit-detail.component.css'
 })
@@ -25,6 +29,7 @@ export class UnitDetailComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private unitService = inject(UnitService);
   private reviewService = inject(ReviewService);
+  private tipService = inject(TipService);
   private seoService = inject(SeoService);
   authService = inject(AuthService);
   reviewAuthorName = reviewAuthorName;
@@ -45,6 +50,14 @@ export class UnitDetailComponent implements OnInit {
   // distinguishes "still loading" from "genuinely failed" so the spinner
   // doesn't spin forever (quick-fixes.md #2).
   loadError = signal(false);
+
+  // Tips — short, lightweight contributions distinct from full reviews.
+  tips = signal<Tip[]>([]);
+  newTipText = '';
+  readonly maxTipLength = MAX_TIP_LENGTH;
+  tipError = signal<string | null>(null);
+  isSubmittingTip = signal(false);
+  private currentUnitCode = '';
 
   ngOnInit(): void {
     this.loadUnit();
@@ -79,9 +92,50 @@ export class UnitDetailComponent implements OnInit {
       tap((unit) => {
         if (unit) {
           this.seoService.updateUnitPage(unit);
+          this.currentUnitCode = unit.code;
+          this.loadTips(unit.code);
         }
       })
     );
+  }
+
+  private loadTips(unitCode: string) {
+    this.tipService.getTips(unitCode).subscribe({
+      next: (tips) => this.tips.set(tips),
+      error: () => this.tips.set([])
+    });
+  }
+
+  submitTip() {
+    const text = this.newTipText.trim();
+    if (!text || text.length > this.maxTipLength || !this.currentUnitCode) {
+      return;
+    }
+
+    this.tipError.set(null);
+    this.isSubmittingTip.set(true);
+
+    this.tipService.createTip(this.currentUnitCode, text).subscribe({
+      next: (tip) => {
+        this.isSubmittingTip.set(false);
+        this.tips.update(existing => [tip, ...existing]);
+        this.newTipText = '';
+      },
+      error: (err) => {
+        this.isSubmittingTip.set(false);
+        this.tipError.set(err.error?.error || 'Could not post tip. Please try again.');
+      }
+    });
+  }
+
+  deleteTip(tip: Tip) {
+    if (!this.currentUnitCode) {
+      return;
+    }
+    this.tipService.deleteTip(this.currentUnitCode, tip.id).subscribe({
+      next: () => this.tips.update(existing => existing.filter(t => t.id !== tip.id)),
+      error: (err) => this.tipError.set(err.error?.error || 'Could not delete tip. Please try again.')
+    });
   }
 
   toggleAddReviewForm() {

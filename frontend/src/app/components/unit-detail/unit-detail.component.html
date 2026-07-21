@@ -78,6 +78,46 @@
       <h3 class="section-heading">About this Unit</h3>
       <p class="unit-desc">{{ unit.description }}</p>
 
+      <!-- Tips: short, lightweight contributions distinct from full reviews -->
+      <div class="info-block tips-block">
+        <h3>Quick Tips</h3>
+        <p class="tips-hint">One-line things worth knowing — no full review required.</p>
+
+        <form *ngIf="authService.isLoggedIn()" (ngSubmit)="submitTip()" class="tip-form">
+          <input
+            type="text"
+            name="newTip"
+            [(ngModel)]="newTipText"
+            [maxlength]="maxTipLength"
+            placeholder="e.g. The mid-sem test is much harder than expected"
+            class="tip-input" />
+          <button type="submit" class="btn btn-secondary tip-submit"
+                  [disabled]="isSubmittingTip() || !newTipText.trim()">
+            {{ isSubmittingTip() ? 'Posting…' : 'Post' }}
+          </button>
+        </form>
+        <p class="tip-char-count" *ngIf="authService.isLoggedIn()">
+          {{ newTipText.length }}/{{ maxTipLength }}
+        </p>
+        <div *ngIf="tipError()" class="error-box">{{ tipError() }}</div>
+
+        <ul class="tip-list" *ngIf="tips().length > 0; else noTips">
+          <li *ngFor="let tip of tips()" class="tip-item">
+            <span class="tip-text">{{ tip.text }}</span>
+            <span class="tip-meta">
+              — {{ reviewAuthorName(tip.authorVerified) }}
+              <button *ngIf="tip.ownedByCurrentUser" type="button" class="tip-delete"
+                      (click)="deleteTip(tip)" aria-label="Delete this tip">
+                Delete
+              </button>
+            </span>
+          </li>
+        </ul>
+        <ng-template #noTips>
+          <p class="tips-empty">No tips yet — be the first to share one.</p>
+        </ng-template>
+      </div>
+
       <!-- Unit Information -->
       <div class="info-block">
         <h3>Unit Details</h3>
