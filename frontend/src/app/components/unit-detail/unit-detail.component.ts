@@ -132,4 +132,53 @@ export class UnitDetailComponent implements OnInit {
   requirementLabel(requirement: string): string {
     return requirement === 'all' ? 'Complete All' : 'Select One';
   }
+
+  // Builds "Semester 1, 2026 • Prof. X • Jan 2026" from whichever parts are
+  // present, without a dangling separator when a field is missing.
+  reviewMetaLine(review: Review): string {
+    const parts: string[] = [];
+    if (review.semesterTaken) {
+      parts.push(review.semesterTaken);
+    }
+    if (review.professor) {
+      parts.push(`Prof. ${review.professor}`);
+    }
+    if (review.createdAt) {
+      parts.push(this.formatReviewMonth(review.createdAt));
+    }
+    return parts.join(' • ');
+  }
+
+  private formatReviewMonth(iso: string): string {
+    const date = new Date(iso);
+    if (isNaN(date.getTime())) {
+      return '';
+    }
+    return date.toLocaleDateString('en-AU', { month: 'short', year: 'numeric' });
+  }
+
+  // Percentage of loaded reviews where the reviewer reported an exam. All of a
+  // unit's reviews are loaded on this page (no pagination), so this matches
+  // what a server-computed aggregate would give.
+  examPercentage(reviews: Review[]): number {
+    if (!reviews || reviews.length === 0) {
+      return 0;
+    }
+    const withExam = reviews.filter(r => r.hasExam).length;
+    return Math.round((withExam / reviews.length) * 100);
+  }
+
+  // True when the most recent review predates the current calendar year —
+  // a subtle signal that unit content (assessment, staff) may have changed since.
+  isReviewDataStale(reviews: Review[]): boolean {
+    if (!reviews || reviews.length === 0) {
+      return false;
+    }
+    const latest = reviews.reduce<Date | null>((max, r) => {
+      if (!r.createdAt) return max;
+      const d = new Date(r.createdAt);
+      return !max || d > max ? d : max;
+    }, null);
+    return !!latest && latest.getFullYear() < new Date().getFullYear();
+  }
 }
