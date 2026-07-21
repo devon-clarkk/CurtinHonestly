@@ -99,6 +99,16 @@ export class AuthService {
     );
   }
 
+  // Requests a password-reset email (enumeration-safe: same response either way).
+  forgotPassword(email: string): Observable<MessageResponse> {
+    return this.http.post<MessageResponse>(`${this.apiUrl}/forgot-password`, { email });
+  }
+
+  // Completes a password reset from the emailed link.
+  resetPassword(token: string, newPassword: string): Observable<MessageResponse> {
+    return this.http.post<MessageResponse>(`${this.apiUrl}/reset-password`, { token, newPassword });
+  }
+
   updateEmail(request: UpdateEmailRequest): Observable<JwtResponse> {
     return this.http.patch<JwtResponse>(`${this.apiUrl}/me`, request).pipe(
       tap(response => this.persistSession(response.token, response.verifiedStudent, request.newEmail))

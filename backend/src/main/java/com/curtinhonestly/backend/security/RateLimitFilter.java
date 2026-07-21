@@ -28,7 +28,11 @@ public class RateLimitFilter extends OncePerRequestFilter {
             new Limit("POST", "/auth/verify-student", 5, Duration.ofMinutes(10)),
             // Confirming a link — tokens are 256-bit so brute force is infeasible; this is
             // cheap defence-in-depth. Uses a distinct method so it doesn't collide with the POST above.
-            new Limit("GET", "/auth/verify-student/confirm", 20, Duration.ofMinutes(1))
+            new Limit("GET", "/auth/verify-student/confirm", 20, Duration.ofMinutes(1)),
+            // Requesting a reset emails the account — cap to prevent inbox-bombing.
+            new Limit("POST", "/auth/forgot-password", 5, Duration.ofMinutes(10)),
+            // Completing a reset — defence-in-depth against token guessing.
+            new Limit("POST", "/auth/reset-password", 10, Duration.ofMinutes(10))
     );
 
     private final RateLimiter rateLimiter;

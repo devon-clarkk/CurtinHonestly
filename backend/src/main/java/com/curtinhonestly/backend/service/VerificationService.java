@@ -10,6 +10,7 @@ import com.curtinhonestly.backend.util.StudentEmailValidator;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
@@ -32,23 +33,30 @@ public class VerificationService {
 
     private static final SecureRandom RANDOM = new SecureRandom();
     private static final Base64.Encoder URL_ENCODER = Base64.getUrlEncoder().withoutPadding();
+    private static final int MIN_PASSWORD_LENGTH = 8;
 
     private final VerificationTokenRepo tokenRepo;
     private final UserRepo userRepo;
     private final EmailService emailService;
+    private final PasswordEncoder passwordEncoder;
     private final String frontendBaseUrl;
     private final Duration ttl;
+    private final Duration resetTtl;
 
     public VerificationService(VerificationTokenRepo tokenRepo,
                                UserRepo userRepo,
                                EmailService emailService,
+                               PasswordEncoder passwordEncoder,
                                @Value("${app.frontend-base-url:http://localhost:4200}") String frontendBaseUrl,
-                               @Value("${app.mail.verification-token-ttl-hours:24}") long ttlHours) {
+                               @Value("${app.mail.verification-token-ttl-hours:24}") long ttlHours,
+                               @Value("${app.mail.reset-token-ttl-hours:1}") long resetTtlHours) {
         this.tokenRepo = tokenRepo;
         this.userRepo = userRepo;
         this.emailService = emailService;
+        this.passwordEncoder = passwordEncoder;
         this.frontendBaseUrl = frontendBaseUrl.replaceAll("/+$", "");
         this.ttl = Duration.ofHours(ttlHours);
+        this.resetTtl = Duration.ofHours(resetTtlHours);
     }
 
     /**
@@ -111,6 +119,64 @@ public class VerificationService {
         return user;
     }
 
+    /**
+     * Issue a password-reset token and email a link to the account address.
+     * Enumeration-safe: if no account exists for the email, this silently does
+     * nothing (the caller returns an identical response either way).
+     */
+    public void requestPasswordReset(String email) {
+        String normalized = EmailNormalizer.normalize(email);
+        var user = userRepo.findByEmail(normalized).orElse(null);
+        if (user == null) {
+            log.info("Password reset requested for unknown email (no-op)");
+            return;
+        }
+
+        String rawToken = newRawToken();
+        VerificationToken token = new VerificationToken();
+        token.setUser(user);
+        token.setTokenHash(hash(rawToken));
+        token.setPurpose(VerificationPurpose.PASSWORD_RESET);
+        token.setTargetEmail(normalized);
+        token.setExpiresAt(Instant.now().plus(resetTtl));
+
+        tokenRepo.invalidateOutstanding(user, VerificationPurpose.PASSWORD_RESET);
+        tokenRepo.save(token);
+
+        emailService.send(normalized, "Reset your CurtinHonestly password", buildPasswordResetBody(rawToken));
+        log.info("Issued password-reset token for user {}", user.getId());
+    }
+
+    /**
+     * Complete a password reset from an emailed link: set the new password and
+     * consume the token.
+     */
+    public void resetPassword(String rawToken, String newPassword) {
+        if (newPassword == null || newPassword.length() < MIN_PASSWORD_LENGTH) {
+            throw new IllegalArgumentException(
+                    "Password must be at least " + MIN_PASSWORD_LENGTH + " characters.");
+        }
+
+        VerificationToken token = tokenRepo.findByTokenHash(hash(rawToken))
+                .orElseThrow(() -> new IllegalArgumentException("This reset link is invalid."));
+
+        if (token.getPurpose() != VerificationPurpose.PASSWORD_RESET) {
+            throw new IllegalArgumentException("This reset link is invalid.");
+        }
+        if (!token.isUsable(Instant.now())) {
+            throw new IllegalArgumentException("This reset link has expired or has already been used.");
+        }
+
+        User user = token.getUser();
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepo.saveAndFlush(user);
+
+        token.setUsedAt(Instant.now());
+        tokenRepo.save(token);
+
+        log.info("User {} completed a password reset", user.getId());
+    }
+
     private void assertEmailNotTakenByOther(String normalizedEmail, User user) {
         userRepo.findByEmail(normalizedEmail)
                 .filter(existing -> !existing.getId().equals(user.getId()))
@@ -129,6 +195,19 @@ public class VerificationService {
 
                 If you didn't request this, you can safely ignore this email.
                 """.formatted(ttl.toHours(), link);
+    }
+
+    private String buildPasswordResetBody(String rawToken) {
+        String link = frontendBaseUrl + "/reset-password?token=" + rawToken;
+        return """
+                We received a request to reset your CurtinHonestly password.
+
+                Click the link below to choose a new password (valid for %d hour(s)):
+                %s
+
+                If you didn't request this, you can safely ignore this email — your
+                password won't change until you use the link.
+                """.formatted(resetTtl.toHours(), link);
     }
 
     private static String newRawToken() {
