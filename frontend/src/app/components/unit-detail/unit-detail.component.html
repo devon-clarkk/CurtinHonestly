@@ -199,13 +199,27 @@
     <section class="reviews-section">
       <div class="reviews-header-row">
         <h3 class="section-heading">Student Reviews</h3>
-        
+
         <!-- Button to show the add review form -->
         <button *ngIf="authService.isLoggedIn() && !showAddReviewForm()"
                 (click)="toggleAddReviewForm()"
                 class="btn btn-primary add-review-btn">
           Add Review
         </button>
+      </div>
+
+      <!-- Lecturer-aware filter (review-experience.md #5) -->
+      <div class="lecturer-filter" *ngIf="lecturerSummary(unit.reviews) as lecturers" >
+        <ng-container *ngIf="lecturers.length > 0">
+          <span class="lecturer-summary">
+            Taught by
+            <span *ngFor="let l of lecturers; let last = last">{{ l.name }} ({{ l.count }} review{{ l.count === 1 ? '' : 's' }})<ng-container *ngIf="!last">, </ng-container></span>
+          </span>
+          <select class="lecturer-select" [ngModel]="selectedLecturer()" (ngModelChange)="selectedLecturer.set($event || null)" name="lecturerFilter">
+            <option [ngValue]="null">All lecturers</option>
+            <option *ngFor="let l of lecturers" [ngValue]="l.name">{{ l.name }} ({{ l.count }})</option>
+          </select>
+        </ng-container>
       </div>
 
       <!-- The Add Review Form (hidden by default) -->
@@ -229,8 +243,11 @@
       <div *ngIf="unit.reviews.length === 0" class="no-reviews">
         No reviews yet. Be the first to write one!
       </div>
+      <div *ngIf="unit.reviews.length > 0 && filteredReviews(unit.reviews).length === 0" class="no-reviews">
+        No reviews from {{ selectedLecturer() }}. <button type="button" class="btn-text" (click)="selectedLecturer.set(null)">Show all reviews</button>
+      </div>
 
-      <div *ngFor="let review of unit.reviews" class="review-card">
+      <div *ngFor="let review of filteredReviews(unit.reviews)" class="review-card">
         <div class="review-header">
           <div class="user-info">
             <span class="user-name">
