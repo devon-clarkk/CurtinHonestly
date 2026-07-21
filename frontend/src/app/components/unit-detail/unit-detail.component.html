@@ -60,7 +60,16 @@
       <span class="stat-title">Take Again</span>
       <span class="stat-value">{{ unit.wouldTakeAgainRatio | percent }}</span>
     </div>
+    <div class="stat-card">
+      <span class="stat-title">Had an Exam</span>
+      <span class="stat-value">{{ examPercentage(unit.reviews) }}%</span>
+    </div>
   </section>
+
+  <p class="stale-note" *ngIf="isReviewDataStale(unit.reviews)">
+    Most reviews for this unit are from a previous year — assessment style, staff, or
+    content may have changed since.
+  </p>
 
   <!-- Content Section -->
   <div class="content-grid">
@@ -192,7 +201,7 @@
                 </svg>
               </span>
             </span>
-            <span class="review-meta">{{ review.semesterTaken }} • Prof. {{ review.professor }}</span>
+            <span class="review-meta" *ngIf="reviewMetaLine(review) as meta">{{ meta }}</span>
           </div>
           <div class="review-rating">
             <ng-container *ngFor="let type of getStarArray(review.rating)">
@@ -211,8 +220,13 @@
           <span class="footer-tag" [class.positive]="review.wouldTakeAgain">
             {{ review.wouldTakeAgain ? 'Would take again' : 'Would not take again' }}
           </span>
-          <span class="footer-tag">Grade: {{ review.finalGrade }}%</span>
+          <span class="footer-tag" *ngIf="review.finalGrade !== null && review.finalGrade !== undefined">
+            Grade: {{ review.finalGrade }}%
+          </span>
           <span class="footer-tag">Workload: {{ review.workload }}/10</span>
+          <span class="footer-tag" [class.positive]="review.hasExam">
+            {{ review.hasExam ? 'Had an exam' : 'No exam' }}
+          </span>
           @if (authService.isLoggedIn()) {
             <button
               type="button"
