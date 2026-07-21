@@ -67,6 +67,45 @@
       <div class="empty-state">
         <p>No units found matching your filters.</p>
         <button class="btn btn-primary" (click)="resetFilters()">Reset All Filters</button>
+
+        @if (!showRequestUnitForm()) {
+          <p class="request-unit-prompt">
+            Can't find your unit?
+            <button type="button" class="btn-text" (click)="openRequestUnitForm()">Request it</button>
+          </p>
+        } @else if (requestUnitSubmitted()) {
+          <p class="request-unit-success">Thanks — we've logged your request and will look into adding it.</p>
+        } @else {
+          <form class="request-unit-form" (ngSubmit)="submitUnitRequest()">
+            <label for="requestUnitCode">Unit code or name</label>
+            <input
+              type="text"
+              id="requestUnitCode"
+              name="requestUnitCode"
+              [(ngModel)]="requestUnitCode"
+              maxlength="100"
+              placeholder="e.g. ISYS2000 or the unit name"
+              class="form-control" />
+            <label for="requestUnitNote">Anything else? (optional)</label>
+            <input
+              type="text"
+              id="requestUnitNote"
+              name="requestUnitNote"
+              [(ngModel)]="requestUnitNote"
+              maxlength="500"
+              placeholder="e.g. offered in Semester 2"
+              class="form-control" />
+            @if (requestUnitError()) {
+              <p class="error-box">{{ requestUnitError() }}</p>
+            }
+            <div class="request-unit-actions">
+              <button type="button" class="btn btn-secondary" (click)="showRequestUnitForm.set(false)">Cancel</button>
+              <button type="submit" class="btn btn-primary" [disabled]="requestUnitSubmitting() || !requestUnitCode.trim()">
+                {{ requestUnitSubmitting() ? 'Submitting…' : 'Submit request' }}
+              </button>
+            </div>
+          </form>
+        }
       </div>
     } @else {
       <!-- The grid of unit cards -->

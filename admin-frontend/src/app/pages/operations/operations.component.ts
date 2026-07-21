@@ -2,7 +2,7 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AdminService } from '../../services/admin.service';
-import { AdminReview, UserAdmin } from '../../models/admin.model';
+import { AdminReview, UnitRequestAdmin, UserAdmin } from '../../models/admin.model';
 
 @Component({
   selector: 'app-operations',
@@ -15,6 +15,7 @@ export class OperationsComponent implements OnInit {
 
   users = signal<UserAdmin[]>([]);
   reviews = signal<AdminReview[]>([]);
+  unitRequests = signal<UnitRequestAdmin[]>([]);
   errorMessage = signal<string | null>(null);
   successMessage = signal<string | null>(null);
 
@@ -25,6 +26,7 @@ export class OperationsComponent implements OnInit {
   ngOnInit(): void {
     this.refreshUsers();
     this.refreshReviews();
+    this.refreshUnitRequests();
   }
 
   refreshUsers(): void {
@@ -88,6 +90,24 @@ export class OperationsComponent implements OnInit {
         this.refreshReviews();
       },
       error: () => this.errorMessage.set('Failed to delete review.')
+    });
+  }
+
+  refreshUnitRequests(): void {
+    this.adminService.listUnitRequests().subscribe({
+      next: (data) => this.unitRequests.set(data),
+      error: () => this.errorMessage.set('Failed to load unit requests.')
+    });
+  }
+
+  deleteUnitRequest(request: UnitRequestAdmin): void {
+    this.clearMessages();
+    this.adminService.deleteUnitRequest(request.id).subscribe({
+      next: () => {
+        this.successMessage.set('Unit request dismissed.');
+        this.refreshUnitRequests();
+      },
+      error: () => this.errorMessage.set('Failed to dismiss unit request.')
     });
   }
 

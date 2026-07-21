@@ -9,6 +9,7 @@ import {
   CampaignAdmin,
   CampaignEntryAdmin,
   PagedReviews,
+  UnitRequestAdmin,
   UserAdmin
 } from '../models/admin.model';
 
@@ -85,5 +86,13 @@ export class AdminService {
 
   listCampaignEntries(id: string): Observable<CampaignEntryAdmin[]> {
     return this.http.get<CampaignEntryAdmin[]>(`${this.apiUrl}/campaigns/${id}/entries`);
+  }
+
+  listUnitRequests(): Observable<UnitRequestAdmin[]> {
+    return this.http.get<UnitRequestAdmin[]>(`${this.apiUrl}/unit-requests`);
+  }
+
+  deleteUnitRequest(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/unit-requests/${id}`);
   }
 }
