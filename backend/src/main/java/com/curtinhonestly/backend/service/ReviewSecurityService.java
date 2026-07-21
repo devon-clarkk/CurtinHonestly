@@ -16,7 +16,9 @@ public class ReviewSecurityService {
             if (principal instanceof UserDetails) {
                 String username = ((UserDetails) principal).getUsername();
                 Review review = reviewService.getReviewById(reviewId);
-                return review.getUser().getEmail().equals(username);
+                // Anonymized reviews (author deleted their account) have no
+                // owner — no one can claim ownership of them.
+                return review.getUser() != null && review.getUser().getEmail().equals(username);
             }
         } catch (Exception e) {
             // If review not found or any other error, deny access

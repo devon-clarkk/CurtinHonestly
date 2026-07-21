@@ -58,7 +58,10 @@ public class User {
     @Column(nullable = false, updatable = false, columnDefinition = "TIMESTAMPTZ DEFAULT NOW() NOT NULL")
     private Instant createdAt = Instant.now();
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    // No REMOVE cascade: deleting a user must not delete their reviews (see
+    // UserService.deleteAccount) — reviews are detached (anonymized) by default,
+    // and the app deletes them explicitly only when the user opts into full removal.
+    @OneToMany(mappedBy = "user")
     private List<Review> reviews;
 
     @ManyToOne(fetch = FetchType.LAZY)

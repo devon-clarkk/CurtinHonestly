@@ -127,15 +127,21 @@ export class AccountComponent implements OnInit {
     });
   }
 
+  // Default: reviews are kept (anonymized) — only the account identity is removed.
+  deleteReviewsToo = false;
+
   onDeleteAccount() {
-    if (!confirm('Delete your account permanently? All your reviews will be removed. This cannot be undone.')) {
+    const confirmMessage = this.deleteReviewsToo
+      ? 'Delete your account AND permanently remove all your reviews? This cannot be undone.'
+      : 'Delete your account? Your reviews will stay on the site, posted anonymously. This cannot be undone.';
+    if (!confirm(confirmMessage)) {
       return;
     }
 
     this.clearMessages();
     this.isLoading.set(true);
 
-    this.authService.deleteAccount(this.deletePassword).subscribe({
+    this.authService.deleteAccount(this.deletePassword, this.deleteReviewsToo).subscribe({
       next: () => {
         this.isLoading.set(false);
         this.authService.logout();
