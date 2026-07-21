@@ -28,6 +28,7 @@ public class UnitDetailsDTO {
     private double averageWorkload;
     private double averageFinalGrade;
     private double wouldTakeAgainRatio;
+    private List<TagSummaryDTO> tagSummary;
 
     private List<ReviewDTO> reviews;
 }

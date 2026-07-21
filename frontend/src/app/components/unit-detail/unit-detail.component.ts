@@ -9,7 +9,7 @@ import { TipService } from '../../services/tip.service';
 import { SeoService } from '../../services/seo.service';
 import { reviewAuthorName } from '../../utils/unit-seo.utils';
 import { GradeBand, gradeDistribution, gradedReviewCount } from '../../utils/grade-distribution.util';
-import { Review, Tip, UnitDetails } from '../../models/unit.model';
+import { REVIEW_TAGS, Review, Tip, UnitDetails } from '../../models/unit.model';
 import { Observable, switchMap, map, of, tap, catchError } from 'rxjs';
 import { AddReviewComponent } from '../add-review/add-review.component';
 
@@ -230,6 +230,12 @@ export class UnitDetailComponent implements OnInit {
 
   requirementLabel(requirement: string): string {
     return requirement === 'all' ? 'Complete All' : 'Select One';
+  }
+
+  private readonly tagLabels = new Map(REVIEW_TAGS.map(t => [t.value, t.label]));
+
+  tagLabel(tag: string): string {
+    return this.tagLabels.get(tag) || tag;
   }
 
   // Builds "Semester 1, 2026 • Prof. X • Jan 2026" from whichever parts are

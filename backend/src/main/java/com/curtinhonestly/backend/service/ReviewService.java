@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 @Slf4j
@@ -82,6 +83,7 @@ public class ReviewService {
         review.setWorkload(request.workload());
         review.setHasExam(request.hasExam());
         review.setWouldTakeAgain(request.wouldTakeAgain());
+        review.setTags(request.tags() != null ? request.tags() : Set.of());
         review.setCreatedAt(Instant.now());
         review.setUnit(unit);
         review.setUser(user);
@@ -114,6 +116,7 @@ public class ReviewService {
         review.setWorkload(request.workload());
         review.setHasExam(request.hasExam());
         review.setWouldTakeAgain(request.wouldTakeAgain());
+        review.setTags(request.tags() != null ? request.tags() : Set.of());
 
         Review saved = reviewRepo.save(review);
         unitAggregateService.recalculateForUnit(saved.getUnit().getId());

@@ -55,7 +55,7 @@ class ReviewServiceUpdateTest {
 
     private ReviewUpdateRequest updateRequest() {
         return new ReviewUpdateRequest(5, 90, "Updated text — much better than I first thought.",
-                "Semester 2, 2026", "Dr Smith", 7, true, true);
+                "Semester 2, 2026", "Dr Smith", 7, true, true, null);
     }
 
     @Test

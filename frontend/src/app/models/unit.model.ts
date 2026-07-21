@@ -34,6 +34,26 @@ export interface UnitSummary {
   wouldTakeAgainRatio: number;
 }
 
+// Mirrors the backend ReviewTag enum (review-experience.md #4) — a fixed,
+// predefined set, not free text, kept as a single source of truth here
+// rather than fetched, matching the roadmap's "predefined toggle chips" sizing.
+export const REVIEW_TAGS: { value: string; label: string }[] = [
+  { value: 'GROUP_WORK', label: 'Group work' },
+  { value: 'WEEKLY_QUIZZES', label: 'Weekly quizzes' },
+  { value: 'ATTENDANCE_MARKED', label: 'Attendance marked' },
+  { value: 'RECORDED_LECTURES', label: 'Recorded lectures' },
+  { value: 'PROCTORED_EXAM', label: 'Proctored exam' },
+  { value: 'HEAVY_READING', label: 'Heavy reading load' },
+  { value: 'PRACTICAL_LABS', label: 'Practical labs/tutorials' },
+  { value: 'OPEN_BOOK_EXAM', label: 'Open-book exam' },
+];
+
+export interface TagSummary {
+  tag: string;
+  label: string;
+  count: number;
+}
+
 export interface Review {
   id?: string;
   rating: number;
@@ -44,6 +64,7 @@ export interface Review {
   workload: number;
   hasExam: boolean;
   wouldTakeAgain: boolean;
+  tags?: string[];
   likeCount?: number;
   likedByCurrentUser?: boolean;
   reviewerVerified: boolean;
@@ -70,6 +91,7 @@ export interface MyReview {
   workload?: number;
   hasExam?: boolean;
   wouldTakeAgain?: boolean;
+  tags?: string[];
   likeCount?: number;
   createdAt: string;
 }
@@ -123,6 +145,7 @@ export interface UnitDetails {
   averageWorkload: number;
   averageFinalGrade: number;
   wouldTakeAgainRatio: number;
+  tagSummary?: TagSummary[];
   reviews: Review[];
 }
 

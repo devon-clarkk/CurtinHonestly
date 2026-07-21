@@ -13,6 +13,8 @@ import org.hibernate.annotations.OnDeleteAction;
 import org.hibernate.annotations.UuidGenerator;
 
 import java.time.Instant;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 
@@ -53,6 +55,14 @@ public class Review {
     // Denormalized count of rows in review_likes for this review. Kept in sync by ReviewLikeService.
     @Column(nullable = false)
     private int likeCount = 0;
+
+    // Predefined assessment/experience tags (review-experience.md #4) — a
+    // fixed enum set, mirroring User.roles' @ElementCollection pattern.
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "review_tags", joinColumns = @JoinColumn(name = "review_id"))
+    @Enumerated(EnumType.STRING)
+    @Column(name = "tag", nullable = false)
+    private Set<ReviewTag> tags = new HashSet<>();
 
     @Column(nullable = false, updatable = false, columnDefinition = "TIMESTAMPTZ DEFAULT NOW() NOT NULL")
     private Instant createdAt = Instant.now();

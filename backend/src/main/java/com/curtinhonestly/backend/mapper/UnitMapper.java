@@ -4,7 +4,10 @@ import com.curtinhonestly.backend.domain.*;
 import com.curtinhonestly.backend.dto.*;
 
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -65,6 +68,7 @@ public class UnitMapper {
         dto.setAverageWorkload(calculateAverageWorkload(reviews));
         dto.setAverageFinalGrade(calculateAverageFinalGrade(reviews));
         dto.setWouldTakeAgainRatio(calculateWouldTakeAgainRatio(reviews));
+        dto.setTagSummary(calculateTagSummary(reviews));
 
         // Unit reviews in ReviewDTO format.
         dto.setReviews(ReviewMapper.mapToDTOs(reviews));
@@ -163,5 +167,22 @@ public class UnitMapper {
 
     private static double roundTo1Decimal(double value) {
         return Math.round(value * 10.0) / 10.0;
+    }
+
+    // Sorted most-common first, so "X of Y reviewers: heavy group work" leads
+    // with whatever's actually distinctive about the unit.
+    private static List<TagSummaryDTO> calculateTagSummary(List<Review> reviews) {
+        Map<ReviewTag, Integer> counts = new EnumMap<>(ReviewTag.class);
+        for (Review review : reviews) {
+            if (review.getTags() == null) continue;
+            for (ReviewTag tag : review.getTags()) {
+                counts.merge(tag, 1, Integer::sum);
+            }
+        }
+        return counts.entrySet().stream()
+                .sorted(Map.Entry.<ReviewTag, Integer>comparingByValue().reversed()
+                        .thenComparing(e -> e.getKey().name()))
+                .map(e -> new TagSummaryDTO(e.getKey().name(), e.getKey().getDisplayName(), e.getValue()))
+                .toList();
     }
 }

@@ -1,8 +1,11 @@
 package com.curtinhonestly.backend.dto;
 
+import com.curtinhonestly.backend.domain.ReviewTag;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Size;
+
+import java.util.Set;
 
 // Same user-settable fields as ReviewCreateRequest, minus unitCode — you can't
 // move a review to a different unit on edit. createdAt/id/unit/user are never
@@ -15,5 +18,6 @@ public record ReviewUpdateRequest(
         String professor,
         @Min(0) @Max(10) int workload,
         boolean hasExam,
-        boolean wouldTakeAgain
+        boolean wouldTakeAgain,
+        Set<ReviewTag> tags
 ) {}
