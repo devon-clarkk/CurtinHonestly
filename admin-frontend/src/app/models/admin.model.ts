@@ -74,3 +74,10 @@ export interface CampaignEntryAdmin {
   unitCode: string;
   createdAt: string;
 }
+
+export interface UnitRequestAdmin {
+  id: string;
+  requestedCode: string;
+  note: string | null;
+  createdAt: string;
+}

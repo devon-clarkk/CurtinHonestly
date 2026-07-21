@@ -44,7 +44,9 @@ public class RateLimitFilter extends OncePerRequestFilter {
             new Limit("POST", "/reviews", MatchType.EXACT, 20, Duration.ofMinutes(10)),
             // Tip spam defence. Suffix match since the path is /units/{code}/tips —
             // the unit code segment varies, so neither exact nor prefix matching fits.
-            new Limit("POST", "/tips", MatchType.SUFFIX, 10, Duration.ofMinutes(10))
+            new Limit("POST", "/tips", MatchType.SUFFIX, 10, Duration.ofMinutes(10)),
+            // Unit request spam defence — public/unauthenticated endpoint.
+            new Limit("POST", "/unit-requests", MatchType.EXACT, 5, Duration.ofMinutes(10))
     );
 
     private final RateLimiter rateLimiter;
