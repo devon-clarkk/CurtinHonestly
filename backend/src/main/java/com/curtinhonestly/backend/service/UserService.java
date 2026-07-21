@@ -14,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -103,6 +104,32 @@ public class UserService {
         User savedUser = userRepo.saveAndFlush(user);
         log.info("User {} updated email", savedUser.getId());
         return savedUser;
+    }
+
+    private static final int MAX_COMPLETED_UNITS = 200;
+
+    public Set<String> getCompletedUnitCodes(String email) {
+        return getUserByEmail(email).getCompletedUnitCodes();
+    }
+
+    // Replaces the whole set rather than merging, so removing a unit is as
+    // simple as omitting it from the next call — matches how the frontend
+    // manages the list as a single editable chip collection.
+    public Set<String> updateCompletedUnitCodes(String email, Set<String> rawCodes) {
+        User user = getUserByEmail(email);
+
+        Set<String> normalized = (rawCodes == null ? Set.<String>of() : rawCodes).stream()
+                .filter(code -> code != null && !code.isBlank())
+                .map(code -> code.trim().toUpperCase())
+                .collect(Collectors.toCollection(HashSet::new));
+
+        if (normalized.size() > MAX_COMPLETED_UNITS) {
+            throw new IllegalArgumentException("You can record at most " + MAX_COMPLETED_UNITS + " completed units.");
+        }
+
+        user.setCompletedUnitCodes(normalized);
+        userRepo.saveAndFlush(user);
+        return normalized;
     }
 
     /**

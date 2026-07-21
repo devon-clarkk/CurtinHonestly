@@ -66,6 +66,11 @@ public class SecurityConfig {
                         .requestMatchers("/admin/**").hasAuthority(UserRole.ROLE_ADMIN.name())
                         .requestMatchers(HttpMethod.GET, "/reviews/me").authenticated()
                         .requestMatchers(HttpMethod.GET, "/reviews", "/reviews/**").hasAuthority(UserRole.ROLE_ADMIN.name())
+
+                        // Completed-units self-service (roadmap 4.4) — narrower than the
+                        // blanket /users/** admin rules below, must be declared first.
+                        .requestMatchers("/users/me/completed-units").hasAnyAuthority(UserRole.ROLE_USER.name(), UserRole.ROLE_ADMIN.name())
+
                         .requestMatchers(HttpMethod.GET, "/users", "/users/**").hasAuthority(UserRole.ROLE_ADMIN.name())
 
                         // Unit tips: read is covered by the public GET /units/** rule above.

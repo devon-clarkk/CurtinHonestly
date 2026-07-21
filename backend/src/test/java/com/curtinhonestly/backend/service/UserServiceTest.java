@@ -114,4 +114,40 @@ class UserServiceTest {
         verifyNoInteractions(unitAggregateService);
         verify(userRepo).delete(user);
     }
+
+    @Test
+    void updateCompletedUnitCodes_normalizesTrimsAndUppercases() {
+        User user = user();
+        when(userRepo.findByEmail("alice@gmail.com")).thenReturn(java.util.Optional.of(user));
+
+        Set<String> result = service().updateCompletedUnitCodes(
+                "alice@gmail.com", Set.of(" comp1000 ", "ISYS2001", ""));
+
+        assertThat(result).containsExactlyInAnyOrder("COMP1000", "ISYS2001");
+        assertThat(user.getCompletedUnitCodes()).containsExactlyInAnyOrder("COMP1000", "ISYS2001");
+        verify(userRepo).saveAndFlush(user);
+    }
+
+    @Test
+    void updateCompletedUnitCodes_rejectsOverTwoHundredEntries() {
+        User user = user();
+        when(userRepo.findByEmail("alice@gmail.com")).thenReturn(java.util.Optional.of(user));
+        Set<String> tooMany = new java.util.HashSet<>();
+        for (int i = 0; i < 201; i++) {
+            tooMany.add("UNIT" + i);
+        }
+
+        assertThatThrownBy(() -> service().updateCompletedUnitCodes("alice@gmail.com", tooMany))
+                .isInstanceOf(IllegalArgumentException.class);
+        verify(userRepo, never()).saveAndFlush(any());
+    }
+
+    @Test
+    void getCompletedUnitCodes_returnsUsersSet() {
+        User user = user();
+        user.setCompletedUnitCodes(Set.of("COMP1000"));
+        when(userRepo.findByEmail("alice@gmail.com")).thenReturn(java.util.Optional.of(user));
+
+        assertThat(service().getCompletedUnitCodes("alice@gmail.com")).containsExactly("COMP1000");
+    }
 }

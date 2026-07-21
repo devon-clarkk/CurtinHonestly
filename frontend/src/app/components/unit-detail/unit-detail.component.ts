@@ -6,10 +6,11 @@ import { UnitService } from '../../services/unit.service';
 import { AuthService } from '../../services/auth.service';
 import { ReviewService } from '../../services/review.service';
 import { TipService } from '../../services/tip.service';
+import { CompletedUnitsService } from '../../services/completed-units.service';
 import { SeoService } from '../../services/seo.service';
 import { reviewAuthorName } from '../../utils/unit-seo.utils';
 import { GradeBand, gradeDistribution, gradedReviewCount } from '../../utils/grade-distribution.util';
-import { REVIEW_TAGS, Review, Tip, UnitDetails } from '../../models/unit.model';
+import { PrerequisiteGroup, REVIEW_TAGS, Review, Tip, UnitDetails } from '../../models/unit.model';
 import { Observable, switchMap, map, of, tap, catchError } from 'rxjs';
 import { AddReviewComponent } from '../add-review/add-review.component';
 
@@ -31,6 +32,7 @@ export class UnitDetailComponent implements OnInit {
   private unitService = inject(UnitService);
   private reviewService = inject(ReviewService);
   private tipService = inject(TipService);
+  private completedUnitsService = inject(CompletedUnitsService);
   private seoService = inject(SeoService);
   authService = inject(AuthService);
   reviewAuthorName = reviewAuthorName;
@@ -66,8 +68,75 @@ export class UnitDetailComponent implements OnInit {
   isSubmittingTip = signal(false);
   private currentUnitCode = '';
 
+  // Prerequisite checker (roadmap 4.4). Completed units are per-account, not
+  // per-unit-page, so they're loaded once — not re-fetched on every loadUnit().
+  completedUnitCodes = signal<Set<string>>(new Set());
+  isUpdatingCompletedUnits = signal(false);
+  completedUnitsError = signal<string | null>(null);
+
   ngOnInit(): void {
     this.loadUnit();
+    if (this.authService.isLoggedIn()) {
+      this.loadCompletedUnits();
+    }
+  }
+
+  private loadCompletedUnits() {
+    this.completedUnitsService.getCompletedUnits().subscribe({
+      next: (codes) => this.completedUnitCodes.set(new Set(codes.map(c => c.toUpperCase()))),
+      error: () => {}
+    });
+  }
+
+  isUnitCompleted(code: string): boolean {
+    return this.completedUnitCodes().has(code.toUpperCase());
+  }
+
+  toggleUnitCompleted(code: string) {
+    if (!this.authService.isLoggedIn() || this.isUpdatingCompletedUnits()) {
+      return;
+    }
+    const upperCode = code.toUpperCase();
+    const next = new Set(this.completedUnitCodes());
+    if (next.has(upperCode)) {
+      next.delete(upperCode);
+    } else {
+      next.add(upperCode);
+    }
+
+    this.completedUnitsError.set(null);
+    this.isUpdatingCompletedUnits.set(true);
+    this.completedUnitsService.updateCompletedUnits([...next]).subscribe({
+      next: (codes) => {
+        this.completedUnitCodes.set(new Set(codes.map(c => c.toUpperCase())));
+        this.isUpdatingCompletedUnits.set(false);
+      },
+      error: (err) => {
+        this.isUpdatingCompletedUnits.set(false);
+        this.completedUnitsError.set(err.error?.error || 'Could not update your completed units. Please try again.');
+      }
+    });
+  }
+
+  // Labels/classes for the eligibility badges — kept as plain lookups (not
+  // memoized) since they're evaluated per-group off a small, non-array
+  // template value (no NG0103 risk like the array-returning methods below).
+  groupStatusLabel(group: PrerequisiteGroup): string {
+    if (group.satisfied === true) return '✅ Met';
+    if (group.satisfied === false) return '❌ Not met';
+    return '⚠️ Can\'t verify';
+  }
+
+  groupStatusClass(group: PrerequisiteGroup): string {
+    if (group.satisfied === true) return 'status-met';
+    if (group.satisfied === false) return 'status-unmet';
+    return 'status-unverifiable';
+  }
+
+  eligibilityBannerClass(eligible: boolean | null | undefined): string {
+    if (eligible === true) return 'status-met';
+    if (eligible === false) return 'status-unmet';
+    return 'status-unverifiable';
   }
 
   loadUnit() {

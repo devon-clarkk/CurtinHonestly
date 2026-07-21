@@ -11,6 +11,7 @@ import com.curtinhonestly.backend.dto.UnitCreateRequest;
 import com.curtinhonestly.backend.dto.UnitDetailsDTO;
 import com.curtinhonestly.backend.mapper.ReviewMapper;
 import com.curtinhonestly.backend.mapper.TipMapper;
+import com.curtinhonestly.backend.service.PrerequisiteEligibilityService;
 import com.curtinhonestly.backend.service.ReviewLikeService;
 import com.curtinhonestly.backend.service.ReviewService;
 import com.curtinhonestly.backend.service.UnitService;
@@ -34,6 +35,7 @@ public class UnitResource {
     private final ReviewService reviewService;
     private final ReviewLikeService reviewLikeService;
     private final UnitTipService unitTipService;
+    private final PrerequisiteEligibilityService prerequisiteEligibilityService;
 
     @PostMapping
     @PreAuthorize(SecurityConstants.HAS_ROLE_ADMIN)
@@ -57,6 +59,7 @@ public class UnitResource {
     public ResponseEntity<UnitDetailsDTO> getUnit(@PathVariable String code) {
         UnitDetailsDTO details = unitService.getUnitDetailsDTOByCode(code);
         reviewLikeService.enrichReviewsWithCurrentUserLikes(details.getReviews());
+        prerequisiteEligibilityService.enrichWithEligibility(details);
         return ResponseEntity.ok().body(details);
     }
 
