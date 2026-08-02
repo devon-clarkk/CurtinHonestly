@@ -75,27 +75,37 @@
   } @else {
     <div class="review-list">
       @for (review of reviews(); track review.id) {
-        <article class="review-card card">
-          <div class="review-card-header">
-            <div>
-              <a class="unit-link" (click)="viewUnit(review.unitCode)">{{ review.unitCode }}</a>
-              <h3>{{ review.unitName }}</h3>
+        @if (editingReview()?.id === review.id) {
+          <app-add-review
+            [unitCode]="review.unitCode"
+            [editReview]="review"
+            (reviewAdded)="onReviewUpdated()"
+            (cancel)="cancelEditReview()"
+          />
+        } @else {
+          <article class="review-card card">
+            <div class="review-card-header">
+              <div>
+                <a class="unit-link" (click)="viewUnit(review.unitCode)">{{ review.unitCode }}</a>
+                <h3>{{ review.unitName }}</h3>
+              </div>
+              <div class="rating">{{ review.rating }}/5</div>
             </div>
-            <div class="rating">{{ review.rating }}/5</div>
-          </div>
-          <p class="review-excerpt">{{ review.reviewText }}</p>
-          <div class="review-meta">
-            <span>{{ review.semesterTaken }}</span>
-            <span>{{ review.likeCount || 0 }} helpful</span>
-            @if (review.createdAt) {
-              <span>{{ review.createdAt | date: 'mediumDate' }}</span>
-            }
-          </div>
-          <div class="review-actions">
-            <button type="button" class="btn-text" (click)="viewUnit(review.unitCode)">View unit</button>
-            <button type="button" class="btn-text danger" (click)="deleteReview(review)">Delete</button>
-          </div>
-        </article>
+            <p class="review-excerpt">{{ review.reviewText }}</p>
+            <div class="review-meta">
+              <span>{{ review.semesterTaken }}</span>
+              <span>{{ review.likeCount || 0 }} helpful</span>
+              @if (review.createdAt) {
+                <span>{{ review.createdAt | date: 'mediumDate' }}</span>
+              }
+            </div>
+            <div class="review-actions">
+              <button type="button" class="btn-text" (click)="viewUnit(review.unitCode)">View unit</button>
+              <button type="button" class="btn-text" (click)="startEditReview(review)">Edit</button>
+              <button type="button" class="btn-text danger" (click)="deleteReview(review)">Delete</button>
+            </div>
+          </article>
+        }
       }
     </div>
   }

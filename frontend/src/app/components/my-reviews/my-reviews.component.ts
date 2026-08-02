@@ -31,6 +31,9 @@ export class MyReviewsComponent implements OnInit {
   selectedUnitCode = signal<string | null>(null);
   selectedUnitName = signal<string | null>(null);
 
+  // Non-null while editing an existing review inline on its card.
+  editingReview = signal<MyReview | null>(null);
+
   searchQuery = '';
   private searchSubject = new BehaviorSubject<string>('');
   searchResults$: Observable<UnitSummary[]> | undefined;
@@ -66,6 +69,7 @@ export class MyReviewsComponent implements OnInit {
   }
 
   startAddReview() {
+    this.editingReview.set(null);
     this.showAddFlow.set(true);
     this.selectedUnitCode.set(null);
     this.selectedUnitName.set(null);
@@ -96,6 +100,21 @@ export class MyReviewsComponent implements OnInit {
   onReviewAdded() {
     this.successMessage.set('Review submitted successfully.');
     this.cancelAddReview();
+    this.loadReviews();
+  }
+
+  startEditReview(review: MyReview) {
+    this.showAddFlow.set(false);
+    this.editingReview.set(review);
+  }
+
+  cancelEditReview() {
+    this.editingReview.set(null);
+  }
+
+  onReviewUpdated() {
+    this.successMessage.set('Review updated successfully.');
+    this.editingReview.set(null);
     this.loadReviews();
   }
 

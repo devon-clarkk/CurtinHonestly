@@ -118,7 +118,7 @@ public class AuthController {
     public ResponseEntity<?> deleteAccount(@RequestBody DeleteAccountRequest request) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
 
-        userService.deleteAccount(email, request.password());
+        userService.deleteAccount(email, request.password(), request.deleteReviews());
         return ResponseEntity.noContent().build();
     }
 
@@ -172,7 +172,7 @@ public class AuthController {
     public record LoginRequest(String email, String password) {}
     public record VerifyStudentRequest(String studentEmail, String password) {}
     public record UpdateEmailRequest(String newEmail, String password) {}
-    public record DeleteAccountRequest(String password) {}
+    public record DeleteAccountRequest(String password, boolean deleteReviews) {}
     public record ForgotPasswordRequest(@NotBlank @Email String email) {}
     public record ResetPasswordRequest(@NotBlank String token, @NotBlank String newPassword) {}
     public record JwtResponse(String token, boolean verifiedStudent) {}

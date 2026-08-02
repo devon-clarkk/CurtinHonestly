@@ -8,9 +8,13 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.hibernate.annotations.UuidGenerator;
 
 import java.time.Instant;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 
@@ -49,8 +53,20 @@ public class Review {
     private boolean wouldTakeAgain;
 
     // Denormalized count of rows in review_likes for this review. Kept in sync by ReviewLikeService.
-    @Column(nullable = false)
+    // The DB-level DEFAULT is required, not cosmetic: ddl-auto=update adds this column to an
+    // already-populated reviews table, and Postgres rejects ADD COLUMN ... NOT NULL without a
+    // default. Hibernate logs that failure and boots anyway, so the column silently never gets
+    // created and every SELECT on reviews then fails. Same convention as e4ee43d.
+    @Column(nullable = false, columnDefinition = "INTEGER DEFAULT 0 NOT NULL")
     private int likeCount = 0;
+
+    // Predefined assessment/experience tags (review-experience.md #4) — a
+    // fixed enum set, mirroring User.roles' @ElementCollection pattern.
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "review_tags", joinColumns = @JoinColumn(name = "review_id"))
+    @Enumerated(EnumType.STRING)
+    @Column(name = "tag", nullable = false)
+    private Set<ReviewTag> tags = new HashSet<>();
 
     @Column(nullable = false, updatable = false, columnDefinition = "TIMESTAMPTZ DEFAULT NOW() NOT NULL")
     private Instant createdAt = Instant.now();
@@ -59,8 +75,13 @@ public class Review {
     @JoinColumn(name = "unit_id", nullable = false)
     private Unit unit;
 
+    // Nullable: account deletion anonymizes reviews (detaches the author) by
+    // default rather than deleting them — the review content is the site's
+    // asset, not the identity. @OnDelete mirrors that at the DB level too, so
+    // even a row deleted outside the app doesn't orphan-delete its reviews.
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id")
+    @OnDelete(action = OnDeleteAction.SET_NULL)
     @JsonIgnore
     private User user;
 

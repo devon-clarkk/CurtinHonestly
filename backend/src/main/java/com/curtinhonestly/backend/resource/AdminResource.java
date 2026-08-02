@@ -4,8 +4,10 @@ import com.curtinhonestly.backend.dto.*;
 import com.curtinhonestly.backend.security.SecurityConstants;
 import com.curtinhonestly.backend.service.AdminService;
 import com.curtinhonestly.backend.service.CampaignService;
+import com.curtinhonestly.backend.service.ReviewFlagService;
 import com.curtinhonestly.backend.service.ReviewService;
 import com.curtinhonestly.backend.service.UnitAggregateService;
+import com.curtinhonestly.backend.service.UnitRequestService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -25,6 +27,8 @@ public class AdminResource {
     private final ReviewService reviewService;
     private final UnitAggregateService unitAggregateService;
     private final CampaignService campaignService;
+    private final UnitRequestService unitRequestService;
+    private final ReviewFlagService reviewFlagService;
 
     @GetMapping("/stats/overview")
     public ResponseEntity<AdminOverviewDTO> getOverview() {
@@ -120,6 +124,28 @@ public class AdminResource {
     @GetMapping("/campaigns/{id}/entries")
     public ResponseEntity<List<CampaignEntryAdminDTO>> listCampaignEntries(@PathVariable String id) {
         return ResponseEntity.ok(campaignService.listEntriesForCampaign(id));
+    }
+
+    @GetMapping("/unit-requests")
+    public ResponseEntity<List<UnitRequestDTO>> listUnitRequests() {
+        return ResponseEntity.ok(unitRequestService.getAll().stream().map(UnitRequestService::toDTO).toList());
+    }
+
+    @DeleteMapping("/unit-requests/{id}")
+    public ResponseEntity<Void> deleteUnitRequest(@PathVariable String id) {
+        unitRequestService.delete(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/review-flags")
+    public ResponseEntity<List<FlaggedReviewDTO>> listFlaggedReviews() {
+        return ResponseEntity.ok(reviewFlagService.getFlaggedReviews());
+    }
+
+    @DeleteMapping("/review-flags/{reviewId}")
+    public ResponseEntity<Void> dismissReviewFlags(@PathVariable String reviewId) {
+        reviewFlagService.dismissFlags(reviewId);
+        return ResponseEntity.noContent().build();
     }
 
     public record CreateUserRequest(String email, String password, boolean admin) {}

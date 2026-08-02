@@ -103,3 +103,66 @@
     </tbody>
   </table>
 </section>
+
+<section class="card section">
+  <h2>Unit requests</h2>
+  <p class="section-hint">Units students searched for but couldn't find — drives what to add next.</p>
+  <table>
+    <thead>
+      <tr>
+        <th>Requested</th>
+        <th>Note</th>
+        <th>Date</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (request of unitRequests(); track request.id) {
+        <tr>
+          <td>{{ request.requestedCode }}</td>
+          <td class="excerpt">{{ request.note || '—' }}</td>
+          <td>{{ request.createdAt | date: 'short' }}</td>
+          <td>
+            <button type="button" class="btn btn-danger" (click)="deleteUnitRequest(request)">Dismiss</button>
+          </td>
+        </tr>
+      } @empty {
+        <tr>
+          <td colspan="4">No unit requests yet.</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</section>
+
+<section class="card section">
+  <h2>Flagged reviews</h2>
+  <p class="section-hint">Reviews students have reported — sorted by most-flagged first.</p>
+  <table>
+    <thead>
+      <tr>
+        <th>Unit</th>
+        <th>Excerpt</th>
+        <th>Flags</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (flagged of flaggedReviews(); track flagged.reviewId) {
+        <tr>
+          <td>{{ flagged.unitCode }}</td>
+          <td class="excerpt">{{ flagged.reviewText }}</td>
+          <td>{{ flagged.flagCount }}</td>
+          <td>
+            <button type="button" class="btn" (click)="dismissFlags(flagged)">Dismiss flags</button>
+            <button type="button" class="btn btn-danger" (click)="deleteFlaggedReview(flagged)">Delete review</button>
+          </td>
+        </tr>
+      } @empty {
+        <tr>
+          <td colspan="4">No flagged reviews.</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</section>

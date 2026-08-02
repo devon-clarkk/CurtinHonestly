@@ -1,0 +1,101 @@
+<div class="compare-container">
+  <div class="compare-header">
+    <h1 class="handbook-title">Compare Units</h1>
+    <a routerLink="/" class="btn-text">&larr; Back to catalog</a>
+  </div>
+
+  @if (isLoading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading units to compare…</p>
+    </div>
+  } @else if (errorMessage()) {
+    <div class="error-state">
+      <p>{{ errorMessage() }}</p>
+      <a routerLink="/" class="btn btn-primary">Browse the catalog</a>
+    </div>
+  } @else {
+    @if (missingCodes().length > 0) {
+      <div class="error-box">
+        Couldn't load: {{ missingCodes().join(', ') }}
+      </div>
+    }
+
+    <div class="compare-table-wrap">
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th class="row-label"></th>
+            @for (unit of units(); track unit.code) {
+              <th>
+                <a [routerLink]="['/units', unit.code]" class="compare-unit-link">
+                  <span class="compare-unit-code">{{ unit.code }}</span>
+                  <span class="compare-unit-name">{{ unit.name }}</span>
+                </a>
+              </th>
+            }
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="row-label">Faculty</td>
+            @for (unit of units(); track unit.code) {
+              <td>{{ unit.faculty }}</td>
+            }
+          </tr>
+          <tr>
+            <td class="row-label">Credits</td>
+            @for (unit of units(); track unit.code) {
+              <td>{{ unit.credits || '—' }}</td>
+            }
+          </tr>
+          <tr>
+            <td class="row-label">Contact Hours</td>
+            @for (unit of units(); track unit.code) {
+              <td>{{ unit.contactHours ? unit.contactHours + ' / week' : '—' }}</td>
+            }
+          </tr>
+          <tr class="metric-row">
+            <td class="row-label">Rating</td>
+            @for (unit of units(); track unit.code) {
+              <td>{{ unit.numberOfReviews > 0 ? (unit.averageRating | number:'1.1-1') + ' / 5' : 'No reviews yet' }}</td>
+            }
+          </tr>
+          <tr class="metric-row">
+            <td class="row-label">Workload</td>
+            @for (unit of units(); track unit.code) {
+              <td>{{ unit.numberOfReviews > 0 ? (unit.averageWorkload | number:'1.1-1') + ' / 10' : '—' }}</td>
+            }
+          </tr>
+          <tr class="metric-row">
+            <td class="row-label">Avg Grade</td>
+            @for (unit of units(); track unit.code) {
+              <td>{{ unit.numberOfReviews > 0 ? unit.averageFinalGrade + '%' : '—' }}</td>
+            }
+          </tr>
+          <tr class="metric-row">
+            <td class="row-label">Would Take Again</td>
+            @for (unit of units(); track unit.code) {
+              <!-- wouldTakeAgainRatio comes straight from the API here (0-100), not
+                   normalized to a decimal — that conversion only applies where the
+                   Angular `percent` pipe is used, which this template doesn't. -->
+              <td>{{ unit.numberOfReviews > 0 ? unit.wouldTakeAgainRatio + '%' : '—' }}</td>
+            }
+          </tr>
+          <tr class="metric-row">
+            <td class="row-label">Had an Exam</td>
+            @for (unit of units(); track unit.code) {
+              <td>{{ unit.numberOfReviews > 0 ? examPercentage(unit) + '%' : '—' }}</td>
+            }
+          </tr>
+          <tr>
+            <td class="row-label">Reviews</td>
+            @for (unit of units(); track unit.code) {
+              <td>{{ unit.numberOfReviews }}</td>
+            }
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

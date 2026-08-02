@@ -74,3 +74,17 @@ export interface CampaignEntryAdmin {
   unitCode: string;
   createdAt: string;
 }
+
+export interface UnitRequestAdmin {
+  id: string;
+  requestedCode: string;
+  note: string | null;
+  createdAt: string;
+}
+
+export interface FlaggedReviewAdmin {
+  reviewId: string;
+  unitCode: string;
+  reviewText: string;
+  flagCount: number;
+}

@@ -8,6 +8,7 @@ public final class SecurityConstants {
 
     // Combined expressions
     public static final String IS_ADMIN_OR_OWNER = "hasRole('ADMIN') or @reviewSecurityService.isReviewOwner(#id, authentication)";
+    public static final String IS_ADMIN_OR_TIP_OWNER = "hasRole('ADMIN') or @unitTipSecurityService.isTipOwner(#tipId, authentication)";
 
     private SecurityConstants() {
         // Prevent instantiation
