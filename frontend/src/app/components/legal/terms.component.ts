@@ -3,12 +3,13 @@ import { RouterLink } from '@angular/router';
 import { SeoService } from '../../services/seo.service';
 
 /**
- * DRAFT - not reviewed by a lawyer.
+ * Not reviewed by a lawyer. The content describes what the platform actually
+ * does (anonymity model, moderation, account deletion behaviour, campaign draws,
+ * aggregated data use) rather than generic boilerplate, but a legal review is
+ * still worth getting.
  *
- * The content describes what the platform actually does (anonymity model,
- * moderation, account deletion behaviour, campaign draws) rather than generic
- * boilerplate, but it still needs a legal review before it can be relied on.
- * CONTACT_EMAIL_PLACEHOLDER must also be replaced before this ships.
+ * contact@curtinhonestly.com must be a real, monitored mailbox. A terms page
+ * pointing at an address nobody reads is worse than no address.
  */
 @Component({
   selector: 'app-terms',
