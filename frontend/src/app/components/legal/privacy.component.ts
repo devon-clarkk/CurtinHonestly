@@ -10,7 +10,9 @@ import { SeoService } from '../../services/seo.service';
  * with them - it makes specific factual claims, including that no third-party
  * analytics or tracking scripts run on the site.
  *
- * CONTACT_EMAIL_PLACEHOLDER must be replaced before this ships.
+ * contact@curtinhonestly.com must be a real, monitored mailbox: the Australian
+ * Privacy Principles require a working channel for access and correction
+ * requests, so a dead address is a compliance problem, not a cosmetic one.
  */
 @Component({
   selector: 'app-privacy',
