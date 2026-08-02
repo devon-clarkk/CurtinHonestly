@@ -53,7 +53,7 @@
         }
       } @else {
         <div class="selected-unit">
-          <strong>{{ selectedUnitCode() }}</strong> — {{ selectedUnitName() }}
+          <strong>{{ selectedUnitCode() }}</strong>: {{ selectedUnitName() }}
           <button type="button" class="btn-text" (click)="selectedUnitCode.set(null)">Change unit</button>
         </div>
         <app-add-review

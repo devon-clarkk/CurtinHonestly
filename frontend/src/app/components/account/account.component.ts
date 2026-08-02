@@ -75,7 +75,7 @@ export class AccountComponent implements OnInit {
     }
 
     const needed = progress.requiredReviews - remainder;
-    return `${progress.qualifyingReviews}/${progress.requiredReviews} qualifying reviews — ${needed} more needed for a draw entry.`;
+    return `${progress.qualifyingReviews}/${progress.requiredReviews} qualifying reviews. ${needed} more needed for a draw entry.`;
   }
 
   onUpdateEmail() {
