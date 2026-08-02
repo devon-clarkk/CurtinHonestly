@@ -1,30 +1,38 @@
 /* Custom Fonts Setup */
 @font-face {
   font-family: 'RubikCustom';
-  src: url('/assets/fonts/Rubik-VariableFont_wght.ttf') format('truetype');
+  src: url('/assets/fonts/Rubik-VariableFont_wght.woff2') format('woff2'),
+       url('/assets/fonts/Rubik-VariableFont_wght.ttf') format('truetype');
   font-weight: 100 900;
   font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
   font-family: 'RobotoCondensedCustom';
-  src: url('/assets/fonts/RobotoCondensed-VariableFont_wght.ttf') format('truetype');
+  src: url('/assets/fonts/RobotoCondensed-VariableFont_wght.woff2') format('woff2'),
+       url('/assets/fonts/RobotoCondensed-VariableFont_wght.ttf') format('truetype');
   font-weight: 100 900;
   font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
   font-family: 'NimbusSansCustom';
-  src: url('/assets/fonts/NimbusSanL-Reg.otf') format('opentype');
+  src: url('/assets/fonts/NimbusSanL-Reg.woff2') format('woff2'),
+       url('/assets/fonts/NimbusSanL-Reg.otf') format('opentype');
   font-weight: normal;
   font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
   font-family: 'NimbusSansCustom';
-  src: url('/assets/fonts/NimbusSanL-Bol.otf') format('opentype');
+  src: url('/assets/fonts/NimbusSanL-Bol.woff2') format('woff2'),
+       url('/assets/fonts/NimbusSanL-Bol.otf') format('opentype');
   font-weight: bold;
   font-style: normal;
+  font-display: swap;
 }
 
 /* Edit this file to customize the look and feel of the website! */
@@ -42,14 +50,23 @@
   --border-color: #e8e8e8;
   --surface-muted: #f7f7f7;
 
+  /* Gold as fill (buttons/bars/stars/borders) is #C09711, but gold as TEXT on
+     a light surface fails WCAG AA (2.6-2.7:1). --primary-ink is the same hue
+     darkened until it passes (4.9:1 on white / 4.7:1 on --background-color) —
+     use it for gold links/text, never the raw --primary-color. */
+  --primary-ink: #8a6d0c;
+  /* Body text on the black (--secondary-color) surface — passes AA there too. */
+  --on-dark-muted: #cfcfcf;
+
   /* Shape — handbook uses sharp corners; minimal radius only on inputs */
   --radius-none: 0;
   --radius-sm: 2px;
   --radius-md: 4px;
 
-  /* Fonts — design/fonts/fonts.md */
-  --main-font: 'RobotoCondensedCustom', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  --header-font: 'RubikCustom', sans-serif;
+  /* Fonts — design/fonts/fonts.md: Roboto Condensed is the Univers Condensed
+     role (headings), Rubik is the Sansa Soft role (body). */
+  --main-font: 'RubikCustom', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  --header-font: 'RobotoCondensedCustom', sans-serif;
   --alt-font: 'NimbusSansCustom', sans-serif;
 
   /* Responsive breakpoints */
@@ -99,4 +116,11 @@ h1, h2, h3, h4 {
   margin: 0 0 1rem;
   border: none;
   padding: 0;
+}
+
+/* Fine print / metadata — disclaimers, captions, timestamps */
+.fine-print {
+  font-family: var(--alt-font);
+  font-size: 0.8rem;
+  color: var(--text-secondary);
 }
