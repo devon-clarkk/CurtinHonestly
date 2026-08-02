@@ -1,8 +1,9 @@
-import { Component, inject, input, output, signal } from '@angular/core';
+import { Component, inject, input, output, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CampaignProgress, CreateReviewResponse, ReviewService } from '../../services/review.service';
-import { BANNED_WORDS } from '../../models/profanity-list';
+import { generateSemesterOptions } from '../../utils/semester-options.util';
+import { MyReview, REVIEW_TAGS } from '../../models/unit.model';
 
 @Component({
   selector: 'app-add-review',
@@ -11,39 +12,70 @@ import { BANNED_WORDS } from '../../models/profanity-list';
   templateUrl: './add-review.component.html',
   styleUrl: './add-review.component.css'
 })
-export class AddReviewComponent {
+export class AddReviewComponent implements OnInit {
   private reviewService = inject(ReviewService);
 
   unitCode = input.required<string>();
+  // When set, the form edits this existing review (PUT) instead of creating
+  // a new one (POST) — pre-filled from its current values.
+  editReview = input<MyReview | null>(null);
   reviewAdded = output<void>();
   reviewError = output<string>();
   cancel = output<void>();
 
+  // Generated from today's date instead of a hardcoded list — see quick-fixes.md #4.
+  semesterOptions = generateSemesterOptions();
+
   rating = signal(5);
   reviewText = signal('');
-  semesterTaken = signal('Semester 1, 2026');
+  semesterTaken = signal(this.semesterOptions[0]);
   professor = signal('');
   workload = signal(5);
   hasExam = signal(false);
   wouldTakeAgain = signal(true);
   finalGrade = signal<number | null>(null);
 
+  // Assessment/experience tags (review-experience.md #4) — predefined chips,
+  // not free text, so the aggregate summary stays meaningful.
+  reviewTags = REVIEW_TAGS;
+  selectedTags = signal<Set<string>>(new Set());
+
   isLoading = signal(false);
   errorMessage = signal<string | null>(null);
   successMessage = signal<string | null>(null);
 
-  private readonly profanityRegex = new RegExp(
-    `\\b(${BANNED_WORDS.map(word => this.escapeRegExp(word)).join('|')})\\b`,
-    'i'
-  );
-
-  private escapeRegExp(string: string) {
-    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  get isEditing(): boolean {
+    return !!this.editReview();
   }
 
-  private containsProfanity(text: string): boolean {
-    if (!text) return false;
-    return this.profanityRegex.test(text);
+  ngOnInit() {
+    const existing = this.editReview();
+    if (!existing) {
+      return;
+    }
+    this.rating.set(existing.rating);
+    this.reviewText.set(existing.reviewText);
+    this.semesterTaken.set(existing.semesterTaken || this.semesterOptions[0]);
+    this.professor.set(existing.professor || '');
+    this.workload.set(existing.workload ?? 5);
+    this.hasExam.set(existing.hasExam ?? false);
+    this.wouldTakeAgain.set(existing.wouldTakeAgain ?? true);
+    this.finalGrade.set(existing.finalGrade ?? null);
+    this.selectedTags.set(new Set(existing.tags ?? []));
+  }
+
+  isTagSelected(tag: string): boolean {
+    return this.selectedTags().has(tag);
+  }
+
+  toggleTag(tag: string): void {
+    const current = new Set(this.selectedTags());
+    if (current.has(tag)) {
+      current.delete(tag);
+    } else {
+      current.add(tag);
+    }
+    this.selectedTags.set(current);
   }
 
   onSubmit() {
@@ -57,10 +89,9 @@ export class AddReviewComponent {
       return;
     }
 
-    if (this.containsProfanity(this.reviewText())) {
-      this.errorMessage.set('Your review contains language that violates our community standards. Please keep it professional.');
-      return;
-    }
+    // Profanity is enforced server-side (ProfanityFilterService) — no client-side
+    // word list here (quick-fixes.md #5: avoid shipping the banned-word list in
+    // the bundle). A rejection surfaces via the error handler below.
 
     this.isLoading.set(true);
     this.errorMessage.set(null);
@@ -75,8 +106,27 @@ export class AddReviewComponent {
       hasExam: this.hasExam(),
       wouldTakeAgain: this.wouldTakeAgain(),
       finalGrade: this.finalGrade(),
-      unitCode: this.unitCode()
+      unitCode: this.unitCode(),
+      tags: [...this.selectedTags()]
     };
+
+    const editing = this.editReview();
+    if (editing) {
+      this.reviewService.updateReview(editing.id, reviewData).subscribe({
+        next: () => {
+          this.isLoading.set(false);
+          this.successMessage.set('Review updated!');
+          setTimeout(() => this.reviewAdded.emit(), 1000);
+        },
+        error: (err) => {
+          this.isLoading.set(false);
+          const message = err.error?.error || 'Failed to update review. Please try again.';
+          this.errorMessage.set(message);
+          this.reviewError.emit(message);
+        }
+      });
+      return;
+    }
 
     this.reviewService.createReview(reviewData).subscribe({
       next: (response: CreateReviewResponse) => {
@@ -153,12 +203,13 @@ export class AddReviewComponent {
   resetForm() {
     this.rating.set(5);
     this.reviewText.set('');
-    this.semesterTaken.set('Semester 1, 2026');
+    this.semesterTaken.set(this.semesterOptions[0]);
     this.professor.set('');
     this.workload.set(5);
     this.hasExam.set(false);
     this.wouldTakeAgain.set(true);
     this.finalGrade.set(null);
+    this.selectedTags.set(new Set());
     this.successMessage.set(null);
   }
 

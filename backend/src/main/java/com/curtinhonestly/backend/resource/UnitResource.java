@@ -3,13 +3,19 @@ package com.curtinhonestly.backend.resource;
 import com.curtinhonestly.backend.domain.Faculty;
 import com.curtinhonestly.backend.domain.Unit;
 import com.curtinhonestly.backend.domain.UnitLevel;
+import com.curtinhonestly.backend.domain.UnitTip;
 import com.curtinhonestly.backend.dto.ReviewDTO;
+import com.curtinhonestly.backend.dto.TipCreateRequest;
+import com.curtinhonestly.backend.dto.TipDTO;
 import com.curtinhonestly.backend.dto.UnitCreateRequest;
 import com.curtinhonestly.backend.dto.UnitDetailsDTO;
 import com.curtinhonestly.backend.mapper.ReviewMapper;
+import com.curtinhonestly.backend.mapper.TipMapper;
+import com.curtinhonestly.backend.service.PrerequisiteEligibilityService;
 import com.curtinhonestly.backend.service.ReviewLikeService;
 import com.curtinhonestly.backend.service.ReviewService;
 import com.curtinhonestly.backend.service.UnitService;
+import com.curtinhonestly.backend.service.UnitTipService;
 import com.curtinhonestly.backend.security.SecurityConstants;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +34,8 @@ public class UnitResource {
     private final UnitService unitService;
     private final ReviewService reviewService;
     private final ReviewLikeService reviewLikeService;
+    private final UnitTipService unitTipService;
+    private final PrerequisiteEligibilityService prerequisiteEligibilityService;
 
     @PostMapping
     @PreAuthorize(SecurityConstants.HAS_ROLE_ADMIN)
@@ -51,6 +59,7 @@ public class UnitResource {
     public ResponseEntity<UnitDetailsDTO> getUnit(@PathVariable String code) {
         UnitDetailsDTO details = unitService.getUnitDetailsDTOByCode(code);
         reviewLikeService.enrichReviewsWithCurrentUserLikes(details.getReviews());
+        prerequisiteEligibilityService.enrichWithEligibility(details);
         return ResponseEntity.ok().body(details);
     }
 
@@ -65,6 +74,29 @@ public class UnitResource {
     @PreAuthorize(SecurityConstants.HAS_ROLE_ADMIN)
     public ResponseEntity<?> deleteUnit(@PathVariable String id) {
         unitService.deleteUnitById(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{unitCode}/tips")
+    public ResponseEntity<List<TipDTO>> getTips(@PathVariable String unitCode) {
+        String currentUserId = unitTipService.currentUserIdIfAuthenticated().orElse(null);
+        List<TipDTO> tips = TipMapper.mapToDTOs(unitTipService.getTipsForUnit(unitCode), currentUserId);
+        return ResponseEntity.ok(tips);
+    }
+
+    @PostMapping("/{unitCode}/tips")
+    @PreAuthorize(SecurityConstants.HAS_ROLE_USER)
+    public ResponseEntity<TipDTO> createTip(@PathVariable String unitCode, @Valid @RequestBody TipCreateRequest request) {
+        UnitTip tip = unitTipService.createTip(unitCode, request.text());
+        String currentUserId = unitTipService.currentUserIdIfAuthenticated().orElse(null);
+        return ResponseEntity.created(URI.create("/units/" + unitCode + "/tips/" + tip.getId()))
+                .body(TipMapper.mapToDTO(tip, currentUserId));
+    }
+
+    @DeleteMapping("/{unitCode}/tips/{tipId}")
+    @PreAuthorize(SecurityConstants.IS_ADMIN_OR_TIP_OWNER)
+    public ResponseEntity<?> deleteTip(@PathVariable String unitCode, @PathVariable String tipId) {
+        unitTipService.deleteTip(tipId);
         return ResponseEntity.noContent().build();
     }
 

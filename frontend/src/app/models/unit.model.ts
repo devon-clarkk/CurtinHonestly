@@ -34,6 +34,26 @@ export interface UnitSummary {
   wouldTakeAgainRatio: number;
 }
 
+// Mirrors the backend ReviewTag enum (review-experience.md #4) — a fixed,
+// predefined set, not free text, kept as a single source of truth here
+// rather than fetched, matching the roadmap's "predefined toggle chips" sizing.
+export const REVIEW_TAGS: { value: string; label: string }[] = [
+  { value: 'GROUP_WORK', label: 'Group work' },
+  { value: 'WEEKLY_QUIZZES', label: 'Weekly quizzes' },
+  { value: 'ATTENDANCE_MARKED', label: 'Attendance marked' },
+  { value: 'RECORDED_LECTURES', label: 'Recorded lectures' },
+  { value: 'PROCTORED_EXAM', label: 'Proctored exam' },
+  { value: 'HEAVY_READING', label: 'Heavy reading load' },
+  { value: 'PRACTICAL_LABS', label: 'Practical labs/tutorials' },
+  { value: 'OPEN_BOOK_EXAM', label: 'Open-book exam' },
+];
+
+export interface TagSummary {
+  tag: string;
+  label: string;
+  count: number;
+}
+
 export interface Review {
   id?: string;
   rating: number;
@@ -44,10 +64,19 @@ export interface Review {
   workload: number;
   hasExam: boolean;
   wouldTakeAgain: boolean;
+  tags?: string[];
   likeCount?: number;
   likedByCurrentUser?: boolean;
   reviewerVerified: boolean;
   createdAt?: string;
+}
+
+export interface Tip {
+  id: string;
+  text: string;
+  authorVerified: boolean;
+  ownedByCurrentUser: boolean;
+  createdAt: string;
 }
 
 export interface MyReview {
@@ -62,6 +91,7 @@ export interface MyReview {
   workload?: number;
   hasExam?: boolean;
   wouldTakeAgain?: boolean;
+  tags?: string[];
   likeCount?: number;
   createdAt: string;
 }
@@ -90,6 +120,11 @@ export interface PrerequisiteGroup {
   position: number;
   options: PrerequisiteOption[];
   courseOptions: CoursePrerequisiteOption[];
+  // Eligibility (roadmap 4.4) — only populated when logged in. `satisfied`
+  // is null (not false) when it can't be fully checked from completed-unit
+  // data alone (see `unverifiable`).
+  satisfied?: boolean | null;
+  unverifiable?: boolean;
 }
 
 export interface UnitDetails {
@@ -108,6 +143,9 @@ export interface UnitDetails {
   resultType: string;
   tuitionPatterns: TuitionPattern[];
   prerequisiteGroups: PrerequisiteGroup[];
+  // Overall eligibility across all groups (roadmap 4.4) — only populated when
+  // logged in; null also when some group can't be fully checked.
+  prerequisitesEligible?: boolean | null;
 
   // Review stats
   numberOfReviews: number;
@@ -115,6 +153,7 @@ export interface UnitDetails {
   averageWorkload: number;
   averageFinalGrade: number;
   wouldTakeAgainRatio: number;
+  tagSummary?: TagSummary[];
   reviews: Review[];
 }
 

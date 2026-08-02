@@ -51,7 +51,7 @@ function getBreadcrumbNode(result: ReturnType<typeof buildUnitJsonLd>): Record<s
 describe('unitPageTitle', () => {
   it('includes unit name and review count when reviews exist', () => {
     expect(unitPageTitle('ISYS1000', 'Introduction to BIS', 12)).toBe(
-      'ISYS1000 Introduction to BIS — 12 Reviews | CurtinHonestly'
+      'ISYS1000 Introduction to BIS - 12 Reviews | CurtinHonestly'
     );
   });
 

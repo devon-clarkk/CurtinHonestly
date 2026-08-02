@@ -1,0 +1,232 @@
+.compare-container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 20px 60px;
+}
+
+.compare-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 24px 0;
+}
+
+.loading-state,
+.error-state {
+  text-align: center;
+  padding: 100px 20px;
+}
+
+.error-state p {
+  color: var(--text-secondary);
+  margin-bottom: 24px;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  margin: 0 auto 16px;
+  border: 4px solid var(--border-color);
+  border-top-color: var(--primary-color);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.compare-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--border-color);
+  background-color: var(--card-background);
+}
+
+.compare-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 500px;
+}
+
+.compare-table th,
+.compare-table td {
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--border-color);
+  white-space: nowrap;
+}
+
+.compare-table thead th {
+  background-color: var(--surface-muted);
+  vertical-align: top;
+}
+
+.row-label {
+  font-weight: 600;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  background-color: var(--surface-muted);
+}
+
+.metric-row td:not(.row-label) {
+  font-weight: 600;
+}
+
+.compare-unit-link {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  color: var(--text-primary);
+  text-decoration: none;
+  white-space: normal;
+}
+
+.compare-unit-code {
+  font-weight: 700;
+  color: var(--primary-color);
+}
+
+.compare-unit-name {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  font-weight: 400;
+}
+
+/* Picker -------------------------------------------------------------- */
+
+.compare-lead {
+  color: var(--text-secondary);
+  margin-bottom: 16px;
+}
+
+.compare-picker {
+  border: 1px solid var(--border-color);
+  background: var(--surface-muted);
+  padding: 16px;
+  margin-bottom: 24px;
+}
+
+.picker-selected {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.picker-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: white;
+  border: 1px solid var(--border-color);
+  padding: 4px 6px 4px 10px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.picker-chip-remove {
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+  line-height: 1;
+  padding: 0 4px;
+  cursor: pointer;
+}
+
+.picker-chip-remove:hover {
+  color: #c0392b;
+}
+
+.picker-clear {
+  margin-left: auto;
+}
+
+.picker-label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.picker-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-none);
+  font-size: 0.95rem;
+}
+
+.picker-input:disabled {
+  background: #eee;
+  cursor: not-allowed;
+}
+
+.picker-status {
+  margin: 8px 0 0;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.picker-results {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  border: 1px solid var(--border-color);
+  background: white;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.picker-result {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  width: 100%;
+  text-align: left;
+  border: none;
+  border-bottom: 1px solid var(--border-color);
+  background: transparent;
+  font: inherit;
+  padding: 10px 12px;
+  cursor: pointer;
+}
+
+.picker-result:last-child {
+  border-bottom: none;
+}
+
+.picker-result:hover:not(:disabled) {
+  background: var(--surface-muted);
+}
+
+.picker-result:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.picker-result span {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.picker-result-state {
+  margin-left: auto;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--primary-ink);
+  white-space: nowrap;
+}
+
+.compare-empty {
+  border: 1px dashed var(--border-color);
+  padding: 32px 16px;
+  text-align: center;
+  color: var(--text-secondary);
+}

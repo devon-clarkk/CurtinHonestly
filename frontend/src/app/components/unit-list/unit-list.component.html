@@ -2,8 +2,15 @@
 <div class="list-container">
   <header class="list-header">
     <h1 class="handbook-title">Curtin University Unit Reviews</h1>
-    <p class="list-lead">Read honest student reviews for Curtin units — ratings, workload, grades, and would-take-again scores to help you choose the right units for your degree.</p>
+    <p class="list-lead">Read honest student reviews for Curtin units. Ratings, workload, grades, and would-take-again scores to help you choose the right units for your degree.</p>
   </header>
+
+  @if (showSeasonalBanner()) {
+    <div class="seasonal-banner">
+      <p>Results are out. Which units did you just finish? <a routerLink="/my-reviews">Write a review</a> while it's fresh.</p>
+      <button type="button" class="seasonal-banner-dismiss" (click)="dismissSeasonalBanner()" aria-label="Dismiss">×</button>
+    </div>
+  }
 
   <div class="catalog">
   <!-- Filter Bar -->
@@ -67,12 +74,51 @@
       <div class="empty-state">
         <p>No units found matching your filters.</p>
         <button class="btn btn-primary" (click)="resetFilters()">Reset All Filters</button>
+
+        @if (!showRequestUnitForm()) {
+          <p class="request-unit-prompt">
+            Can't find your unit?
+            <button type="button" class="btn-text" (click)="openRequestUnitForm()">Request it</button>
+          </p>
+        } @else if (requestUnitSubmitted()) {
+          <p class="request-unit-success">Thanks. We've logged your request and will look into adding it.</p>
+        } @else {
+          <form class="request-unit-form" (ngSubmit)="submitUnitRequest()">
+            <label for="requestUnitCode">Unit code or name</label>
+            <input
+              type="text"
+              id="requestUnitCode"
+              name="requestUnitCode"
+              [(ngModel)]="requestUnitCode"
+              maxlength="100"
+              placeholder="e.g. ISYS2000 or the unit name"
+              class="form-control" />
+            <label for="requestUnitNote">Anything else? (optional)</label>
+            <input
+              type="text"
+              id="requestUnitNote"
+              name="requestUnitNote"
+              [(ngModel)]="requestUnitNote"
+              maxlength="500"
+              placeholder="e.g. offered in Semester 2"
+              class="form-control" />
+            @if (requestUnitError()) {
+              <p class="error-box">{{ requestUnitError() }}</p>
+            }
+            <div class="request-unit-actions">
+              <button type="button" class="btn btn-secondary" (click)="showRequestUnitForm.set(false)">Cancel</button>
+              <button type="submit" class="btn btn-primary" [disabled]="requestUnitSubmitting() || !requestUnitCode.trim()">
+                {{ requestUnitSubmitting() ? 'Submitting…' : 'Submit request' }}
+              </button>
+            </div>
+          </form>
+        }
       </div>
     } @else {
       <!-- The grid of unit cards -->
       <div class="unit-grid">
         @for (unit of state.units; track unit.code) {
-          <div class="unit-card">
+          <div class="unit-card" [class.compare-selected]="isSelectedForCompare(unit.code)">
             <div class="card-header">
               <div class="header-tags">
                 <span class="faculty-tag">{{ unit.faculty }}</span>
@@ -80,6 +126,15 @@
               </div>
               <span class="unit-code">{{ unit.code }}</span>
             </div>
+
+            <label class="compare-checkbox">
+              <input
+                type="checkbox"
+                [checked]="isSelectedForCompare(unit.code)"
+                [disabled]="!isSelectedForCompare(unit.code) && selectedForCompare().length >= MAX_COMPARE"
+                (change)="toggleCompareSelection(unit.code)" />
+              Compare
+            </label>
 
             <div class="card-body">
               <h2 class="unit-name">{{ unit.name }}</h2>
@@ -135,4 +190,20 @@
     }
   }
   </div>
+
+  @if (selectedForCompare().length > 0) {
+    <div class="compare-bar">
+      <span>{{ selectedForCompare().length }} unit{{ selectedForCompare().length === 1 ? '' : 's' }} selected</span>
+      <div class="compare-bar-actions">
+        <button type="button" class="btn-text" (click)="clearCompareSelection()">Clear</button>
+        <button
+          type="button"
+          class="btn btn-primary"
+          [disabled]="selectedForCompare().length < 2"
+          (click)="goToCompare()">
+          Compare
+        </button>
+      </div>
+    </div>
+  }
 </div>

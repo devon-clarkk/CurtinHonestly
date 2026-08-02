@@ -1,9 +1,11 @@
-import { Component, inject, OnInit, OnDestroy, ElementRef, ViewChild, PLATFORM_ID } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, ElementRef, ViewChild, PLATFORM_ID, signal } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { UnitService } from '../../services/unit.service';
 import { SeoService } from '../../services/seo.service';
+import { UnitRequestService } from '../../services/unit-request.service';
+import { isResultsSeasonWindow } from '../../utils/results-season.util';
 import { UnitSummary, Faculty, UnitLevel } from '../../models/unit.model';
 import { BehaviorSubject, Subject } from 'rxjs';
 import { debounceTime, takeUntil } from 'rxjs/operators';
@@ -28,7 +30,9 @@ interface UnitListState {
 export class UnitListComponent implements OnInit, OnDestroy {
   private unitService = inject(UnitService);
   private seoService = inject(SeoService);
+  private unitRequestService = inject(UnitRequestService);
   private platformId = inject(PLATFORM_ID);
+  private router = inject(Router);
 
   private destroy$ = new Subject<void>();
   private searchSubject = new Subject<void>();
@@ -90,6 +94,12 @@ export class UnitListComponent implements OnInit, OnDestroy {
     }
   }
 
+  // Homepage nudge shown only in the ~2-week window after results release,
+  // when students are actually motivated to write a review
+  // (catalog-and-growth.md #4). Session-dismissible, not permanent.
+  private readonly SEASONAL_BANNER_DISMISS_KEY = 'seasonal-review-banner-dismissed';
+  showSeasonalBanner = signal(false);
+
   ngOnInit(): void {
     this.seoService.updateHomePage();
 
@@ -97,9 +107,18 @@ export class UnitListComponent implements OnInit, OnDestroy {
     // The browser hydrates and fetches data client-side via the async pipe.
     if (!isPlatformBrowser(this.platformId)) return;
 
+    if (isResultsSeasonWindow() && sessionStorage.getItem(this.SEASONAL_BANNER_DISMISS_KEY) !== 'true') {
+      this.showSeasonalBanner.set(true);
+    }
+
     // Search input is debounced; sort/faculty/level fire immediately
     this.searchSubject.pipe(debounceTime(300), takeUntil(this.destroy$)).subscribe(() => this.loadPage0());
     this.loadPage0();
+  }
+
+  dismissSeasonalBanner(): void {
+    this.showSeasonalBanner.set(false);
+    sessionStorage.setItem(this.SEASONAL_BANNER_DISMISS_KEY, 'true');
   }
 
   ngOnDestroy(): void {
@@ -197,6 +216,76 @@ export class UnitListComponent implements OnInit, OnDestroy {
     this.selectedLevel = undefined;
     this.sortBy = 'code';
     this.loadPage0();
+  }
+
+  // Side-by-side comparison — "which of these electives do I pick"
+  // (catalog-and-growth.md #3). Capped at 4 so the comparison table stays readable.
+  readonly MAX_COMPARE = 4;
+  selectedForCompare = signal<string[]>([]);
+
+  isSelectedForCompare(code: string): boolean {
+    return this.selectedForCompare().includes(code);
+  }
+
+  toggleCompareSelection(code: string): void {
+    const current = this.selectedForCompare();
+    if (current.includes(code)) {
+      this.selectedForCompare.set(current.filter(c => c !== code));
+      return;
+    }
+    if (current.length >= this.MAX_COMPARE) {
+      return;
+    }
+    this.selectedForCompare.set([...current, code]);
+  }
+
+  clearCompareSelection(): void {
+    this.selectedForCompare.set([]);
+  }
+
+  goToCompare(): void {
+    const codes = this.selectedForCompare();
+    if (codes.length < 2) {
+      return;
+    }
+    this.router.navigate(['/compare'], { queryParams: { units: codes.join(',') } });
+  }
+
+  // "Can't find your unit? Request it" — captured from the highest-intent
+  // moment on the catalog (catalog-and-growth.md #1).
+  showRequestUnitForm = signal(false);
+  requestUnitCode = '';
+  requestUnitNote = '';
+  requestUnitSubmitting = signal(false);
+  requestUnitSubmitted = signal(false);
+  requestUnitError = signal<string | null>(null);
+
+  openRequestUnitForm(): void {
+    this.requestUnitCode = this.searchQuery;
+    this.requestUnitNote = '';
+    this.requestUnitError.set(null);
+    this.requestUnitSubmitted.set(false);
+    this.showRequestUnitForm.set(true);
+  }
+
+  submitUnitRequest(): void {
+    const code = this.requestUnitCode.trim();
+    if (!code) {
+      return;
+    }
+    this.requestUnitSubmitting.set(true);
+    this.requestUnitError.set(null);
+
+    this.unitRequestService.requestUnit(code, this.requestUnitNote.trim() || undefined).subscribe({
+      next: () => {
+        this.requestUnitSubmitting.set(false);
+        this.requestUnitSubmitted.set(true);
+      },
+      error: (err) => {
+        this.requestUnitSubmitting.set(false);
+        this.requestUnitError.set(err.error?.error || 'Could not submit your request. Please try again.');
+      }
+    });
   }
 
   getStarArray(rating: number): string[] {

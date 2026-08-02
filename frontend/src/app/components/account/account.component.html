@@ -115,14 +115,24 @@
 
   <section class="account-section card danger-zone">
     <h2>Delete account</h2>
-    <p class="section-hint">Permanently remove your account and all reviews you have posted.</p>
+    <p class="section-hint">
+      By default your reviews stay on the site, posted anonymously. Only your
+      account identity is removed. You can also choose to permanently delete
+      your reviews too.
+    </p>
     <form (ngSubmit)="onDeleteAccount()" class="stacked-form">
       <div class="form-group">
         <label for="deletePassword">Confirm with your password</label>
         <input type="password" id="deletePassword" name="deletePassword" [(ngModel)]="deletePassword" required />
       </div>
+      <div class="form-group checkbox-group">
+        <label>
+          <input type="checkbox" name="deleteReviewsToo" [(ngModel)]="deleteReviewsToo" />
+          Also permanently delete all my reviews
+        </label>
+      </div>
       <button type="submit" class="btn btn-danger" [disabled]="isLoading() || !deletePassword">
-        {{ isLoading() ? 'Deleting…' : 'Delete my account' }}
+        {{ isLoading() ? 'Deleting…' : (deleteReviewsToo ? 'Delete account and reviews' : 'Delete my account') }}
       </button>
     </form>
   </section>

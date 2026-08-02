@@ -1,12 +1,15 @@
 package com.curtinhonestly.backend.resource;
 
 import com.curtinhonestly.backend.dto.CreateReviewResponseDTO;
+import com.curtinhonestly.backend.dto.FlagReviewRequest;
 import com.curtinhonestly.backend.dto.MyReviewDTO;
 import com.curtinhonestly.backend.dto.ReviewCreateRequest;
 import com.curtinhonestly.backend.dto.ReviewDTO;
 import com.curtinhonestly.backend.dto.ReviewLikeResponseDTO;
+import com.curtinhonestly.backend.dto.ReviewUpdateRequest;
 import com.curtinhonestly.backend.mapper.ReviewMapper;
 import com.curtinhonestly.backend.domain.Review;
+import com.curtinhonestly.backend.service.ReviewFlagService;
 import com.curtinhonestly.backend.service.ReviewLikeService;
 import com.curtinhonestly.backend.service.ReviewService;
 import com.curtinhonestly.backend.security.SecurityConstants;
@@ -26,6 +29,7 @@ public class ReviewResource {
 
     private final ReviewService reviewService;
     private final ReviewLikeService reviewLikeService;
+    private final ReviewFlagService reviewFlagService;
 
     @GetMapping("/me")
     @PreAuthorize(SecurityConstants.HAS_ROLE_USER)
@@ -70,10 +74,24 @@ public class ReviewResource {
         return ResponseEntity.ok(reviewLikeService.unlikeReview(id));
     }
 
+    @PutMapping("/{id}")
+    @PreAuthorize(SecurityConstants.IS_ADMIN_OR_OWNER)
+    public ResponseEntity<ReviewDTO> updateReview(@PathVariable String id, @Valid @RequestBody ReviewUpdateRequest request) {
+        Review updated = reviewService.updateReview(id, request);
+        return ResponseEntity.ok(ReviewMapper.mapToDTO(updated));
+    }
+
     @DeleteMapping("/{id}")
     @PreAuthorize(SecurityConstants.IS_ADMIN_OR_OWNER)
     public ResponseEntity<?> deleteReview(@PathVariable String id) {
         reviewService.deleteReviewById(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{id}/flags")
+    @PreAuthorize(SecurityConstants.HAS_ROLE_USER)
+    public ResponseEntity<Void> flagReview(@PathVariable String id, @Valid @RequestBody(required = false) FlagReviewRequest request) {
+        reviewFlagService.flagReview(id, request != null ? request.reason() : null);
         return ResponseEntity.noContent().build();
     }
 }

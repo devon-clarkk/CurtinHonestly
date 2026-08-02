@@ -75,7 +75,7 @@ export class AccountComponent implements OnInit {
     }
 
     const needed = progress.requiredReviews - remainder;
-    return `${progress.qualifyingReviews}/${progress.requiredReviews} qualifying reviews — ${needed} more needed for a draw entry.`;
+    return `${progress.qualifyingReviews}/${progress.requiredReviews} qualifying reviews. ${needed} more needed for a draw entry.`;
   }
 
   onUpdateEmail() {
@@ -113,12 +113,12 @@ export class AccountComponent implements OnInit {
       studentEmail: this.studentEmail,
       password: this.verifyPassword
     }).subscribe({
-      next: () => {
+      next: (response) => {
         this.isLoading.set(false);
-        this.successMessage.set('Your account is now verified as a Curtin student.');
+        this.successMessage.set(response.message
+          || 'Check your student email for a confirmation link to finish verifying.');
         this.studentEmail = '';
         this.verifyPassword = '';
-        this.refreshAccount();
       },
       error: (err) => {
         this.isLoading.set(false);
@@ -127,15 +127,21 @@ export class AccountComponent implements OnInit {
     });
   }
 
+  // Default: reviews are kept (anonymized) — only the account identity is removed.
+  deleteReviewsToo = false;
+
   onDeleteAccount() {
-    if (!confirm('Delete your account permanently? All your reviews will be removed. This cannot be undone.')) {
+    const confirmMessage = this.deleteReviewsToo
+      ? 'Delete your account AND permanently remove all your reviews? This cannot be undone.'
+      : 'Delete your account? Your reviews will stay on the site, posted anonymously. This cannot be undone.';
+    if (!confirm(confirmMessage)) {
       return;
     }
 
     this.clearMessages();
     this.isLoading.set(true);
 
-    this.authService.deleteAccount(this.deletePassword).subscribe({
+    this.authService.deleteAccount(this.deletePassword, this.deleteReviewsToo).subscribe({
       next: () => {
         this.isLoading.set(false);
         this.authService.logout();

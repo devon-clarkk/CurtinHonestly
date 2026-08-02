@@ -1,5 +1,5 @@
 <div class="review-form-container">
-  <h3>Add a Review for {{ unitCode() }}</h3>
+  <h3>{{ isEditing ? 'Edit Your Review for ' : 'Add a Review for ' }}{{ unitCode() }}</h3>
   <form (ngSubmit)="onSubmit()" #reviewForm="ngForm">
     
     <div class="form-grid">
@@ -25,11 +25,7 @@
       <div class="form-group">
         <label for="semester">Semester Taken</label>
         <select id="semester" [ngModel]="semesterTaken()" (ngModelChange)="semesterTaken.set($event)" name="semesterTaken" class="form-control">
-          <option value="Semester 1, 2026">Semester 1, 2026</option>
-          <option value="Summer, 2025/26">Summer, 2025/26</option>
-          <option value="Semester 2, 2025">Semester 2, 2025</option>
-          <option value="Semester 1, 2025">Semester 1, 2025</option>
-          <option value="Summer, 2024/25">Summer, 2024/25</option>
+          <option *ngFor="let option of semesterOptions" [value]="option">{{ option }}</option>
         </select>
       </div>
 
@@ -58,6 +54,21 @@
     </div>
 
     <div class="form-group">
+      <label>What was it like? (Optional)</label>
+      <div class="tag-chip-list">
+        <button
+          type="button"
+          *ngFor="let tag of reviewTags"
+          class="tag-chip"
+          [class.selected]="isTagSelected(tag.value)"
+          [attr.aria-pressed]="isTagSelected(tag.value)"
+          (click)="toggleTag(tag.value)">
+          {{ tag.label }}
+        </button>
+      </div>
+    </div>
+
+    <div class="form-group">
       <label for="reviewText">Your Review (min 10 characters)</label>
       <textarea id="reviewText" [ngModel]="reviewText()" (ngModelChange)="reviewText.set($event)" name="reviewText" rows="4" class="form-control" placeholder="What did you think of this unit? Was it hard? Interesting?"></textarea>
     </div>
@@ -73,7 +84,7 @@
     <div class="form-actions">
       <button type="button" (click)="onCancel()" class="btn btn-secondary" [disabled]="isLoading()">Cancel</button>
       <button type="submit" class="btn btn-primary" [disabled]="isLoading() || !reviewText() || reviewText().length < 10">
-        {{ isLoading() ? 'Submitting...' : 'Post Review' }}
+        {{ isLoading() ? (isEditing ? 'Saving...' : 'Submitting...') : (isEditing ? 'Save Changes' : 'Post Review') }}
       </button>
     </div>
   </form>

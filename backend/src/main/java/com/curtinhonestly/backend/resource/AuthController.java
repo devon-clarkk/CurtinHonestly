@@ -7,6 +7,8 @@ import com.curtinhonestly.backend.dto.CampaignEntrySummaryDTO;
 import com.curtinhonestly.backend.security.JwtUtil;
 import com.curtinhonestly.backend.service.CampaignService;
 import com.curtinhonestly.backend.service.UserService;
+import com.curtinhonestly.backend.service.VerificationService;
+import com.curtinhonestly.backend.util.StudentEmailValidator;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -32,6 +34,7 @@ public class AuthController {
     private final JwtUtil jwtUtil;
     private final UserService userService;
     private final CampaignService campaignService;
+    private final VerificationService verificationService;
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {
@@ -39,6 +42,13 @@ public class AuthController {
 
         User user = campaignService.registerUserWithCampaign(
                 request.email(), request.password(), request.ref(), request.promoCode());
+
+        // If they registered with a student-suffix address, send a confirmation link to it.
+        // The badge stays off until they click it.
+        if (!user.isVerifiedStudent() && StudentEmailValidator.isStudentEmail(user.getEmail())) {
+            verificationService.requestStudentVerification(user, user.getEmail());
+        }
+
         String token = jwtUtil.generateToken(
                 user.getEmail(),
                 user.getRoles().stream().map(Enum::name).toList()
@@ -108,7 +118,7 @@ public class AuthController {
     public ResponseEntity<?> deleteAccount(@RequestBody DeleteAccountRequest request) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
 
-        userService.deleteAccount(email, request.password());
+        userService.deleteAccount(email, request.password(), request.deleteReviews());
         return ResponseEntity.noContent().build();
     }
 
@@ -126,18 +136,45 @@ public class AuthController {
                     .body(new ErrorResponse("Invalid password."));
         }
 
-        User user = userService.verifyStudentEmail(email, request.studentEmail());
-        String token = jwtUtil.generateToken(
+        User user = userService.getUserByEmail(email);
+        verificationService.requestStudentVerification(user, request.studentEmail());
+        return ResponseEntity.ok(new MessageResponse(
+                "We've sent a confirmation link to your student email. Click it to verify your account."));
+    }
+
+    @GetMapping("/verify-student/confirm")
+    public ResponseEntity<?> confirmStudent(@RequestParam("token") String token) {
+        User user = verificationService.confirmStudentVerification(token);
+        String jwt = jwtUtil.generateToken(
                 user.getEmail(),
                 user.getRoles().stream().map(Enum::name).toList()
         );
-        return ResponseEntity.ok(new JwtResponse(token, user.isVerifiedStudent()));
+        log.info("Student verification confirmed for user {}", user.getId());
+        return ResponseEntity.ok(new JwtResponse(jwt, user.isVerifiedStudent()));
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        // Enumeration-safe: always return the same response whether or not the email exists.
+        verificationService.requestPasswordReset(request.email());
+        return ResponseEntity.ok(new MessageResponse(
+                "If an account exists for that email, we've sent a password reset link."));
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        verificationService.resetPassword(request.token(), request.newPassword());
+        return ResponseEntity.ok(new MessageResponse(
+                "Your password has been reset. You can now log in with your new password."));
     }
 
     public record RegisterRequest(@NotBlank @Email String email, @NotBlank String password, String ref, String promoCode) {}
     public record LoginRequest(String email, String password) {}
     public record VerifyStudentRequest(String studentEmail, String password) {}
     public record UpdateEmailRequest(String newEmail, String password) {}
-    public record DeleteAccountRequest(String password) {}
+    public record DeleteAccountRequest(String password, boolean deleteReviews) {}
+    public record ForgotPasswordRequest(@NotBlank @Email String email) {}
+    public record ResetPasswordRequest(@NotBlank String token, @NotBlank String newPassword) {}
     public record JwtResponse(String token, boolean verifiedStudent) {}
+    public record MessageResponse(String message) {}
 }

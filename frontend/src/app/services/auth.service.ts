@@ -1,5 +1,5 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 import { environment } from '../../environments/environment';
 
@@ -28,6 +28,10 @@ export interface UpdateEmailRequest {
 export interface JwtResponse {
   token: string;
   verifiedStudent: boolean;
+}
+
+export interface MessageResponse {
+  message: string;
 }
 
 export interface CampaignProgress {
@@ -81,12 +85,28 @@ export class AuthService {
     );
   }
 
-  verifyStudent(request: VerifyStudentRequest): Observable<JwtResponse> {
-    return this.http.post<JwtResponse>(`${this.apiUrl}/verify-student`, request).pipe(
-      tap(response => {
-        this.persistSession(response.token, response.verifiedStudent, request.studentEmail);
-      })
+  // Requests a confirmation email to the student address. Verification only
+  // completes when the emailed link is opened (confirmStudentVerification).
+  verifyStudent(request: VerifyStudentRequest): Observable<MessageResponse> {
+    return this.http.post<MessageResponse>(`${this.apiUrl}/verify-student`, request);
+  }
+
+  // Completes verification from the emailed link; logs the user in as verified.
+  confirmStudentVerification(token: string): Observable<JwtResponse> {
+    const params = new HttpParams().set('token', token);
+    return this.http.get<JwtResponse>(`${this.apiUrl}/verify-student/confirm`, { params }).pipe(
+      tap(response => this.persistSession(response.token, response.verifiedStudent, null))
     );
+  }
+
+  // Requests a password-reset email (enumeration-safe: same response either way).
+  forgotPassword(email: string): Observable<MessageResponse> {
+    return this.http.post<MessageResponse>(`${this.apiUrl}/forgot-password`, { email });
+  }
+
+  // Completes a password reset from the emailed link.
+  resetPassword(token: string, newPassword: string): Observable<MessageResponse> {
+    return this.http.post<MessageResponse>(`${this.apiUrl}/reset-password`, { token, newPassword });
   }
 
   updateEmail(request: UpdateEmailRequest): Observable<JwtResponse> {
@@ -95,8 +115,10 @@ export class AuthService {
     );
   }
 
-  deleteAccount(password: string): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/me`, { body: { password } });
+  // By default, deleting an account anonymizes (detaches) the user's reviews
+  // rather than deleting them. Pass deleteReviews=true for full removal.
+  deleteAccount(password: string, deleteReviews: boolean = false): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/me`, { body: { password, deleteReviews } });
   }
 
   refreshAccountStatus(): Observable<AccountStatus> {
@@ -119,13 +141,15 @@ export class AuthService {
     this.email.set(null);
   }
 
-  private persistSession(token: string, verifiedStudent: boolean, email: string) {
+  private persistSession(token: string, verifiedStudent: boolean, email: string | null) {
     localStorage.setItem('auth_token', token);
     localStorage.setItem('verified_student', String(verifiedStudent));
-    localStorage.setItem('user_email', email);
     this.isLoggedIn.set(true);
     this.verifiedStudent.set(verifiedStudent);
-    this.email.set(email);
+    if (email) {
+      localStorage.setItem('user_email', email);
+      this.email.set(email);
+    }
   }
 
   private hasStoredToken(): boolean {

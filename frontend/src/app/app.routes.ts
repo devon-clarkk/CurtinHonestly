@@ -5,6 +5,9 @@ import { LoginComponent } from './components/login/login.component';
 import { RegisterComponent } from './components/register/register.component';
 import { AccountComponent } from './components/account/account.component';
 import { MyReviewsComponent } from './components/my-reviews/my-reviews.component';
+import { VerifyStudentConfirmComponent } from './components/verify-student-confirm/verify-student-confirm.component';
+import { ForgotPasswordComponent } from './components/forgot-password/forgot-password.component';
+import { ResetPasswordComponent } from './components/reset-password/reset-password.component';
 import { authGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
@@ -13,6 +16,24 @@ export const routes: Routes = [
   { path: 'register', component: RegisterComponent },
   { path: 'account', component: AccountComponent, canActivate: [authGuard] },
   { path: 'my-reviews', component: MyReviewsComponent, canActivate: [authGuard] },
+  { path: 'verify-student/confirm', component: VerifyStudentConfirmComponent },
+  { path: 'forgot-password', component: ForgotPasswordComponent },
+  { path: 'reset-password', component: ResetPasswordComponent },
+  // Lazy-loaded: these are low-traffic pages carrying a lot of static markup.
+  // Importing them eagerly put 21 kB of legal copy into the initial bundle, which
+  // every visitor to the homepage would download without ever opening them.
+  {
+    path: 'compare',
+    loadComponent: () => import('./components/compare/compare.component').then(m => m.CompareComponent)
+  },
+  {
+    path: 'terms',
+    loadComponent: () => import('./components/legal/terms.component').then(m => m.TermsComponent)
+  },
+  {
+    path: 'privacy',
+    loadComponent: () => import('./components/legal/privacy.component').then(m => m.PrivacyComponent)
+  },
   { path: 'units/:code', component: UnitDetailComponent },
   { path: '**', redirectTo: '' }
 ];

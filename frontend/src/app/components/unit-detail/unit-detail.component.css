@@ -20,8 +20,19 @@
   color: var(--text-secondary);
 }
 
-.breadcrumb li + li::before {
-  content: '›';
+/* The separator used to be a '›' character, which sat on the text baseline and
+   clipped against the descender box at this size. An inline SVG chevron scales
+   with font-size and stays optically centred. */
+.breadcrumb li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.breadcrumb-sep {
+  font-size: 0.8em;
+  opacity: 0.55;
 }
 
 .breadcrumb a {
@@ -39,10 +50,14 @@
 }
 
 .back-link {
-  color: var(--primary-color);
+  /* --primary-ink, not --primary-color: gold as text on a light surface only
+     reaches 2.6:1. See the token note in theme.css. */
+  color: var(--primary-ink);
   text-decoration: none;
   font-weight: 500;
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   margin-bottom: 20px;
 }
 
@@ -145,9 +160,36 @@
 /* Summary Stats Bar */
 .summary-stats {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 20px;
   margin-bottom: 40px;
+}
+
+.stale-note {
+  margin: -24px 0 32px;
+  padding: 10px 16px;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  background-color: var(--card-background);
+  border: 1px solid var(--border-color);
+  border-left: 4px solid var(--primary-color);
+  border-radius: var(--radius-none);
+}
+
+.tag-summary-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: -24px 0 32px;
+}
+
+.tag-summary-item {
+  padding: 6px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  background-color: var(--card-background);
 }
 
 .stat-card {
@@ -208,6 +250,28 @@
 .add-review-btn {
   font-size: 0.9rem;
   padding: 8px 16px;
+}
+
+.lecturer-filter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
+  font-size: 0.85rem;
+}
+
+.lecturer-summary {
+  color: var(--text-secondary);
+}
+
+.lecturer-select {
+  padding: 6px 10px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-none);
+  font-size: 0.85rem;
+  background-color: var(--card-background);
 }
 
 .login-to-review {
@@ -312,10 +376,35 @@
   line-height: 1.5;
 }
 
+/* Two independently-wrapping groups rather than one flat row. The old layout put
+   the facts and the action buttons in a single flex container and pushed the
+   actions right with margin-left:auto; on a wrapped line that auto margin eats
+   all remaining space, which is what forced Report onto its own line and made
+   the row look like it had spilled. Splitting them means each group wraps within
+   itself and the actions stay together. */
 .review-footer {
   display: flex;
-  gap: 10px;
   flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 12px;
+}
+
+.review-meta,
+.review-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.review-meta {
+  flex: 1 1 auto;
+}
+
+.review-actions {
+  flex: 0 0 auto;
 }
 
 .footer-tag {
@@ -325,6 +414,10 @@
   font-size: 0.8rem;
   color: var(--text-secondary);
   border: 1px solid var(--border-color);
+  /* A long tag label should wrap inside its own chip rather than stretch the
+     chip past the card edge. */
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 
 .footer-tag.positive {
@@ -332,11 +425,14 @@
   color: #2f855a;
 }
 
-.like-btn {
+/* Shared shell for the icon-led actions. Sized so both hit the 32px minimum
+   touch target even though the icons themselves are 1em. */
+.icon-btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
-  margin-left: auto;
+  min-height: 32px;
   border: 1px solid var(--border-color);
   background: transparent;
   color: var(--text-secondary);
@@ -363,26 +459,50 @@
   cursor: wait;
 }
 
-.like-icon {
-  font-size: 0.95rem;
-  line-height: 1;
-}
-
-.like-count,
-.like-count-readonly {
+.like-count {
   font-variant-numeric: tabular-nums;
   color: var(--text-secondary);
 }
 
 .like-count-readonly {
-  margin-left: auto;
-  font-size: 0.85rem;
+  cursor: default;
+}
+
+.report-btn {
+  /* Icon-only, so it needs to stay square rather than inherit the like button's
+     text-plus-count width. Gap comes from .review-actions, not a margin. */
+  padding: 4px 8px;
+}
+
+.report-btn:hover:not(:disabled) {
+  border-color: #c0392b;
+  color: #c0392b;
+}
+
+.report-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
 }
 
 /* Loading state */
 .loading-state {
   text-align: center;
   padding: 100px 0;
+}
+
+/* Not-found / error state */
+.error-state {
+  text-align: center;
+  padding: 100px 20px;
+}
+
+.error-state h2 {
+  margin-bottom: 12px;
+}
+
+.error-state p {
+  color: var(--text-secondary);
+  margin-bottom: 24px;
 }
 
 .spinner {
@@ -527,6 +647,138 @@
   font-weight: 500;
 }
 
+/* Quick Tips */
+.tips-hint {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin: -8px 0 14px;
+}
+
+/* The form sits in the narrow left sidebar. Sharing one row with the Post button
+   left the input around 20 characters wide, which truncated both the placeholder
+   and anything being typed. An input's default intrinsic width also stops `flex: 1`
+   from shrinking it politely, so the input gets its own full-width row and the
+   button drops beneath it. */
+.tip-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.tip-input {
+  flex: 1 1 100%;
+  min-width: 0;
+  padding: 8px 10px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-none);
+  font-size: 0.9rem;
+}
+
+.tip-submit {
+  margin-left: auto;
+}
+
+.tip-submit {
+  font-size: 0.85rem;
+  padding: 8px 14px;
+  white-space: nowrap;
+}
+
+.tip-char-count {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  text-align: right;
+  margin: 0 0 14px;
+}
+
+.tip-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.tip-item {
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.tip-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.tip-text {
+  display: block;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+}
+
+.tip-meta {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.tip-delete {
+  background: none;
+  border: none;
+  color: var(--secondary-color);
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 0.75rem;
+  padding: 0;
+  margin-left: 6px;
+}
+
+.tips-empty {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+/* Grade Distribution */
+.grade-histogram {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.grade-bar-row {
+  display: grid;
+  grid-template-columns: 110px 1fr 70px;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+}
+
+.grade-bar-label {
+  color: var(--text-secondary);
+}
+
+.grade-bar-track {
+  height: 10px;
+  background-color: var(--surface-muted);
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.grade-bar-fill {
+  height: 100%;
+  background-color: var(--primary-color);
+  border-radius: 5px;
+}
+
+.grade-bar-value {
+  text-align: right;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
 /* Tuition Patterns */
 .pattern-list {
   list-style: none;
@@ -573,7 +825,68 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
   margin-bottom: 8px;
+}
+
+.prereq-header-badges {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+/* Prerequisite eligibility (roadmap 4.4) */
+.eligibility-banner {
+  padding: 10px 12px;
+  border-radius: var(--radius-none);
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 12px;
+  border: 1px solid var(--border-color);
+}
+
+.eligibility-login-hint {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+}
+
+.status-met {
+  background-color: #eff9f0;
+  color: #1e7e34;
+  border-color: #bfe6c8;
+}
+
+.status-unmet {
+  background-color: #fff5f5;
+  color: #c53030;
+  border-color: #feb2b2;
+}
+
+.status-unverifiable {
+  background-color: #fffaf0;
+  color: #9c6b00;
+  border-color: #fbd38d;
+}
+
+.completed-toggle {
+  display: inline-block;
+  background-color: var(--surface-muted);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  margin-left: 12px;
+}
+
+.completed-toggle:hover:not(:disabled) {
+  border-color: var(--primary-color);
+}
+
+.completed-toggle-active {
+  background-color: #eff9f0;
+  color: #1e7e34;
+  border-color: #bfe6c8;
 }
 
 .group-name {
