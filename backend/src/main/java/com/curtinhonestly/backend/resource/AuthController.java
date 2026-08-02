@@ -118,7 +118,7 @@ public class AuthController {
     public ResponseEntity<?> deleteAccount(@RequestBody DeleteAccountRequest request) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
 
-        userService.deleteAccount(email, request.password());
+        userService.deleteAccount(email, request.password(), request.deleteReviews());
         return ResponseEntity.noContent().build();
     }
 
@@ -153,11 +153,28 @@ public class AuthController {
         return ResponseEntity.ok(new JwtResponse(jwt, user.isVerifiedStudent()));
     }
 
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        // Enumeration-safe: always return the same response whether or not the email exists.
+        verificationService.requestPasswordReset(request.email());
+        return ResponseEntity.ok(new MessageResponse(
+                "If an account exists for that email, we've sent a password reset link."));
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        verificationService.resetPassword(request.token(), request.newPassword());
+        return ResponseEntity.ok(new MessageResponse(
+                "Your password has been reset. You can now log in with your new password."));
+    }
+
     public record RegisterRequest(@NotBlank @Email String email, @NotBlank String password, String ref, String promoCode) {}
     public record LoginRequest(String email, String password) {}
     public record VerifyStudentRequest(String studentEmail, String password) {}
     public record UpdateEmailRequest(String newEmail, String password) {}
-    public record DeleteAccountRequest(String password) {}
+    public record DeleteAccountRequest(String password, boolean deleteReviews) {}
+    public record ForgotPasswordRequest(@NotBlank @Email String email) {}
+    public record ResetPasswordRequest(@NotBlank String token, @NotBlank String newPassword) {}
     public record JwtResponse(String token, boolean verifiedStudent) {}
     public record MessageResponse(String message) {}
 }

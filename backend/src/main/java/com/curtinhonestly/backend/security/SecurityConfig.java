@@ -55,8 +55,10 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/units", "/units/**").permitAll()
                         .requestMatchers("/actuator/health").permitAll()
                         .requestMatchers("/auth/register", "/auth/login").permitAll()
+                        .requestMatchers("/auth/forgot-password", "/auth/reset-password").permitAll()
                         .requestMatchers(HttpMethod.GET, "/auth/verify-student/confirm").permitAll()
                         .requestMatchers("/campaigns/validate").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/unit-requests").permitAll()
                         .requestMatchers("/auth/me", "/auth/verify-student").authenticated()
                         .requestMatchers("/error").permitAll()
 
@@ -64,7 +66,18 @@ public class SecurityConfig {
                         .requestMatchers("/admin/**").hasAuthority(UserRole.ROLE_ADMIN.name())
                         .requestMatchers(HttpMethod.GET, "/reviews/me").authenticated()
                         .requestMatchers(HttpMethod.GET, "/reviews", "/reviews/**").hasAuthority(UserRole.ROLE_ADMIN.name())
+
+                        // Completed-units self-service (roadmap 4.4) — narrower than the
+                        // blanket /users/** admin rules below, must be declared first.
+                        .requestMatchers("/users/me/completed-units").hasAnyAuthority(UserRole.ROLE_USER.name(), UserRole.ROLE_ADMIN.name())
+
                         .requestMatchers(HttpMethod.GET, "/users", "/users/**").hasAuthority(UserRole.ROLE_ADMIN.name())
+
+                        // Unit tips: read is covered by the public GET /units/** rule above.
+                        // Write access is narrower than the blanket /units/** admin rules
+                        // below, so these must be declared first (first match wins).
+                        .requestMatchers(HttpMethod.POST, "/units/*/tips").hasAnyAuthority(UserRole.ROLE_USER.name(), UserRole.ROLE_ADMIN.name())
+                        .requestMatchers(HttpMethod.DELETE, "/units/*/tips/*").hasAnyAuthority(UserRole.ROLE_USER.name(), UserRole.ROLE_ADMIN.name())
 
                         // Admin only endpoints - Use name() to get "ROLE_ADMIN"
                         .requestMatchers(HttpMethod.DELETE, "/units/**").hasAuthority(UserRole.ROLE_ADMIN.name())

@@ -43,6 +43,10 @@ export class ReviewService {
     return this.http.post<CreateReviewResponse>(this.apiUrl, review);
   }
 
+  updateReview(id: string, review: unknown): Observable<unknown> {
+    return this.http.put(`${this.apiUrl}/${id}`, review);
+  }
+
   deleteReview(id: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
@@ -53,5 +57,9 @@ export class ReviewService {
 
   unlikeReview(id: string): Observable<ReviewLikeResponse> {
     return this.http.delete<ReviewLikeResponse>(`${this.apiUrl}/${id}/likes`);
+  }
+
+  flagReview(id: string, reason?: string): Observable<void> {
+    return this.http.post<void>(`${this.apiUrl}/${id}/flags`, { reason });
   }
 }

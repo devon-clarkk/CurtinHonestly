@@ -39,7 +39,9 @@ public class ReviewLikeService {
         Review review = reviewRepo.findById(reviewId)
                 .orElseThrow(() -> new IllegalArgumentException("Review not found."));
 
-        if (review.getUser().getId().equals(user.getId())) {
+        // review.getUser() is null for reviews whose author deleted their account
+        // (anonymized, not deleted) — there's no "self" to guard against there.
+        if (review.getUser() != null && review.getUser().getId().equals(user.getId())) {
             throw new IllegalArgumentException("You can't like your own review.");
         }
 

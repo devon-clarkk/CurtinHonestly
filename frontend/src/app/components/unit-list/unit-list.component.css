@@ -46,6 +46,37 @@
   max-width: 38ch;
 }
 
+/* Seasonal review-prompt banner */
+.seasonal-banner {
+  max-width: var(--unit-catalog-max);
+  margin: 0 auto 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 18px;
+  background-color: var(--card-background);
+  border: 1px solid var(--primary-color);
+  border-left: 4px solid var(--primary-color);
+  border-radius: var(--radius-none);
+}
+
+.seasonal-banner p {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--text-primary);
+}
+
+.seasonal-banner-dismiss {
+  background: none;
+  border: none;
+  font-size: 1.4rem;
+  line-height: 1;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 0 4px;
+}
+
 /* Filter Bar Styling */
 .filter-bar {
   background-color: var(--card-background);
@@ -195,6 +226,42 @@
   margin-bottom: 20px;
 }
 
+.empty-state p.request-unit-prompt {
+  font-size: 0.95rem;
+  margin-top: 20px;
+  margin-bottom: 0;
+}
+
+.empty-state p.request-unit-success {
+  font-size: 0.95rem;
+  margin-top: 20px;
+  margin-bottom: 0;
+  color: var(--primary-color);
+}
+
+.request-unit-form {
+  max-width: 360px;
+  margin: 24px auto 0;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.request-unit-form label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-top: 8px;
+}
+
+.request-unit-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 12px;
+}
+
 /* Unit Grid — fixed card width so columns align with catalog */
 .unit-grid {
   display: grid;
@@ -220,6 +287,42 @@
 .unit-card:hover {
   border-color: var(--primary-color);
   box-shadow: none;
+}
+
+.unit-card.compare-selected {
+  border-color: var(--primary-color);
+  border-width: 2px;
+}
+
+.compare-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 20px 0;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.compare-bar {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 20px;
+  background-color: var(--text-primary);
+  color: #fff;
+  border-radius: 6px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  z-index: 50;
+}
+
+.compare-bar .btn-text {
+  color: #fff;
+  text-decoration: underline;
 }
 
 /* Header of the card with tags */

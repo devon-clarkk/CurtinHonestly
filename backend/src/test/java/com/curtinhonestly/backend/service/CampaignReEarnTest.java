@@ -80,7 +80,7 @@ class CampaignReEarnTest {
 
         ReviewCreateRequest request = new ReviewCreateRequest(
                 4, 80, "This review is long enough to qualify for the campaign entry.",
-                "Semester 1, 2026", "Prof Test", 5, true, true, unit.getCode());
+                "Semester 1, 2026", "Prof Test", 5, true, true, unit.getCode(), null);
 
         // First submission earns an entry.
         var firstResult = reviewService.createReviewWithCampaignEntry(request);

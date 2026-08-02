@@ -6,6 +6,7 @@ import com.curtinhonestly.backend.domain.Unit;
 import com.curtinhonestly.backend.domain.User;
 import com.curtinhonestly.backend.dto.CampaignProgressDTO;
 import com.curtinhonestly.backend.dto.ReviewCreateRequest;
+import com.curtinhonestly.backend.dto.ReviewUpdateRequest;
 import com.curtinhonestly.backend.repo.ReviewRepo;
 import com.curtinhonestly.backend.repo.UnitRepo;
 import com.curtinhonestly.backend.repo.UserRepo;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 @Slf4j
@@ -81,6 +83,7 @@ public class ReviewService {
         review.setWorkload(request.workload());
         review.setHasExam(request.hasExam());
         review.setWouldTakeAgain(request.wouldTakeAgain());
+        review.setTags(request.tags() != null ? request.tags() : Set.of());
         review.setCreatedAt(Instant.now());
         review.setUnit(unit);
         review.setUser(user);
@@ -89,6 +92,35 @@ public class ReviewService {
 
         Review saved = reviewRepo.save(review);
         unitAggregateService.recalculateForUnit(unit.getId());
+        return saved;
+    }
+
+    /**
+     * Update an existing review in place. Unit, author, and createdAt are never
+     * touched — only the reviewable fields the user is allowed to change.
+     * Aggregate recalculation is required here (unlike anonymize-on-delete)
+     * since rating/workload/grade/wouldTakeAgain can all change.
+     */
+    public Review updateReview(String id, ReviewUpdateRequest request) {
+        Review review = getReviewById(id);
+
+        if (profanityFilterService.containsProfanity(request.reviewText())) {
+            throw new IllegalArgumentException("Review contains inappropriate language. Please keep it professional.");
+        }
+
+        review.setRating(request.rating());
+        review.setFinalGrade(request.finalGrade());
+        review.setReviewText(request.reviewText());
+        review.setSemesterTaken(request.semesterTaken());
+        review.setProfessor(request.professor());
+        review.setWorkload(request.workload());
+        review.setHasExam(request.hasExam());
+        review.setWouldTakeAgain(request.wouldTakeAgain());
+        review.setTags(request.tags() != null ? request.tags() : Set.of());
+
+        Review saved = reviewRepo.save(review);
+        unitAggregateService.recalculateForUnit(saved.getUnit().getId());
+        log.info("Review {} updated", id);
         return saved;
     }
 
