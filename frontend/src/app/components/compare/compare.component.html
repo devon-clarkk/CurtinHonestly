@@ -1,13 +1,69 @@
 <div class="compare-container">
   <div class="compare-header">
     <h1 class="handbook-title">Compare Units</h1>
-    <a routerLink="/" class="btn-text">&larr; Back to catalog</a>
+    <a routerLink="/" class="btn-text">
+      <app-icon name="arrow-left" />
+      <span>Back to catalog</span>
+    </a>
+  </div>
+
+  <p class="compare-lead">
+    Put up to {{ maxCompare }} units side by side. Search for a unit code or name to add it.
+  </p>
+
+  <!-- Picker -->
+  <div class="compare-picker">
+    <div class="picker-selected" *ngIf="selectedCodes().length > 0">
+      <span class="picker-chip" *ngFor="let code of selectedCodes()">
+        <span>{{ code }}</span>
+        <button type="button" class="picker-chip-remove" (click)="removeUnit(code)"
+                [attr.aria-label]="'Remove ' + code + ' from comparison'">×</button>
+      </span>
+      <button type="button" class="btn-text picker-clear" (click)="clearSelection()">Clear all</button>
+    </div>
+
+    <div class="picker-search">
+      <label class="picker-label" for="compare-search">Add a unit</label>
+      <input
+        id="compare-search"
+        type="search"
+        class="picker-input"
+        autocomplete="off"
+        [(ngModel)]="searchTerm"
+        (ngModelChange)="onSearchChange($event)"
+        [disabled]="!canAddMore()"
+        [placeholder]="canAddMore() ? 'Search by unit code or name' : 'Maximum of ' + maxCompare + ' units selected'" />
+
+      @if (isSearching()) {
+        <p class="picker-status">Searching…</p>
+      } @else if (searchResults().length > 0) {
+        <ul class="picker-results">
+          <li *ngFor="let result of searchResults()">
+            <button
+              type="button"
+              class="picker-result"
+              [disabled]="isSelected(result.code) || !canAddMore()"
+              (click)="addUnit(result.code)">
+              <strong>{{ result.code }}</strong>
+              <span>{{ result.name }}</span>
+              @if (isSelected(result.code)) {
+                <span class="picker-result-state">Added</span>
+              }
+            </button>
+          </li>
+        </ul>
+      }
+    </div>
   </div>
 
   @if (isLoading()) {
     <div class="loading-state">
       <div class="spinner"></div>
       <p>Loading units to compare…</p>
+    </div>
+  } @else if (selectedCodes().length < 2 && !errorMessage()) {
+    <div class="compare-empty">
+      <p>Pick at least 2 units above to see them compared.</p>
     </div>
   } @else if (errorMessage()) {
     <div class="error-state">
@@ -46,13 +102,13 @@
           <tr>
             <td class="row-label">Credits</td>
             @for (unit of units(); track unit.code) {
-              <td>{{ unit.credits || '—' }}</td>
+              <td>{{ unit.credits || 'N/A' }}</td>
             }
           </tr>
           <tr>
             <td class="row-label">Contact Hours</td>
             @for (unit of units(); track unit.code) {
-              <td>{{ unit.contactHours ? unit.contactHours + ' / week' : '—' }}</td>
+              <td>{{ unit.contactHours ? unit.contactHours + ' / week' : 'N/A' }}</td>
             }
           </tr>
           <tr class="metric-row">
@@ -64,13 +120,13 @@
           <tr class="metric-row">
             <td class="row-label">Workload</td>
             @for (unit of units(); track unit.code) {
-              <td>{{ unit.numberOfReviews > 0 ? (unit.averageWorkload | number:'1.1-1') + ' / 10' : '—' }}</td>
+              <td>{{ unit.numberOfReviews > 0 ? (unit.averageWorkload | number:'1.1-1') + ' / 10' : 'N/A' }}</td>
             }
           </tr>
           <tr class="metric-row">
             <td class="row-label">Avg Grade</td>
             @for (unit of units(); track unit.code) {
-              <td>{{ unit.numberOfReviews > 0 ? unit.averageFinalGrade + '%' : '—' }}</td>
+              <td>{{ unit.numberOfReviews > 0 ? unit.averageFinalGrade + '%' : 'N/A' }}</td>
             }
           </tr>
           <tr class="metric-row">
@@ -79,13 +135,13 @@
               <!-- wouldTakeAgainRatio comes straight from the API here (0-100), not
                    normalized to a decimal — that conversion only applies where the
                    Angular `percent` pipe is used, which this template doesn't. -->
-              <td>{{ unit.numberOfReviews > 0 ? unit.wouldTakeAgainRatio + '%' : '—' }}</td>
+              <td>{{ unit.numberOfReviews > 0 ? unit.wouldTakeAgainRatio + '%' : 'N/A' }}</td>
             }
           </tr>
           <tr class="metric-row">
             <td class="row-label">Had an Exam</td>
             @for (unit of units(); track unit.code) {
-              <td>{{ unit.numberOfReviews > 0 ? examPercentage(unit) + '%' : '—' }}</td>
+              <td>{{ unit.numberOfReviews > 0 ? examPercentage(unit) + '%' : 'N/A' }}</td>
             }
           </tr>
           <tr>

@@ -13,6 +13,7 @@ import { GradeBand, gradeDistribution, gradedReviewCount } from '../../utils/gra
 import { PrerequisiteGroup, REVIEW_TAGS, Review, Tip, UnitDetails } from '../../models/unit.model';
 import { Observable, switchMap, map, of, tap, catchError } from 'rxjs';
 import { AddReviewComponent } from '../add-review/add-review.component';
+import { IconComponent } from '../icon/icon.component';
 
 const MAX_TIP_LENGTH = 200;
 
@@ -23,7 +24,7 @@ const MAX_TIP_LENGTH = 200;
 @Component({
   selector: 'app-unit-detail',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, AddReviewComponent],
+  imports: [CommonModule, FormsModule, RouterLink, AddReviewComponent, IconComponent],
   templateUrl: './unit-detail.component.html',
   styleUrl: './unit-detail.component.css'
 })
@@ -68,17 +69,27 @@ export class UnitDetailComponent implements OnInit {
   isSubmittingTip = signal(false);
   private currentUnitCode = '';
 
-  // Prerequisite checker (roadmap 4.4). Completed units are per-account, not
-  // per-unit-page, so they're loaded once — not re-fetched on every loadUnit().
+  // PARKED - prerequisite eligibility checker (roadmap 4.4).
+  //
+  // The checker only works if a student has recorded every unit they have
+  // completed, which almost nobody does, so it reported "you don't meet the
+  // prerequisites" for nearly everyone. The markup was removed from the template
+  // and the fetch below is no longer called; the backend endpoints, entities, and
+  // DTOs are untouched.
+  //
+  // To restore: call loadCompletedUnits() from ngOnInit again, put back the
+  // eligibility banner and the "Mark as completed" toggle in the template, and
+  // re-add the group-status badge that uses groupStatusLabel/groupStatusClass.
+  //
+  // These members are intentionally retained rather than deleted - they are
+  // exactly what restoring needs, and rewriting them from scratch is the only
+  // alternative.
   completedUnitCodes = signal<Set<string>>(new Set());
   isUpdatingCompletedUnits = signal(false);
   completedUnitsError = signal<string | null>(null);
 
   ngOnInit(): void {
     this.loadUnit();
-    if (this.authService.isLoggedIn()) {
-      this.loadCompletedUnits();
-    }
   }
 
   private loadCompletedUnits() {

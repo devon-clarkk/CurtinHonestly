@@ -20,8 +20,19 @@
   color: var(--text-secondary);
 }
 
-.breadcrumb li + li::before {
-  content: '›';
+/* The separator used to be a '›' character, which sat on the text baseline and
+   clipped against the descender box at this size. An inline SVG chevron scales
+   with font-size and stays optically centred. */
+.breadcrumb li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.breadcrumb-sep {
+  font-size: 0.8em;
+  opacity: 0.55;
 }
 
 .breadcrumb a {
@@ -39,10 +50,14 @@
 }
 
 .back-link {
-  color: var(--primary-color);
+  /* --primary-ink, not --primary-color: gold as text on a light surface only
+     reaches 2.6:1. See the token note in theme.css. */
+  color: var(--primary-ink);
   text-decoration: none;
   font-weight: 500;
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   margin-bottom: 20px;
 }
 
@@ -361,10 +376,35 @@
   line-height: 1.5;
 }
 
+/* Two independently-wrapping groups rather than one flat row. The old layout put
+   the facts and the action buttons in a single flex container and pushed the
+   actions right with margin-left:auto; on a wrapped line that auto margin eats
+   all remaining space, which is what forced Report onto its own line and made
+   the row look like it had spilled. Splitting them means each group wraps within
+   itself and the actions stay together. */
 .review-footer {
   display: flex;
-  gap: 10px;
   flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 12px;
+}
+
+.review-meta,
+.review-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.review-meta {
+  flex: 1 1 auto;
+}
+
+.review-actions {
+  flex: 0 0 auto;
 }
 
 .footer-tag {
@@ -374,6 +414,10 @@
   font-size: 0.8rem;
   color: var(--text-secondary);
   border: 1px solid var(--border-color);
+  /* A long tag label should wrap inside its own chip rather than stretch the
+     chip past the card edge. */
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 
 .footer-tag.positive {
@@ -381,11 +425,14 @@
   color: #2f855a;
 }
 
-.like-btn {
+/* Shared shell for the icon-led actions. Sized so both hit the 32px minimum
+   touch target even though the icons themselves are 1em. */
+.icon-btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
-  margin-left: auto;
+  min-height: 32px;
   border: 1px solid var(--border-color);
   background: transparent;
   color: var(--text-secondary);
@@ -412,31 +459,19 @@
   cursor: wait;
 }
 
-.like-icon {
-  font-size: 0.95rem;
-  line-height: 1;
-}
-
-.like-count,
-.like-count-readonly {
+.like-count {
   font-variant-numeric: tabular-nums;
   color: var(--text-secondary);
 }
 
 .like-count-readonly {
-  margin-left: auto;
-  font-size: 0.85rem;
+  cursor: default;
 }
 
 .report-btn {
-  border: 1px solid var(--border-color);
-  background: transparent;
-  color: var(--text-secondary);
-  font: inherit;
-  font-size: 0.8rem;
-  padding: 4px 10px;
-  cursor: pointer;
-  margin-left: 8px;
+  /* Icon-only, so it needs to stay square rather than inherit the like button's
+     text-plus-count width. Gap comes from .review-actions, not a margin. */
+  padding: 4px 8px;
 }
 
 .report-btn:hover:not(:disabled) {
@@ -619,18 +654,29 @@
   margin: -8px 0 14px;
 }
 
+/* The form sits in the narrow left sidebar. Sharing one row with the Post button
+   left the input around 20 characters wide, which truncated both the placeholder
+   and anything being typed. An input's default intrinsic width also stops `flex: 1`
+   from shrinking it politely, so the input gets its own full-width row and the
+   button drops beneath it. */
 .tip-form {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   margin-bottom: 4px;
 }
 
 .tip-input {
-  flex: 1;
+  flex: 1 1 100%;
+  min-width: 0;
   padding: 8px 10px;
   border: 1px solid var(--border-color);
   border-radius: var(--radius-none);
   font-size: 0.9rem;
+}
+
+.tip-submit {
+  margin-left: auto;
 }
 
 .tip-submit {

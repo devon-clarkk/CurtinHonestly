@@ -25,7 +25,7 @@ export function homePageDescription(): string {
 
 export function unitPageTitle(code: string, name: string, numberOfReviews = 0): string {
   if (numberOfReviews > 0) {
-    return `${code} ${name} — ${numberOfReviews} Reviews | CurtinHonestly`;
+    return `${code} ${name} - ${numberOfReviews} Reviews | CurtinHonestly`;
   }
   return `${code} ${name} | CurtinHonestly`;
 }
@@ -37,7 +37,7 @@ export function unitPageDescription(unit: UnitDetails): string {
 
   if (reviews > 0) {
     return truncateDescription(
-      `${unit.code} at Curtin University — ${rating}★ from ${reviews} student reviews. ${takeAgain}% would take again. Read honest experiences for ${unit.name}.`
+      `${unit.code} at Curtin University. ${rating}★ from ${reviews} student reviews. ${takeAgain}% would take again. Read honest experiences for ${unit.name}.`
     );
   }
 
@@ -138,7 +138,7 @@ export function buildUnitJsonLd(unit: UnitDetails, siteUrl: string) {
   const course: Record<string, unknown> = {
     '@type': 'Course',
     '@id': courseId,
-    name: `${unit.code} — ${unit.name}`,
+    name: `${unit.code}: ${unit.name}`,
     description: (unit.description || unitPageDescription(unit)).replace(/\s+/g, ' ').trim(),
     courseCode: unit.code,
     url,

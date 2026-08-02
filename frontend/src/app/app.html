@@ -25,6 +25,7 @@
 
     <nav id="main-nav" class="main-nav" [class.is-open]="mobileNavOpen()">
       <a routerLink="/" (click)="closeMobileNav()">Home</a>
+      <a routerLink="/compare" (click)="closeMobileNav()">Compare</a>
       <ng-container *ngIf="!authService.isLoggedIn()">
         <a routerLink="/login" (click)="closeMobileNav()">Login</a>
         <a routerLink="/register" class="register-link" (click)="closeMobileNav()">Register</a>
@@ -46,6 +47,10 @@
 <footer class="main-footer">
   <div class="footer-container">
     <p>We created Curtin Honestly to give students a space for real feedback so you can make better choices about your studies.</p>
+    <nav class="footer-links" aria-label="Legal">
+      <a routerLink="/terms">Terms and Conditions</a>
+      <a routerLink="/privacy">Privacy Policy</a>
+    </nav>
     <p class="copyright">&copy; 2026 Curtin Honestly</p>
   </div>
 </footer>
@@ -171,9 +176,28 @@
   margin-bottom: 15px;
 }
 
+.footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px 24px;
+  margin-top: 8px;
+}
+
+.footer-links a {
+  /* --on-dark-muted, not #b3b3b3: passes AA on the black footer surface. */
+  color: var(--on-dark-muted);
+  font-size: 0.9rem;
+  text-decoration: underline;
+}
+
+.footer-links a:hover {
+  color: #fff;
+}
+
 .main-footer .copyright {
   font-size: 0.85rem;
-  color: #b3b3b3;
+  color: var(--on-dark-muted);
   margin-top: 20px;
   margin-bottom: 0;
 }

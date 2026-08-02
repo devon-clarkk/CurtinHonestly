@@ -2,12 +2,12 @@
 <div class="list-container">
   <header class="list-header">
     <h1 class="handbook-title">Curtin University Unit Reviews</h1>
-    <p class="list-lead">Read honest student reviews for Curtin units — ratings, workload, grades, and would-take-again scores to help you choose the right units for your degree.</p>
+    <p class="list-lead">Read honest student reviews for Curtin units. Ratings, workload, grades, and would-take-again scores to help you choose the right units for your degree.</p>
   </header>
 
   @if (showSeasonalBanner()) {
     <div class="seasonal-banner">
-      <p>Results are out — which units did you just finish? <a routerLink="/my-reviews">Write a review</a> while it's fresh.</p>
+      <p>Results are out. Which units did you just finish? <a routerLink="/my-reviews">Write a review</a> while it's fresh.</p>
       <button type="button" class="seasonal-banner-dismiss" (click)="dismissSeasonalBanner()" aria-label="Dismiss">×</button>
     </div>
   }
@@ -81,7 +81,7 @@
             <button type="button" class="btn-text" (click)="openRequestUnitForm()">Request it</button>
           </p>
         } @else if (requestUnitSubmitted()) {
-          <p class="request-unit-success">Thanks — we've logged your request and will look into adding it.</p>
+          <p class="request-unit-success">Thanks. We've logged your request and will look into adding it.</p>
         } @else {
           <form class="request-unit-form" (ngSubmit)="submitUnitRequest()">
             <label for="requestUnitCode">Unit code or name</label>

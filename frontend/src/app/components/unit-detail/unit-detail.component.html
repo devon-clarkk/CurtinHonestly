@@ -3,39 +3,38 @@
   <nav class="breadcrumb" aria-label="Breadcrumb">
     <ol>
       <li><a routerLink="/">Home</a></li>
-      <li aria-current="page">{{ unit.code }}</li>
+      <li aria-current="page">
+        <app-icon name="chevron-right" class="breadcrumb-sep" />
+        <span>{{ unit.code }}</span>
+      </li>
     </ol>
   </nav>
 
   <!-- Top section with back button and unit header -->
   <header class="detail-header">
-    <a routerLink="/" class="back-link">&larr; Back to all units</a>
+    <a routerLink="/" class="back-link">
+      <app-icon name="arrow-left" />
+      <span>Back to all units</span>
+    </a>
     
     <div class="header-main">
       <div class="header-left">
         <span class="detail-code">{{ unit.code }}</span>
-        <h1 class="detail-name handbook-title">{{ unit.code }} — {{ unit.name }}</h1>
+        <h1 class="detail-name handbook-title">{{ unit.code }}: {{ unit.name }}</h1>
         <p class="detail-faculty">{{ unit.faculty }}</p>
         <p class="seo-intro">
           Student reviews for <strong>{{ unit.code }}</strong> at Curtin University.
           See ratings, workload, grades, and honest feedback from Curtin students.
         </p>
         
-        <div class="header-actions" *ngIf="unit.unitLink || authService.isLoggedIn()">
-          <a *ngIf="unit.unitLink" [href]="unit.unitLink" target="_blank" rel="noopener noreferrer" class="btn btn-handbook">
+        <!-- The "Mark as completed" toggle is parked with the prerequisite
+             eligibility checker below - recording completed units existed only to
+             feed it. See the note on the parked members in the component. -->
+        <div class="header-actions" *ngIf="unit.unitLink">
+          <a [href]="unit.unitLink" target="_blank" rel="noopener noreferrer" class="btn btn-handbook">
             View in Curtin Handbook
           </a>
-          <button
-            *ngIf="authService.isLoggedIn()"
-            type="button"
-            class="btn completed-toggle"
-            [class.completed-toggle-active]="isUnitCompleted(unit.code)"
-            [disabled]="isUpdatingCompletedUnits()"
-            (click)="toggleUnitCompleted(unit.code)">
-            {{ isUnitCompleted(unit.code) ? '✓ Marked as completed' : 'Mark as completed' }}
-          </button>
         </div>
-        <div *ngIf="completedUnitsError()" class="error-box">{{ completedUnitsError() }}</div>
       </div>
       
       <div class="header-right" *ngIf="unit.numberOfReviews > 0">
@@ -77,7 +76,7 @@
   </section>
 
   <p class="stale-note" *ngIf="isReviewDataStale(unit.reviews)">
-    Most reviews for this unit are from a previous year — assessment style, staff, or
+    Most reviews for this unit are from a previous year. Assessment style, staff, or
     content may have changed since.
   </p>
 
@@ -98,7 +97,7 @@
       <!-- Tips: short, lightweight contributions distinct from full reviews -->
       <div class="info-block tips-block">
         <h3>Quick Tips</h3>
-        <p class="tips-hint">One-line things worth knowing — no full review required.</p>
+        <p class="tips-hint">One-line things worth knowing. No full review required.</p>
 
         <form *ngIf="authService.isLoggedIn()" (ngSubmit)="submitTip()" class="tip-form">
           <input
@@ -122,7 +121,7 @@
           <li *ngFor="let tip of tips()" class="tip-item">
             <span class="tip-text">{{ tip.text }}</span>
             <span class="tip-meta">
-              — {{ reviewAuthorName(tip.authorVerified) }}
+              by {{ reviewAuthorName(tip.authorVerified) }}
               <button *ngIf="tip.ownedByCurrentUser" type="button" class="tip-delete"
                       (click)="deleteTip(tip)" aria-label="Delete this tip">
                 Delete
@@ -131,7 +130,7 @@
           </li>
         </ul>
         <ng-template #noTips>
-          <p class="tips-empty">No tips yet — be the first to share one.</p>
+          <p class="tips-empty">No tips yet. Be the first to share one.</p>
         </ng-template>
       </div>
 
@@ -139,7 +138,7 @@
            single reviewer when very few grades have been reported -->
       <div class="info-block" *ngIf="gradedReviewCount(unit.reviews) >= MIN_GRADED_REVIEWS_FOR_HISTOGRAM">
         <h3>Grade Distribution</h3>
-        <p class="tips-hint">What {{ gradedReviewCount(unit.reviews) }} reviewers actually scored.</p>
+        <p class="tips-hint">What {{ gradedReviewCount(unit.reviews) }} reviewers scored.</p>
         <div class="grade-histogram">
           <div class="grade-bar-row" *ngFor="let band of gradeDistribution(unit.reviews)">
             <span class="grade-bar-label">{{ band.label }}</span>
@@ -199,16 +198,11 @@
       <div class="info-block" *ngIf="unit.prerequisiteGroups && unit.prerequisiteGroups.length > 0">
         <h3>Prerequisites</h3>
 
-        <div class="eligibility-banner" *ngIf="authService.isLoggedIn()" [ngClass]="eligibilityBannerClass(unit.prerequisitesEligible)">
-          <span *ngIf="unit.prerequisitesEligible === true">✅ You meet the prerequisites for this unit.</span>
-          <span *ngIf="unit.prerequisitesEligible === false">❌ You don't yet meet all the prerequisites below.</span>
-          <span *ngIf="unit.prerequisitesEligible !== true && unit.prerequisitesEligible !== false">
-            ⚠️ Some prerequisites can't be checked automatically (e.g. course-credit requirements) — review them below.
-          </span>
-        </div>
-        <p class="eligibility-login-hint" *ngIf="!authService.isLoggedIn()">
-          <a routerLink="/login">Log in</a> and mark your completed units to check your eligibility automatically.
-        </p>
+        <!-- Eligibility checking is parked: it depends on students recording every
+             unit they have completed, which almost nobody does, so the banner read
+             "you don't meet the prerequisites" for nearly everyone. The backend
+             endpoints, entities, and DTOs are all still in place - restoring this
+             means putting the banner and the group-status badge back. -->
 
         <div class="prereq-container">
           <div *ngFor="let group of unit.prerequisiteGroups" class="prereq-group">
@@ -216,12 +210,9 @@
               <span class="group-name">{{ group.groupName }}</span>
               <span class="prereq-header-badges">
                 <span class="group-req badge">{{ requirementLabel(group.requirement) }}</span>
-                <span class="group-status badge" *ngIf="authService.isLoggedIn()" [ngClass]="groupStatusClass(group)">
-                  {{ groupStatusLabel(group) }}
-                </span>
               </span>
             </div>
-            <ul class="prereq-options" *ngIf="group.options?.length">
+            <ul class="prereq-options" *ngIf="group.options.length">
               <li *ngFor="let option of group.options">
                 <a [routerLink]="['/units', option.code]" class="prereq-link">
                   <strong>{{ option.code }}</strong>
@@ -230,7 +221,7 @@
                 </a>
               </li>
             </ul>
-            <ul class="prereq-options course-options" *ngIf="group.courseOptions?.length">
+            <ul class="prereq-options course-options" *ngIf="group.courseOptions.length">
               <li *ngFor="let option of group.courseOptions" class="prereq-course-item">
                 <div class="prereq-course">
                   <strong>{{ option.courseCode }}</strong>
@@ -324,45 +315,52 @@
         </div>
         
         <div class="review-footer">
-          <span class="footer-tag" [class.positive]="review.wouldTakeAgain">
-            {{ review.wouldTakeAgain ? 'Would take again' : 'Would not take again' }}
-          </span>
-          <span class="footer-tag" *ngIf="review.finalGrade !== null && review.finalGrade !== undefined">
-            Grade: {{ review.finalGrade }}%
-          </span>
-          <span class="footer-tag">Workload: {{ review.workload }}/10</span>
-          <span class="footer-tag" [class.positive]="review.hasExam">
-            {{ review.hasExam ? 'Had an exam' : 'No exam' }}
-          </span>
-          <span class="footer-tag tag-chip-readonly" *ngFor="let tag of review.tags">{{ tagLabel(tag) }}</span>
-          @if (authService.isLoggedIn()) {
-            <button
-              type="button"
-              class="like-btn"
-              [class.liked]="review.likedByCurrentUser"
-              [disabled]="likingReviewId() === review.id"
-              (click)="toggleLike(review)"
-              [attr.aria-pressed]="review.likedByCurrentUser"
-              [attr.aria-label]="review.likedByCurrentUser ? 'Unlike review' : 'Mark review as helpful'">
-              <span class="like-icon" aria-hidden="true">{{ review.likedByCurrentUser ? '♥' : '♡' }}</span>
-              <span>{{ review.likedByCurrentUser ? 'Helpful' : 'Mark helpful' }}</span>
-              <span class="like-count">{{ review.likeCount || 0 }}</span>
-            </button>
-          } @else {
-            <span class="like-count-readonly" title="Log in to mark reviews as helpful">
-              ♡ {{ review.likeCount || 0 }}
+          <div class="review-meta">
+            <span class="footer-tag" [class.positive]="review.wouldTakeAgain">
+              {{ review.wouldTakeAgain ? 'Would take again' : 'Would not take again' }}
             </span>
-          }
-          @if (authService.isLoggedIn()) {
-            <button
-              type="button"
-              class="report-btn"
-              [disabled]="isFlagged(review)"
-              (click)="flagReview(review)"
-              [attr.aria-label]="isFlagged(review) ? 'Review reported' : 'Report this review'">
-              {{ isFlagged(review) ? 'Reported' : 'Report' }}
-            </button>
-          }
+            <span class="footer-tag" *ngIf="review.finalGrade !== null && review.finalGrade !== undefined">
+              Grade: {{ review.finalGrade }}%
+            </span>
+            <span class="footer-tag">Workload: {{ review.workload }}/10</span>
+            <span class="footer-tag" [class.positive]="review.hasExam">
+              {{ review.hasExam ? 'Had an exam' : 'No exam' }}
+            </span>
+            <span class="footer-tag tag-chip-readonly" *ngFor="let tag of review.tags">{{ tagLabel(tag) }}</span>
+          </div>
+
+          <div class="review-actions">
+            @if (authService.isLoggedIn()) {
+              <button
+                type="button"
+                class="icon-btn like-btn"
+                [class.liked]="review.likedByCurrentUser"
+                [disabled]="likingReviewId() === review.id"
+                (click)="toggleLike(review)"
+                [attr.aria-pressed]="review.likedByCurrentUser"
+                [title]="review.likedByCurrentUser ? 'Marked helpful' : 'Mark helpful'"
+                [attr.aria-label]="review.likedByCurrentUser ? 'Unlike review' : 'Mark review as helpful'">
+                <app-icon name="thumb-up" [filled]="review.likedByCurrentUser" />
+                <span class="like-count">{{ review.likeCount || 0 }}</span>
+              </button>
+            } @else {
+              <span class="icon-btn like-count-readonly" title="Log in to mark reviews as helpful">
+                <app-icon name="thumb-up" />
+                <span class="like-count">{{ review.likeCount || 0 }}</span>
+              </span>
+            }
+            @if (authService.isLoggedIn()) {
+              <button
+                type="button"
+                class="icon-btn report-btn"
+                [disabled]="isFlagged(review)"
+                (click)="flagReview(review)"
+                [title]="isFlagged(review) ? 'Review reported' : 'Report this review'"
+                [attr.aria-label]="isFlagged(review) ? 'Review reported' : 'Report this review'">
+                <app-icon name="flag" [filled]="isFlagged(review)" />
+              </button>
+            }
+          </div>
         </div>
       </div>
 
@@ -381,7 +379,10 @@
   <div *ngIf="loadError(); else stillLoading" class="error-state">
     <h2>Unit not found</h2>
     <p>We couldn't find that unit. It may have been removed, or the link may be incorrect.</p>
-    <a routerLink="/" class="btn btn-primary">&larr; Back to all units</a>
+    <a routerLink="/" class="btn btn-primary">
+      <app-icon name="arrow-left" />
+      <span>Back to all units</span>
+    </a>
   </div>
   <ng-template #stillLoading>
     <div class="loading-state">
