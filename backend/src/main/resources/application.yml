@@ -7,6 +7,25 @@ spring:
     password: ${database-password:?Database password must be provided}
     driver-class-name: org.postgresql.Driver
 
+  # Versioned schema migrations. Flyway runs before Hibernate on every boot.
+  #
+  # Transitional state: Hibernate still owns table/column *creation* via ddl-auto=update,
+  # while Flyway owns the changes ddl-auto provably cannot make — dropping constraints,
+  # altering nullability, adding NOT NULL columns to populated tables, and backfills.
+  # Those are the two failures that caused the reviews.like_count outage and the
+  # reviews.user_id landmine.
+  #
+  # To finish the migration, see db/migration/README.md: generate V1__baseline.sql from a
+  # pg_dump of prod, then switch ddl-auto to `validate` so drift fails the boot instead of
+  # silently corrupting the schema. Do NOT set `validate` before that baseline exists.
+  flyway:
+    enabled: true
+    # The dev and prod databases already exist and predate Flyway, so they need a baseline
+    # marker rather than an attempt to replay history from scratch.
+    baseline-on-migrate: true
+    baseline-version: 1
+    locations: classpath:db/migration
+
   jpa:
     hibernate:
       ddl-auto: update
