@@ -53,7 +53,11 @@ public class Review {
     private boolean wouldTakeAgain;
 
     // Denormalized count of rows in review_likes for this review. Kept in sync by ReviewLikeService.
-    @Column(nullable = false)
+    // The DB-level DEFAULT is required, not cosmetic: ddl-auto=update adds this column to an
+    // already-populated reviews table, and Postgres rejects ADD COLUMN ... NOT NULL without a
+    // default. Hibernate logs that failure and boots anyway, so the column silently never gets
+    // created and every SELECT on reviews then fails. Same convention as e4ee43d.
+    @Column(nullable = false, columnDefinition = "INTEGER DEFAULT 0 NOT NULL")
     private int likeCount = 0;
 
     // Predefined assessment/experience tags (review-experience.md #4) — a
