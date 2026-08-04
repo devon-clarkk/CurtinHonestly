@@ -87,7 +87,7 @@ describe('buildUnitJsonLd', () => {
         {
           rating: 5,
           reviewText: 'Great unit with practical assignments.',
-          semesterTaken: 'Sem 1 2025',
+          termType: 'SEMESTER_1' as const, termYear: 2025,
           professor: 'Smith',
           workload: 6,
           hasExam: true,
@@ -98,7 +98,7 @@ describe('buildUnitJsonLd', () => {
         {
           rating: 4,
           reviewText: 'Challenging but fair.',
-          semesterTaken: 'Sem 2 2024',
+          termType: 'SEMESTER_2' as const, termYear: 2024,
           professor: 'Jones',
           workload: 7,
           hasExam: false,
@@ -143,7 +143,7 @@ describe('buildUnitJsonLd', () => {
         {
           rating: 0,
           reviewText: 'Very difficult.',
-          semesterTaken: 'Sem 1 2025',
+          termType: 'SEMESTER_1' as const, termYear: 2025,
           professor: 'Smith',
           workload: 9,
           hasExam: true,
@@ -169,7 +169,7 @@ describe('buildUnitJsonLd', () => {
         {
           rating: 3,
           reviewText: '   ',
-          semesterTaken: 'Sem 1 2025',
+          termType: 'SEMESTER_1' as const, termYear: 2025,
           professor: 'Smith',
           workload: 5,
           hasExam: false,
@@ -179,7 +179,7 @@ describe('buildUnitJsonLd', () => {
         {
           rating: 4,
           reviewText: 'Solid overview.',
-          semesterTaken: 'Sem 2 2024',
+          termType: 'SEMESTER_2' as const, termYear: 2024,
           professor: 'Jones',
           workload: 4,
           hasExam: true,
@@ -206,7 +206,7 @@ describe('buildUnitJsonLd', () => {
         {
           rating: 3,
           reviewText: 'Decent unit.',
-          semesterTaken: 'Sem 1 2025',
+          termType: 'SEMESTER_1' as const, termYear: 2025,
           professor: 'Smith',
           workload: 5,
           hasExam: false,
@@ -328,7 +328,7 @@ describe('buildUnitJsonLd — dateModified', () => {
         {
           rating: 4,
           reviewText: 'Good unit.',
-          semesterTaken: 'Sem 1 2024',
+          termType: 'SEMESTER_1' as const, termYear: 2024,
           professor: 'Smith',
           workload: 5,
           hasExam: false,
@@ -339,7 +339,7 @@ describe('buildUnitJsonLd — dateModified', () => {
         {
           rating: 4,
           reviewText: 'Also good.',
-          semesterTaken: 'Sem 2 2024',
+          termType: 'SEMESTER_2' as const, termYear: 2024,
           professor: 'Jones',
           workload: 5,
           hasExam: false,
@@ -362,7 +362,7 @@ describe('buildUnitJsonLd — dateModified', () => {
         {
           rating: 3,
           reviewText: 'OK.',
-          semesterTaken: 'Sem 1 2025',
+          termType: 'SEMESTER_1' as const, termYear: 2025,
           professor: 'Smith',
           workload: 5,
           hasExam: false,

@@ -1,5 +1,6 @@
 package com.curtinhonestly.backend.dto;
 
+import com.curtinhonestly.backend.domain.AcademicTerm;
 import com.curtinhonestly.backend.domain.ReviewTag;
 import lombok.Data;
 
@@ -15,7 +16,10 @@ public class ReviewDTO {
     private int rating;
     private Integer finalGrade;
     private String reviewText;
-    private String semesterTaken;
+    // The client builds the display label from these. Deliberately not sent as a
+    // formatted string - that is what froze the old format into the database.
+    private AcademicTerm termType;
+    private Integer termYear;
     private String professor;
     private int workload;
     private boolean hasExam;

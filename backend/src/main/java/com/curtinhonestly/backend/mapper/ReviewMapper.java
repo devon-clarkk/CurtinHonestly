@@ -16,7 +16,8 @@ public class ReviewMapper {
         dto.setRating(review.getRating());
         dto.setFinalGrade(review.getFinalGrade());
         dto.setReviewText(review.getReviewText());
-        dto.setSemesterTaken(review.getSemesterTaken());
+        dto.setTermType(review.getTermType());
+        dto.setTermYear(review.getTermYear());
         dto.setProfessor(review.getProfessor());
         dto.setWorkload(review.getWorkload());
         dto.setHasExam(review.isHasExam());
@@ -43,7 +44,8 @@ public class ReviewMapper {
                 review.getRating(),
                 review.getFinalGrade(),
                 review.getReviewText(),
-                review.getSemesterTaken(),
+                review.getTermType(),
+                review.getTermYear(),
                 review.getProfessor(),
                 review.getWorkload(),
                 review.isHasExam(),

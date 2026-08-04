@@ -2,8 +2,8 @@ import { Component, inject, input, output, signal, OnInit } from '@angular/core'
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CampaignProgress, CreateReviewResponse, ReviewService } from '../../services/review.service';
-import { generateSemesterOptions } from '../../utils/semester-options.util';
-import { MyReview, REVIEW_TAGS } from '../../models/unit.model';
+import { SemesterOption, formatTerm, generateSemesterOptions } from '../../utils/semester-options.util';
+import { AcademicTerm, MyReview, REVIEW_TAGS } from '../../models/unit.model';
 
 @Component({
   selector: 'app-add-review',
@@ -24,11 +24,13 @@ export class AddReviewComponent implements OnInit {
   cancel = output<void>();
 
   // Generated from today's date instead of a hardcoded list — see quick-fixes.md #4.
-  semesterOptions = generateSemesterOptions();
+  // A signal because editing a review whose term predates the current floor
+  // appends that term rather than losing it (see selectStoredTerm).
+  semesterOptions = signal<SemesterOption[]>(generateSemesterOptions());
 
   rating = signal(5);
   reviewText = signal('');
-  semesterTaken = signal(this.semesterOptions[0]);
+  selectedSemester = signal<SemesterOption>(this.semesterOptions()[0]);
   professor = signal('');
   workload = signal(5);
   hasExam = signal(false);
@@ -55,7 +57,7 @@ export class AddReviewComponent implements OnInit {
     }
     this.rating.set(existing.rating);
     this.reviewText.set(existing.reviewText);
-    this.semesterTaken.set(existing.semesterTaken || this.semesterOptions[0]);
+    this.selectStoredTerm(existing.termType, existing.termYear);
     this.professor.set(existing.professor || '');
     this.workload.set(existing.workload ?? 5);
     this.hasExam.set(existing.hasExam ?? false);
@@ -100,7 +102,8 @@ export class AddReviewComponent implements OnInit {
     const reviewData = {
       rating: this.rating(),
       reviewText: this.reviewText(),
-      semesterTaken: this.semesterTaken(),
+      termType: this.selectedSemester().termType,
+      termYear: this.selectedSemester().termYear,
       professor: this.professor(),
       workload: this.workload(),
       hasExam: this.hasExam(),
@@ -200,10 +203,43 @@ export class AddReviewComponent implements OnInit {
     return null;
   }
 
+  /**
+   * Selects the option matching a stored term.
+   *
+   * ngModel matches options by object identity, so this has to resolve to the
+   * exact array element rather than an equal copy.
+   *
+   * If the stored term predates the current floor (possible if EARLIEST_TERM is
+   * ever moved forward), the term is appended as its own option instead of
+   * falling back to the newest one. Silently rewriting a student's answer to the
+   * current semester on edit would be worse than a slightly longer list.
+   */
+  private selectStoredTerm(termType: AcademicTerm | null | undefined, termYear: number | null | undefined) {
+    const year = termYear ?? null;
+    const match = this.semesterOptions().find(o => o.termType === termType && o.termYear === year);
+    if (match) {
+      this.selectedSemester.set(match);
+      return;
+    }
+
+    if (!termType) {
+      this.selectedSemester.set(this.semesterOptions()[0]);
+      return;
+    }
+
+    const restored: SemesterOption = {
+      termType,
+      termYear: year,
+      label: formatTerm(termType, year) || 'Earlier',
+    };
+    this.semesterOptions.update(list => [...list, restored]);
+    this.selectedSemester.set(restored);
+  }
+
   resetForm() {
     this.rating.set(5);
     this.reviewText.set('');
-    this.semesterTaken.set(this.semesterOptions[0]);
+    this.selectedSemester.set(this.semesterOptions()[0]);
     this.professor.set('');
     this.workload.set(5);
     this.hasExam.set(false);
