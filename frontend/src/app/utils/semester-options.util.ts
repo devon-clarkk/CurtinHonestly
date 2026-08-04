@@ -27,12 +27,57 @@ function termLabel(term: Term): string {
   return `Summer, ${term.year - 1}/${String(term.year).slice(-2)}`;
 }
 
-export function generateSemesterOptions(count: number = 6, referenceDate: Date = new Date()): string[] {
+/**
+ * Oldest term offered explicitly. Six terms back from today only reached about
+ * 18 months, so students reviewing a unit they took earlier in their degree had
+ * nothing to pick. Anything older than this collapses into BEFORE_EARLIEST_OPTION.
+ *
+ * The list grows by three entries a year. If it ever gets unwieldy, move this
+ * floor forward rather than reverting to a fixed count - a count goes stale at
+ * the recent end, which is the bug this util was written to fix.
+ */
+const EARLIEST_TERM: Term = { type: 'S1', year: 2022 };
+
+export const BEFORE_EARLIEST_OPTION = `Before ${EARLIEST_TERM.year}`;
+
+/** Ordering within a year: Summer (Nov-Feb) comes before S1, which comes before S2. */
+function termRank(term: Term): number {
+  if (term.type === 'SUMMER') return 0;
+  return term.type === 'S1' ? 1 : 2;
+}
+
+function isOlderThan(a: Term, b: Term): boolean {
+  if (a.year !== b.year) return a.year < b.year;
+  return termRank(a) < termRank(b);
+}
+
+/**
+ * The raw term sequence, newest first. Exported for tests; production code wants
+ * generateSemesterOptions below.
+ */
+export function generateRecentTerms(count: number, referenceDate: Date = new Date()): string[] {
   const options: string[] = [];
   let term = currentTerm(referenceDate);
   for (let i = 0; i < count; i++) {
     options.push(termLabel(term));
     term = previousTerm(term);
   }
+  return options;
+}
+
+/**
+ * Every term from the current one back to EARLIEST_TERM, then a catch-all for
+ * anything older.
+ */
+export function generateSemesterOptions(referenceDate: Date = new Date()): string[] {
+  const options: string[] = [];
+  let term = currentTerm(referenceDate);
+
+  while (!isOlderThan(term, EARLIEST_TERM)) {
+    options.push(termLabel(term));
+    term = previousTerm(term);
+  }
+
+  options.push(BEFORE_EARLIEST_OPTION);
   return options;
 }
