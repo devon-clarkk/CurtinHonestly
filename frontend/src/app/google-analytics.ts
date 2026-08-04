@@ -16,8 +16,10 @@ export function initGoogleAnalytics(): void {
   }
 
   window.dataLayer = window.dataLayer || [];
-  window.gtag = function gtag(...args: unknown[]) {
-    window.dataLayer.push(args);
+  // gtag.js only interprets dataLayer entries that are `arguments` objects; a rest
+  // parameter pushes a plain Array, which it silently ignores. Keep `arguments`.
+  window.gtag = function gtag() {
+    window.dataLayer.push(arguments);
   };
   window.gtag('js', new Date());
   window.gtag('config', GA_MEASUREMENT_ID);
