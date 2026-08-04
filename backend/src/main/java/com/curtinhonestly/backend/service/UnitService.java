@@ -33,51 +33,51 @@ public class UnitService {
 
     private final UnitRepo unitRepo;
 
+    /**
+     * Final tiebreak on every sort. Without one, rows that compare equal have no
+     * guaranteed order in Postgres, and a paginated list can repeat or skip units
+     * between pages. That matters most for the default: with no reviews on a unit
+     * the relevance score is exactly 0, so today every unit ties and this tiebreak
+     * decides the entire ordering.
+     */
+    private static final Sort.Order CODE_TIEBREAK = Sort.Order.asc("code");
+
     @Transactional(readOnly = true)
     public Page<UnitSummaryDTO> getAllUnits(int page, int size, String search, List<Faculty> faculties, UnitLevel level, String sortBy) {
-        Sort sort = Sort.by(Sort.Direction.ASC, "code"); // Default sort
-
-        if (sortBy != null && !sortBy.isEmpty()) {
-            switch (sortBy) {
-                case "name":
-                    sort = Sort.by(Sort.Direction.ASC, "name");
-                    break;
-                case "name_desc":
-                    sort = Sort.by(Sort.Direction.DESC, "name");
-                    break;
-                case "code_desc":
-                    sort = Sort.by(Sort.Direction.DESC, "code");
-                    break;
-                case "most_reviewed":
-                    sort = Sort.by(Sort.Direction.DESC, "reviewCount");
-                    break;
-                case "least_reviewed":
-                    sort = Sort.by(Sort.Direction.ASC, "reviewCount");
-                    break;
-                case "highest_rated":
-                    sort = Sort.by(Sort.Direction.DESC, "averageRating");
-                    break;
-                case "lowest_rated":
-                    sort = Sort.by(Sort.Direction.ASC, "averageRating");
-                    break;
-                case "highest_mark":
-                    sort = Sort.by(Sort.Direction.DESC, "averageFinalGrade");
-                    break;
-                case "lowest_mark":
-                    sort = Sort.by(Sort.Direction.ASC, "averageFinalGrade");
-                    break;
-                case "lowest_workload":
-                    sort = Sort.by(Sort.Direction.ASC, "averageWorkload");
-                    break;
-                case "highest_workload":
-                    sort = Sort.by(Sort.Direction.DESC, "averageWorkload");
-                    break;
-            }
-        }
+        Sort sort = sortFor(sortBy);
 
         Specification<Unit> spec = UnitSpecification.filterUnits(search, faculties, level);
         Page<Unit> units = unitRepo.findAll(spec, PageRequest.of(page, size, sort));
         return units.map(UnitMapper::toSummaryDTO);
+    }
+
+    /**
+     * Maps the sortBy query parameter to an ordering, always ending in the code
+     * tiebreak so pagination is stable.
+     *
+     * Unknown or absent values fall back to relevance rather than erroring: this
+     * is a public read endpoint and a bad sort parameter should not fail a page
+     * load. Relevance degrades to plain code order when nothing has reviews yet,
+     * so the fallback is never worse than the old default.
+     */
+    private Sort sortFor(String sortBy) {
+        String key = sortBy == null ? "" : sortBy.trim();
+
+        return switch (key) {
+            case "code" -> Sort.by(Sort.Order.asc("code"));
+            case "code_desc" -> Sort.by(Sort.Order.desc("code"));
+            case "name" -> Sort.by(Sort.Order.asc("name"), CODE_TIEBREAK);
+            case "name_desc" -> Sort.by(Sort.Order.desc("name"), CODE_TIEBREAK);
+            case "most_reviewed" -> Sort.by(Sort.Order.desc("reviewCount"), CODE_TIEBREAK);
+            case "least_reviewed" -> Sort.by(Sort.Order.asc("reviewCount"), CODE_TIEBREAK);
+            case "highest_rated" -> Sort.by(Sort.Order.desc("averageRating"), CODE_TIEBREAK);
+            case "lowest_rated" -> Sort.by(Sort.Order.asc("averageRating"), CODE_TIEBREAK);
+            case "highest_mark" -> Sort.by(Sort.Order.desc("averageFinalGrade"), CODE_TIEBREAK);
+            case "lowest_mark" -> Sort.by(Sort.Order.asc("averageFinalGrade"), CODE_TIEBREAK);
+            case "lowest_workload" -> Sort.by(Sort.Order.asc("averageWorkload"), CODE_TIEBREAK);
+            case "highest_workload" -> Sort.by(Sort.Order.desc("averageWorkload"), CODE_TIEBREAK);
+            default -> Sort.by(Sort.Order.desc("relevanceScore"), CODE_TIEBREAK);
+        };
     }
 
     public Unit getUnitById(String id) throws RuntimeException

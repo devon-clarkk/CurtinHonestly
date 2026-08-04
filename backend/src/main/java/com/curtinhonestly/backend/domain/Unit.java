@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.BatchSize;
+import org.hibernate.annotations.Formula;
 import org.hibernate.annotations.UuidGenerator;
 
 import java.time.Instant;
@@ -65,6 +66,33 @@ public class Unit {
 
     @Column(name = "latest_review_at")
     private Instant latestReviewAt;
+
+    /**
+     * How useful this unit's review data is right now: how many reviews it has,
+     * discounted by how stale the newest one is.
+     *
+     * Read-only, computed by the database at query time. It exists so the unit
+     * list can be ordered by a combination rather than by review count alone -
+     * with a plain count sort, nine reviews from 2022 outrank eight from last
+     * month, which is the opposite of useful.
+     *
+     * The 15552000 divisor is a 180-day half-life in seconds. Eight fresh
+     * reviews beat nine six-month-old ones; freshness alone cannot rescue a unit
+     * nobody has reviewed, because the count multiplies through to zero.
+     *
+     * A unit with no reviews scores exactly 0 regardless of the decay term, so
+     * ordering among unreviewed units is decided entirely by the tiebreak in
+     * UnitService. That is the normal case today - prod has no reviews at all.
+     *
+     * Postgres-specific SQL. That is the only database this runs against,
+     * including in Testcontainers.
+     */
+    @Formula("""
+            coalesce(review_count, 0) * exp(
+                -extract(epoch from (now() - coalesce(latest_review_at, now() - interval '5 years')))
+                / 15552000.0)
+            """)
+    private double relevanceScore;
 
     @Column(length = 255)
     private String area;
