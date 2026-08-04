@@ -1,5 +1,6 @@
 package com.curtinhonestly.backend.dto;
 
+import com.curtinhonestly.backend.domain.AcademicTerm;
 import com.curtinhonestly.backend.domain.ReviewTag;
 
 import java.time.Instant;
@@ -12,7 +13,8 @@ public record MyReviewDTO(
         int rating,
         Integer finalGrade,
         String reviewText,
-        String semesterTaken,
+        AcademicTerm termType,
+        Integer termYear,
         String professor,
         int workload,
         boolean hasExam,

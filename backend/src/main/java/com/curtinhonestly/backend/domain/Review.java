@@ -45,7 +45,27 @@ public class Review {
     private Integer finalGrade; // Optional
     @Column(length = 2000)
     private String reviewText;
-    private String semesterTaken; // Optional
+    /**
+     * TRANSITIONAL - superseded by termType/termYear, no longer read by anything.
+     *
+     * Kept populated with a canonical label for one release so a rollback does not
+     * lose term data written in the meantime, and so the column can be dropped in a
+     * later migration rather than in the same deploy that stops using it.
+     */
+    private String semesterTaken;
+
+    /** Which teaching period. Null when the student did not answer. */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "term_type")
+    private AcademicTerm termType;
+
+    /**
+     * Year the term belongs to. Null when unanswered or when termType is
+     * EARLIER_UNSPECIFIED. For SUMMER this is the year the term *ends* in.
+     */
+    @Column(name = "term_year")
+    private Integer termYear;
+
     private String professor; // Optional
 
     private int workload; // 0-10

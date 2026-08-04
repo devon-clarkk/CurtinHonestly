@@ -7,6 +7,7 @@ import { ReviewService } from '../../services/review.service';
 import { UnitService } from '../../services/unit.service';
 import { SeoService } from '../../services/seo.service';
 import { MyReview, UnitSummary } from '../../models/unit.model';
+import { formatTerm } from '../../utils/semester-options.util';
 import { AddReviewComponent } from '../add-review/add-review.component';
 
 @Component({
@@ -21,6 +22,9 @@ export class MyReviewsComponent implements OnInit {
   private unitService = inject(UnitService);
   private router = inject(Router);
   private seoService = inject(SeoService);
+
+  // Labels are built client-side from the stored (termType, termYear) pair.
+  formatTerm = formatTerm;
 
   reviews = signal<MyReview[]>([]);
   isLoading = signal(true);

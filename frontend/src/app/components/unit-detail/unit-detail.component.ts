@@ -10,6 +10,7 @@ import { CompletedUnitsService } from '../../services/completed-units.service';
 import { SeoService } from '../../services/seo.service';
 import { reviewAuthorName } from '../../utils/unit-seo.utils';
 import { GradeBand, gradeDistribution, gradedReviewCount } from '../../utils/grade-distribution.util';
+import { formatTerm, termSortKey } from '../../utils/semester-options.util';
 import { PrerequisiteGroup, REVIEW_TAGS, Review, Tip, UnitDetails } from '../../models/unit.model';
 import { Observable, switchMap, map, of, tap, catchError } from 'rxjs';
 import { AddReviewComponent } from '../add-review/add-review.component';
@@ -322,8 +323,9 @@ export class UnitDetailComponent implements OnInit {
   // present, without a dangling separator when a field is missing.
   reviewMetaLine(review: Review): string {
     const parts: string[] = [];
-    if (review.semesterTaken) {
-      parts.push(review.semesterTaken);
+    const term = formatTerm(review.termType, review.termYear);
+    if (term) {
+      parts.push(term);
     }
     if (review.professor) {
       parts.push(`Prof. ${review.professor}`);
@@ -355,16 +357,34 @@ export class UnitDetailComponent implements OnInit {
 
   // True when the most recent review predates the current calendar year —
   // a subtle signal that unit content (assessment, staff) may have changed since.
+  /**
+   * Whether the newest review describes a teaching period from a previous year.
+   *
+   * Measured on the term the unit was TAKEN, not when the review was posted.
+   * Those diverge whenever someone reviews a unit from earlier in their degree,
+   * which the semester dropdown now allows back to 2022 - a 2022 unit reviewed
+   * today used to register as perfectly fresh, while the banner claimed
+   * "assessment style, staff, or content may have changed since".
+   *
+   * Reviews with no term, or the open-ended "before 2022" bucket, have no
+   * position on a timeline and are ignored rather than treated as ancient.
+   */
   isReviewDataStale(reviews: Review[]): boolean {
     if (!reviews || reviews.length === 0) {
       return false;
     }
-    const latest = reviews.reduce<Date | null>((max, r) => {
-      if (!r.createdAt) return max;
-      const d = new Date(r.createdAt);
-      return !max || d > max ? d : max;
+
+    const latestTermYear = reviews.reduce<number | null>((max, r) => {
+      if (termSortKey(r.termType, r.termYear) === null) return max;
+      const year = r.termYear as number;
+      return max === null || year > max ? year : max;
     }, null);
-    return !!latest && latest.getFullYear() < new Date().getFullYear();
+
+    if (latestTermYear === null) {
+      return false;
+    }
+
+    return latestTermYear < new Date().getFullYear();
   }
 
   // Lecturer-aware review display (review-experience.md #5). Deliberately
