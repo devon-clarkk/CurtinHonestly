@@ -93,7 +93,7 @@
             </div>
             <p class="review-excerpt">{{ review.reviewText }}</p>
             <div class="review-meta">
-              <span>{{ review.semesterTaken }}</span>
+              <span>{{ formatTerm(review.termType, review.termYear) }}</span>
               <span>{{ review.likeCount || 0 }} helpful</span>
               @if (review.createdAt) {
                 <span>{{ review.createdAt | date: 'mediumDate' }}</span>

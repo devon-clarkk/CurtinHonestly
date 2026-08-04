@@ -1,5 +1,6 @@
 package com.curtinhonestly.backend.service;
 
+import com.curtinhonestly.backend.domain.AcademicTerm;
 import com.curtinhonestly.backend.domain.CampaignEntry;
 import com.curtinhonestly.backend.domain.Review;
 import com.curtinhonestly.backend.domain.Unit;
@@ -78,7 +79,7 @@ public class ReviewService {
         review.setRating(request.rating());
         review.setFinalGrade(request.finalGrade());
         review.setReviewText(request.reviewText());
-        review.setSemesterTaken(request.semesterTaken());
+        applyTerm(review, request.termType(), request.termYear());
         review.setProfessor(request.professor());
         review.setWorkload(request.workload());
         review.setHasExam(request.hasExam());
@@ -93,6 +94,20 @@ public class ReviewService {
         Review saved = reviewRepo.save(review);
         unitAggregateService.recalculateForUnit(unit.getId());
         return saved;
+    }
+
+    /**
+     * Writes the term a review refers to, enforcing the one invariant the pair has:
+     * EARLIER_UNSPECIFIED is an open-ended bucket, so it never carries a year. A
+     * client sending one anyway would otherwise produce rows that look like a real
+     * dated term to any aggregate query.
+     *
+     * The legacy semesterTaken column is deliberately left untouched. It holds
+     * backfilled history only and is dropped once nothing reads it.
+     */
+    private void applyTerm(Review review, AcademicTerm termType, Integer termYear) {
+        review.setTermType(termType);
+        review.setTermYear(termType == AcademicTerm.EARLIER_UNSPECIFIED ? null : termYear);
     }
 
     /**
@@ -111,7 +126,7 @@ public class ReviewService {
         review.setRating(request.rating());
         review.setFinalGrade(request.finalGrade());
         review.setReviewText(request.reviewText());
-        review.setSemesterTaken(request.semesterTaken());
+        applyTerm(review, request.termType(), request.termYear());
         review.setProfessor(request.professor());
         review.setWorkload(request.workload());
         review.setHasExam(request.hasExam());

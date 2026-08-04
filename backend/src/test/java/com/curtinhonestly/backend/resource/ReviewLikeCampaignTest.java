@@ -1,5 +1,6 @@
 package com.curtinhonestly.backend.resource;
 
+import com.curtinhonestly.backend.domain.AcademicTerm;
 import com.curtinhonestly.backend.config.TestcontainersConfig;
 import com.curtinhonestly.backend.domain.Campaign;
 import com.curtinhonestly.backend.domain.Faculty;
@@ -99,7 +100,7 @@ class ReviewLikeCampaignTest {
 
         ReviewCreateRequest request = new ReviewCreateRequest(
                 4, 80, "This review is long enough to qualify once it receives a like.",
-                "Semester 1, 2026", "Prof Test", 5, true, true, authorUnit.getCode(), null);
+                AcademicTerm.SEMESTER_1, 2026, "Prof Test", 5, true, true, authorUnit.getCode(), null);
 
         var created = reviewService.createReviewWithCampaignEntry(request);
         assertThat(created.campaignEntry()).isEmpty();
@@ -178,7 +179,7 @@ class ReviewLikeCampaignTest {
 
         ReviewCreateRequest request = new ReviewCreateRequest(
                 5, 85, "Author review that qualifies on length but waits on the likes-given gate.",
-                "Semester 1, 2026", "Prof Gate", 4, false, true, authorUnit.getCode(), null);
+                AcademicTerm.SEMESTER_1, 2026, "Prof Gate", 4, false, true, authorUnit.getCode(), null);
 
         var created = reviewService.createReviewWithCampaignEntry(request);
         assertThat(created.campaignEntry()).isEmpty();

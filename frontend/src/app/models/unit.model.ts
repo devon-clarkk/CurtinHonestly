@@ -54,12 +54,21 @@ export interface TagSummary {
   count: number;
 }
 
+/**
+ * Which teaching period a review refers to. Mirrors the backend enum.
+ * EARLIER_UNSPECIFIED is the open-ended "before our earliest offered term"
+ * bucket and always has a null year.
+ */
+export type AcademicTerm = 'SEMESTER_1' | 'SEMESTER_2' | 'SUMMER' | 'EARLIER_UNSPECIFIED';
+
 export interface Review {
   id?: string;
   rating: number;
   finalGrade?: number;
   reviewText: string;
-  semesterTaken: string;
+  // Structured, not a label. Use formatTerm() from semester-options.util to display.
+  termType?: AcademicTerm | null;
+  termYear?: number | null;
   professor: string;
   workload: number;
   hasExam: boolean;
@@ -86,7 +95,8 @@ export interface MyReview {
   rating: number;
   finalGrade?: number | null;
   reviewText: string;
-  semesterTaken: string;
+  termType?: AcademicTerm | null;
+  termYear?: number | null;
   professor?: string;
   workload?: number;
   hasExam?: boolean;

@@ -1,5 +1,6 @@
 package com.curtinhonestly.backend.service;
 
+import com.curtinhonestly.backend.domain.AcademicTerm;
 import com.curtinhonestly.backend.domain.Review;
 import com.curtinhonestly.backend.domain.Unit;
 import com.curtinhonestly.backend.domain.User;
@@ -55,7 +56,7 @@ class ReviewServiceUpdateTest {
 
     private ReviewUpdateRequest updateRequest() {
         return new ReviewUpdateRequest(5, 90, "Updated text — much better than I first thought.",
-                "Semester 2, 2026", "Dr Smith", 7, true, true, null);
+                AcademicTerm.SEMESTER_2, 2026, "Dr Smith", 7, true, true, null);
     }
 
     @Test
@@ -70,7 +71,8 @@ class ReviewServiceUpdateTest {
         assertThat(result.getRating()).isEqualTo(5);
         assertThat(result.getFinalGrade()).isEqualTo(90);
         assertThat(result.getReviewText()).isEqualTo("Updated text — much better than I first thought.");
-        assertThat(result.getSemesterTaken()).isEqualTo("Semester 2, 2026");
+        assertThat(result.getTermType()).isEqualTo(AcademicTerm.SEMESTER_2);
+        assertThat(result.getTermYear()).isEqualTo(2026);
         assertThat(result.getProfessor()).isEqualTo("Dr Smith");
         assertThat(result.getWorkload()).isEqualTo(7);
         assertThat(result.isHasExam()).isTrue();

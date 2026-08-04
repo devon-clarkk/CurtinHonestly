@@ -24,8 +24,10 @@
     <div class="form-grid">
       <div class="form-group">
         <label for="semester">Semester Taken</label>
-        <select id="semester" [ngModel]="semesterTaken()" (ngModelChange)="semesterTaken.set($event)" name="semesterTaken" class="form-control">
-          <option *ngFor="let option of semesterOptions" [value]="option">{{ option }}</option>
+        <!-- ngValue, not value: the option carries a structured (termType, termYear)
+             pair, and [value] would stringify it to "[object Object]". -->
+        <select id="semester" [ngModel]="selectedSemester()" (ngModelChange)="selectedSemester.set($event)" name="semesterTaken" class="form-control">
+          <option *ngFor="let option of semesterOptions()" [ngValue]="option">{{ option.label }}</option>
         </select>
       </div>
 

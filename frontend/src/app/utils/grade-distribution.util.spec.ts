@@ -6,7 +6,7 @@ function review(finalGrade: number | undefined): Review {
   return {
     rating: 4,
     reviewText: 'x',
-    semesterTaken: 'Semester 1, 2026',
+    termType: 'SEMESTER_1' as const, termYear: 2026,
     professor: '',
     workload: 5,
     hasExam: false,
