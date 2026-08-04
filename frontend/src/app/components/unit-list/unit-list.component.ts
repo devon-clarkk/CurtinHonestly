@@ -44,11 +44,12 @@ export class UnitListComponent implements OnInit, OnDestroy {
   searchQuery = '';
   selectedFaculties: Faculty[] = [];
   selectedLevel?: UnitLevel;
-  sortBy = 'code';
+  sortBy = 'relevance';
 
   faculties = this.unitService.getFaculties();
   levels = this.unitService.getUnitLevels();
   sortOptions = [
+    { value: 'relevance', label: 'Most Relevant' },
     { value: 'code', label: 'Unit Code (A-Z)' },
     { value: 'code_desc', label: 'Unit Code (Z-A)' },
     { value: 'name', label: 'Name (A-Z)' },
@@ -214,7 +215,7 @@ export class UnitListComponent implements OnInit, OnDestroy {
     this.searchQuery = '';
     this.selectedFaculties = [];
     this.selectedLevel = undefined;
-    this.sortBy = 'code';
+    this.sortBy = 'relevance';
     this.loadPage0();
   }
 
