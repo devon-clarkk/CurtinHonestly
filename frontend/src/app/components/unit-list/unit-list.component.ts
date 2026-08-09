@@ -1,6 +1,6 @@
 import { Component, inject, OnInit, OnDestroy, ElementRef, ViewChild, PLATFORM_ID, signal } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { UnitService } from '../../services/unit.service';
 import { SeoService } from '../../services/seo.service';
@@ -33,6 +33,7 @@ export class UnitListComponent implements OnInit, OnDestroy {
   private unitRequestService = inject(UnitRequestService);
   private platformId = inject(PLATFORM_ID);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
 
   private destroy$ = new Subject<void>();
   private searchSubject = new Subject<void>();
@@ -115,6 +116,12 @@ export class UnitListComponent implements OnInit, OnDestroy {
     // Search input is debounced; sort/faculty/level fire immediately
     this.searchSubject.pipe(debounceTime(300), takeUntil(this.destroy$)).subscribe(() => this.loadPage0());
     this.loadPage0();
+
+    // The custom 404 page links here with ?request=1 to open the request-a-unit
+    // form directly (the form otherwise lives behind a "Request it" button).
+    if (this.route.snapshot.queryParamMap.get('request')) {
+      this.openRequestUnitForm();
+    }
   }
 
   dismissSeasonalBanner(): void {

@@ -1,0 +1,48 @@
+.not-found-container {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 64px 20px;
+  text-align: center;
+}
+
+.not-found-code {
+  font-family: var(--header-font);
+  font-size: 4rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--primary-color);
+  margin: 0;
+}
+
+.not-found-title {
+  margin: 8px 0 12px;
+}
+
+.not-found-lead {
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 28px;
+}
+
+.not-found-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+}
+
+.not-found-actions .btn {
+  text-decoration: none;
+}
+
+/* Outline variant — the global stylesheet only ships .btn and .btn-primary. */
+.not-found-actions .btn-outline {
+  background: transparent;
+  border: 1px solid var(--primary-color);
+  color: var(--primary-color);
+}
+
+.not-found-actions .btn-outline:hover {
+  background: var(--primary-color);
+  color: var(--secondary-color);
+}

@@ -1,0 +1,12 @@
+<div class="not-found-container">
+  <p class="not-found-code">404</p>
+  <h1 class="not-found-title">Page not found</h1>
+  <p class="not-found-lead">
+    The page you're after doesn't exist or may have moved. Looking for a unit we
+    don't have yet? Let us know and we'll look into adding it.
+  </p>
+  <div class="not-found-actions">
+    <a routerLink="/" class="btn btn-primary">Back to home</a>
+    <a routerLink="/" [queryParams]="{ request: 1 }" class="btn btn-outline">Request a unit</a>
+  </div>
+</div>

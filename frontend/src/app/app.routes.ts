@@ -35,5 +35,8 @@ export const routes: Routes = [
     loadComponent: () => import('./components/legal/privacy.component').then(m => m.PrivacyComponent)
   },
   { path: 'units/:code', component: UnitDetailComponent },
-  { path: '**', redirectTo: '' }
+  {
+    path: '**',
+    loadComponent: () => import('./components/not-found/not-found.component').then(m => m.NotFoundComponent)
+  }
 ];
