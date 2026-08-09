@@ -49,7 +49,23 @@
   <div class="form-grid">
     <input type="text" placeholder="Link code (ref param), e.g. discord-jul26" [(ngModel)]="refSlug" name="refSlug" />
     <input type="text" placeholder="Label (optional), e.g. Computing Discord" [(ngModel)]="refName" name="refName" />
+    <label>
+      Lands on
+      <select [(ngModel)]="refLandingType" name="refLandingType">
+        <option value="home">Home (/)</option>
+        <option value="register">Register (/register)</option>
+        <option value="unit">Unit page</option>
+        <option value="custom">Custom path</option>
+      </select>
+    </label>
+    @if (refLandingType === 'unit') {
+      <input type="text" placeholder="Unit code, e.g. COMP1000" [(ngModel)]="refUnitCode" name="refUnitCode" />
+    }
+    @if (refLandingType === 'custom') {
+      <input type="text" placeholder="Path, e.g. /compare" [(ngModel)]="refCustomPath" name="refCustomPath" />
+    }
   </div>
+  <p class="page-subtitle">The visitor lands on the chosen page; the ref is captured site-wide, so any page still tracks and attributes.</p>
   <button type="button" class="btn btn-primary" (click)="createReferralLink()">Create referral link</button>
 </section>
 
@@ -88,7 +104,7 @@
             }
             <div class="subtle">
               @if (campaign.trackingOnly) {
-                no prize · no requirement · tracking only
+                no prize · no requirement · lands on <code>{{ campaign.landingPath || '/' }}</code>
               } @else {
                 {{ campaign.requiredReviewCount }} review(s) ·
                 {{ campaign.requireVerifiedStudent ? 'verified only' : 'any account' }} ·

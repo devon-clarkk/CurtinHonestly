@@ -114,10 +114,10 @@ public class AdminResource {
         ));
     }
 
-    // Tracking-only referral link: just a slug + optional name, no reward config.
+    // Tracking-only referral link: a slug + optional name + which page it lands on.
     @PostMapping("/referral-links")
     public ResponseEntity<CampaignAdminDTO> createReferralLink(@RequestBody CreateReferralLinkRequest request) {
-        return ResponseEntity.ok(campaignService.createReferralLink(request.slug(), request.name()));
+        return ResponseEntity.ok(campaignService.createReferralLink(request.slug(), request.name(), request.landingPath()));
     }
 
     @PatchMapping("/campaigns/{id}/active")
@@ -174,5 +174,5 @@ public class AdminResource {
 
     public record SetCampaignActiveRequest(boolean active) {}
 
-    public record CreateReferralLinkRequest(String slug, String name) {}
+    public record CreateReferralLinkRequest(String slug, String name, String landingPath) {}
 }

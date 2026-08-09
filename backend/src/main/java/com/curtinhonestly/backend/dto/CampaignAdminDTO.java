@@ -25,6 +25,7 @@ public class CampaignAdminDTO {
     private int minLikesGiven;
     private boolean trackingOnly;
     private long visitCount;
+    private String landingPath;
     private long signupCount;
     private long reviewCount;
     private long entryCount;

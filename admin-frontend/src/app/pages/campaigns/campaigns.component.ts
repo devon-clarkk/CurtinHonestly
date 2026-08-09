@@ -36,6 +36,11 @@ export class CampaignsComponent implements OnInit {
   // Tracking-only referral link form (no reward config).
   refSlug = '';
   refName = '';
+  // Landing-page picker: which page the link forwards to. 'unit'/'custom' reveal
+  // an extra input; everything else maps straight to a path in resolveLandingPath().
+  refLandingType: 'home' | 'register' | 'unit' | 'custom' = 'home';
+  refUnitCode = '';
+  refCustomPath = '';
 
   ngOnInit(): void {
     this.refreshCampaigns();
@@ -86,15 +91,45 @@ export class CampaignsComponent implements OnInit {
   createReferralLink(): void {
     this.clearMessages();
 
-    this.adminService.createReferralLink({ slug: this.refSlug, name: this.refName }).subscribe({
+    this.adminService.createReferralLink({
+      slug: this.refSlug,
+      name: this.refName,
+      landingPath: this.resolveLandingPath()
+    }).subscribe({
       next: () => {
         this.successMessage.set('Referral link created.');
         this.refSlug = '';
         this.refName = '';
+        this.refLandingType = 'home';
+        this.refUnitCode = '';
+        this.refCustomPath = '';
         this.refreshCampaigns();
       },
       error: (err) => this.errorMessage.set(err.error?.error || 'Failed to create referral link.')
     });
+  }
+
+  // Turns the picker selection into a site-relative path. The backend
+  // re-validates/normalises this, so this only needs to produce a sensible value.
+  private resolveLandingPath(): string {
+    switch (this.refLandingType) {
+      case 'register':
+        return '/register';
+      case 'unit': {
+        const code = this.refUnitCode.trim().toUpperCase();
+        return code ? `/units/${code}` : '/';
+      }
+      case 'custom': {
+        const path = this.refCustomPath.trim();
+        if (!path) {
+          return '/';
+        }
+        return path.startsWith('/') ? path : `/${path}`;
+      }
+      case 'home':
+      default:
+        return '/';
+    }
   }
 
   toggleActive(campaign: CampaignAdmin): void {
@@ -119,10 +154,15 @@ export class CampaignsComponent implements OnInit {
 
   registrationLink(campaign: CampaignAdmin): string {
     const origin = typeof window !== 'undefined' ? window.location.origin.replace(':4201', ':4200') : 'https://curtinhonestly.com';
-    // Tracking-only links carry only the ref (their code is a hidden placeholder);
-    // reward campaigns include the promo code so it prefills on the register page.
-    const base = `${origin}/register?ref=${encodeURIComponent(campaign.slug)}`;
-    return campaign.trackingOnly ? base : `${base}&code=${encodeURIComponent(campaign.code)}`;
+    const ref = encodeURIComponent(campaign.slug);
+    if (campaign.trackingOnly) {
+      // Tracking links forward to the admin-chosen page (site-wide capture records
+      // the ref anywhere); the code is a hidden placeholder so it's not included.
+      const path = campaign.landingPath || '/';
+      return `${origin}${path}?ref=${ref}`;
+    }
+    // Reward campaigns land on register with the promo code prefilled.
+    return `${origin}/register?ref=${ref}&code=${encodeURIComponent(campaign.code)}`;
   }
 
   copyLink(campaign: CampaignAdmin): void {

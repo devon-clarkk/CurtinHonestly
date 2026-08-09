@@ -79,6 +79,12 @@ public class Campaign {
     @Column(nullable = false, columnDefinition = "BIGINT DEFAULT 0 NOT NULL")
     private long visitCount = 0;
 
+    // Site-relative path a tracking link forwards to (e.g. "/", "/register",
+    // "/units/COMP1000"). The admin appends ?ref=<slug> when building the link.
+    // Null for reward campaigns (they always land on /register).
+    @Column(length = 200)
+    private String landingPath;
+
     @Column(nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
 }

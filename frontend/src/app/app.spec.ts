@@ -1,5 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { App } from './app';
 
 describe('App', () => {
@@ -8,7 +10,9 @@ describe('App', () => {
       imports: [App],
       // The shell renders routerLink in both the nav and the footer, which needs
       // ActivatedRoute. Without this the whole spec fails with NG0201.
-      providers: [provideRouter([])],
+      // App also wires site-wide referral capture, which pulls in CampaignService
+      // (HttpClient) — provide a test HTTP client so construction succeeds.
+      providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting()],
     }).compileComponents();
   });
 

@@ -62,10 +62,11 @@ class CampaignReferralTrackingTest {
         unit.setLevel(UnitLevel.UNDERGRADUATE);
         unit = unitRepo.save(unit);
 
-        // Admin creates a tracking-only link — no prize, no requirement.
-        CampaignAdminDTO created = campaignService.createReferralLink(slug, "Computing Discord");
+        // Admin creates a tracking-only link that lands on a unit page.
+        CampaignAdminDTO created = campaignService.createReferralLink(slug, "Computing Discord", "/units/COMP1000");
         assertThat(created.isTrackingOnly()).isTrue();
         assertThat(created.getPrizeDescription()).isNull();
+        assertThat(created.getLandingPath()).isEqualTo("/units/COMP1000");
 
         // A visitor opens the link.
         campaignService.recordVisit(slug);
@@ -110,7 +111,25 @@ class CampaignReferralTrackingTest {
                 null, 50, 1, false, 1, 0, 0);
 
         org.assertj.core.api.Assertions
-                .assertThatThrownBy(() -> campaignService.createReferralLink(sharedCode, "Colliding link"))
+                .assertThatThrownBy(() -> campaignService.createReferralLink(sharedCode, "Colliding link", "/"))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void landingPathIsNormalisedAndAbsoluteUrlsAreRejected() {
+        // Blank defaults to the site root; a path without a leading slash gets one.
+        CampaignAdminDTO home = campaignService.createReferralLink(
+                "reflp-home-" + System.currentTimeMillis(), "Home link", "  ");
+        assertThat(home.getLandingPath()).isEqualTo("/");
+
+        CampaignAdminDTO added = campaignService.createReferralLink(
+                "reflp-slash-" + System.currentTimeMillis(), "No-slash link", "compare");
+        assertThat(added.getLandingPath()).isEqualTo("/compare");
+
+        // An off-site URL must be rejected so a link can't forward away from the app.
+        org.assertj.core.api.Assertions
+                .assertThatThrownBy(() -> campaignService.createReferralLink(
+                        "reflp-evil-" + System.currentTimeMillis(), "Evil link", "https://evil.example.com"))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 }

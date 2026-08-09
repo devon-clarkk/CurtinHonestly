@@ -345,7 +345,7 @@ public class CampaignService {
     // defaults and ignored everywhere trackingOnly is checked. The window runs from
     // now to the far future so the link never "expires", and a placeholder code is
     // generated only to satisfy the unique/non-null constraint (it is never shown).
-    public CampaignAdminDTO createReferralLink(String slug, String name) {
+    public CampaignAdminDTO createReferralLink(String slug, String name, String landingPath) {
         String normalizedSlug = requireNormalized(slug, "Referral link code");
 
         // A link's slug is resolved as a ?ref= value, which shares a namespace with
@@ -372,9 +372,34 @@ public class CampaignService {
         campaign.setMinLikesReceived(0);
         campaign.setMinLikesGiven(0);
         campaign.setTrackingOnly(true);
+        campaign.setLandingPath(normalizeLandingPath(landingPath));
         campaign.setActive(true);
 
         return toAdminDTO(campaignRepo.save(campaign));
+    }
+
+    // Normalizes the admin-chosen landing page to a safe, site-relative path. Any
+    // pasted query/fragment is dropped (the ?ref= is appended when the link is
+    // built), and absolute or protocol-relative URLs are rejected so a link can't
+    // forward off-site. Blank defaults to the site root.
+    private String normalizeLandingPath(String landingPath) {
+        String path = landingPath == null ? "" : landingPath.trim();
+        int queryAt = path.indexOf('?');
+        if (queryAt >= 0) {
+            path = path.substring(0, queryAt);
+        }
+        int fragmentAt = path.indexOf('#');
+        if (fragmentAt >= 0) {
+            path = path.substring(0, fragmentAt);
+        }
+        path = path.trim();
+        if (path.isEmpty()) {
+            return "/";
+        }
+        if (path.contains("://") || path.startsWith("//")) {
+            throw new IllegalArgumentException("Landing page must be a path on the site, e.g. / or /units/COMP1000.");
+        }
+        return path.startsWith("/") ? path : "/" + path;
     }
 
     public CampaignAdminDTO setCampaignActive(String campaignId, boolean active) {
@@ -482,6 +507,7 @@ public class CampaignService {
                 campaign.getMinLikesGiven(),
                 campaign.isTrackingOnly(),
                 campaign.getVisitCount(),
+                campaign.getLandingPath(),
                 signupCount,
                 reviewCount,
                 campaignEntryRepo.countByCampaign_Id(campaign.getId()),

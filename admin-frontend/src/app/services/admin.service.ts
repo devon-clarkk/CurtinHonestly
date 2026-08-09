@@ -81,7 +81,7 @@ export class AdminService {
     return this.http.post<CampaignAdmin>(`${this.apiUrl}/campaigns`, payload);
   }
 
-  createReferralLink(payload: { slug: string; name: string }): Observable<CampaignAdmin> {
+  createReferralLink(payload: { slug: string; name: string; landingPath: string }): Observable<CampaignAdmin> {
     return this.http.post<CampaignAdmin>(`${this.apiUrl}/referral-links`, payload);
   }
 

@@ -64,6 +64,7 @@ export interface CampaignAdmin {
   minLikesGiven: number;
   trackingOnly: boolean;
   visitCount: number;
+  landingPath: string | null;
   signupCount: number;
   reviewCount: number;
   entryCount: number;
