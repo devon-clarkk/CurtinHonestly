@@ -21,6 +21,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -84,7 +85,10 @@ public class ReviewService {
         review.setWorkload(request.workload());
         review.setHasExam(request.hasExam());
         review.setWouldTakeAgain(request.wouldTakeAgain());
-        review.setTags(request.tags() != null ? request.tags() : Set.of());
+        // Wrap in a mutable set: an immutable Set.of() (or Jackson's immutable empty
+        // set) blows up Hibernate's merge with UnsupportedOperationException when it
+        // clears the collection on update.
+        review.setTags(new HashSet<>(request.tags() != null ? request.tags() : Set.of()));
         review.setCreatedAt(Instant.now());
         review.setUnit(unit);
         review.setUser(user);
@@ -131,7 +135,10 @@ public class ReviewService {
         review.setWorkload(request.workload());
         review.setHasExam(request.hasExam());
         review.setWouldTakeAgain(request.wouldTakeAgain());
-        review.setTags(request.tags() != null ? request.tags() : Set.of());
+        // Wrap in a mutable set: an immutable Set.of() (or Jackson's immutable empty
+        // set) blows up Hibernate's merge with UnsupportedOperationException when it
+        // clears the collection on update.
+        review.setTags(new HashSet<>(request.tags() != null ? request.tags() : Set.of()));
 
         Review saved = reviewRepo.save(review);
         unitAggregateService.recalculateForUnit(saved.getUnit().getId());
