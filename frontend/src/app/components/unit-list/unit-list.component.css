@@ -583,3 +583,29 @@
     padding: 40px 20px;
   }
 }
+
+/* Standalone request-a-unit card (shown when arriving via the 404 page). */
+.request-unit-standalone {
+  max-width: var(--unit-catalog-max);
+  margin: 0 auto 24px;
+  padding: 20px;
+  background: var(--card-background);
+  border: 1px solid var(--primary-color);
+  border-left: 4px solid var(--primary-color);
+  border-radius: var(--radius-none);
+}
+
+.request-unit-heading {
+  margin: 0 0 4px;
+  font-size: 1.2rem;
+}
+
+.request-unit-lead {
+  margin: 0 0 12px;
+  color: var(--text-secondary);
+}
+
+.request-unit-standalone .request-unit-form {
+  margin-top: 0;
+  margin-left: 0;
+}

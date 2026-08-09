@@ -118,11 +118,20 @@ export class UnitListComponent implements OnInit, OnDestroy {
     this.loadPage0();
 
     // The custom 404 page links here with ?request=1 to open the request-a-unit
-    // form directly (the form otherwise lives behind a "Request it" button).
+    // form directly. The in-list form only renders in the empty state, so surface
+    // a standalone request card at the top of the catalog instead.
     if (this.route.snapshot.queryParamMap.get('request')) {
-      this.openRequestUnitForm();
+      this.requestUnitCode = '';
+      this.requestUnitNote = '';
+      this.requestUnitError.set(null);
+      this.requestUnitSubmitted.set(false);
+      this.requestFromDeepLink.set(true);
     }
   }
+
+  // Shows a request-a-unit card at the top of the list, independent of the
+  // empty-state form, when arrived at via the 404 page's "Request a unit" link.
+  requestFromDeepLink = signal(false);
 
   dismissSeasonalBanner(): void {
     this.showSeasonalBanner.set(false);

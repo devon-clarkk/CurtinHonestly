@@ -58,6 +58,48 @@
     </div>
   </div>
 
+  <!-- Standalone request-a-unit card, shown when arriving via the 404 page's
+       "Request a unit" link (the in-list form below only appears when empty). -->
+  @if (requestFromDeepLink()) {
+    <div class="request-unit-standalone">
+      @if (requestUnitSubmitted()) {
+        <p class="request-unit-success">Thanks. We've logged your request and will look into adding it.</p>
+      } @else {
+        <h2 class="request-unit-heading">Request a unit</h2>
+        <p class="request-unit-lead">Can't find a unit? Tell us the code or name and we'll look into adding it.</p>
+        <form class="request-unit-form" (ngSubmit)="submitUnitRequest()">
+          <label for="topRequestUnitCode">Unit code or name</label>
+          <input
+            type="text"
+            id="topRequestUnitCode"
+            name="topRequestUnitCode"
+            [(ngModel)]="requestUnitCode"
+            maxlength="100"
+            placeholder="e.g. ISYS2000 or the unit name"
+            class="form-control" />
+          <label for="topRequestUnitNote">Anything else? (optional)</label>
+          <input
+            type="text"
+            id="topRequestUnitNote"
+            name="topRequestUnitNote"
+            [(ngModel)]="requestUnitNote"
+            maxlength="500"
+            placeholder="e.g. offered in Semester 2"
+            class="form-control" />
+          @if (requestUnitError()) {
+            <p class="error-box">{{ requestUnitError() }}</p>
+          }
+          <div class="request-unit-actions">
+            <button type="button" class="btn btn-secondary" (click)="requestFromDeepLink.set(false)">Cancel</button>
+            <button type="submit" class="btn btn-primary" [disabled]="requestUnitSubmitting() || !requestUnitCode.trim()">
+              {{ requestUnitSubmitting() ? 'Submitting…' : 'Submit request' }}
+            </button>
+          </div>
+        </form>
+      }
+    </div>
+  }
+
   <!-- Single subscription — no triple async pipe -->
   @if (state$ | async; as state) {
     @if (state.loading) {
