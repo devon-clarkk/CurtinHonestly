@@ -374,6 +374,9 @@
 .review-body p {
   margin: 0;
   line-height: 1.5;
+  /* Preserve the paragraph breaks the author typed (newlines are stored as-is);
+     pre-line collapses runs of spaces but keeps newlines, and still wraps long lines. */
+  white-space: pre-line;
 }
 
 /* Two independently-wrapping groups rather than one flat row. The old layout put

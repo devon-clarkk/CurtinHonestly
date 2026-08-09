@@ -13,9 +13,9 @@
       </div>
 
       <div class="form-group">
-        <label for="workload">Workload (0-10)</label>
+        <label for="workload">Workload (1-10)</label>
         <div class="rating-input">
-          <input type="range" id="workload" min="0" max="10" step="1" [ngModel]="workload()" (ngModelChange)="workload.set($event)" name="workload">
+          <input type="range" id="workload" min="1" max="10" step="1" [ngModel]="workload()" (ngModelChange)="workload.set($event)" name="workload">
           <span class="rating-value">{{ workload() }} / 10</span>
         </div>
       </div>

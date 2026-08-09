@@ -18,7 +18,7 @@ public record ReviewCreateRequest(
         AcademicTerm termType,
         @Min(2000) @Max(2100) Integer termYear,
         String professor,
-        @Min(0) @Max(10) int workload,
+        @Min(1) @Max(10) int workload,
         boolean hasExam,
         boolean wouldTakeAgain,
         @NotBlank String unitCode,
