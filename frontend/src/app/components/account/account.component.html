@@ -129,7 +129,7 @@
           <input type="password" id="verifyPassword" name="verifyPassword" [(ngModel)]="verifyPassword" required />
         </div>
         <button type="submit" class="btn btn-primary" [disabled]="isLoading() || !studentEmail || !verifyPassword">
-          {{ isLoading() ? 'Verifying…' : 'Verify as student' }}
+          {{ isLoading() ? 'Sending…' : (verifySent() ? 'Resend confirmation link' : 'Verify as student') }}
         </button>
       </form>
     </section>

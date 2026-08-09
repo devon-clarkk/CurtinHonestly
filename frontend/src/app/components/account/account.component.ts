@@ -31,6 +31,9 @@ export class AccountComponent implements OnInit {
   // so the "check your student email" confirmation sits with the action it follows.
   verifyMessage = signal<string | null>(null);
   verifyError = signal<string | null>(null);
+  // Once a link has been sent, the button becomes "Resend" so a user whose email
+  // landed in spam can trigger another without hunting for a separate control.
+  verifySent = signal(false);
   isLoading = signal(false);
 
   ngOnInit() {
@@ -120,14 +123,19 @@ export class AccountComponent implements OnInit {
     this.clearMessages();
     this.isLoading.set(true);
 
+    const target = this.studentEmail;
     this.authService.verifyStudent({
       studentEmail: this.studentEmail,
       password: this.verifyPassword
     }).subscribe({
-      next: (response) => {
+      next: () => {
         this.isLoading.set(false);
-        this.verifyMessage.set(response.message
-          || 'Check your student email for a confirmation link to finish verifying.');
+        // Spell out where it went and that it can be slow / land in spam — the most
+        // common "I never got the verification email" cause is a Curtin junk folder.
+        this.verifyMessage.set(
+          `We've emailed a confirmation link to ${target}. It can take a few minutes to arrive — `
+          + `if you don't see it, check your spam/junk folder. You can resend by submitting the form again.`);
+        this.verifySent.set(true);
         this.studentEmail = '';
         this.verifyPassword = '';
       },
