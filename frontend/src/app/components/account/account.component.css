@@ -189,3 +189,36 @@
     margin-top: 8px;
   }
 }
+
+/* Verify CTA — prominent prompt shown when a signed-in user isn't verified. */
+.verify-cta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 20px;
+  margin-bottom: 20px;
+  padding: 16px 20px;
+  border: 1px solid var(--primary-color);
+  border-left: 4px solid var(--primary-color);
+  border-radius: var(--radius-sm);
+  background: var(--primary-color-subtle, rgba(191, 149, 20, 0.08));
+}
+
+.verify-cta-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.verify-cta-text strong {
+  font-size: 1.05rem;
+}
+
+.verify-cta-text span {
+  color: var(--text-secondary);
+}
+
+.verify-cta .btn {
+  flex-shrink: 0;
+}

@@ -1,0 +1,17 @@
+/* Pin the footer to the bottom of the page: make the app shell a full-height
+   flex column so the main content grows to fill the viewport and the footer
+   sits at the bottom rather than floating up on short pages. (Header/main/footer
+   are laid out in the app template's <style> block.) */
+:host {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+.content-body {
+  flex: 1 0 auto;
+}
+
+.main-footer {
+  flex-shrink: 0;
+}

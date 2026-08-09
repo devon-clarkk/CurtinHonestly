@@ -27,6 +27,16 @@
     </dl>
   </section>
 
+  @if (!authService.verifiedStudent()) {
+    <div class="verify-cta">
+      <div class="verify-cta-text">
+        <strong>You're not verified yet.</strong>
+        <span>Verify your Curtin student email to earn a verified badge on your reviews.</span>
+      </div>
+      <button type="button" class="btn btn-primary" (click)="scrollToVerify()">Verify student email</button>
+    </div>
+  }
+
   @if (account()?.campaignName) {
     <section class="account-section card campaign-section">
       <h2>Campaign</h2>
@@ -67,8 +77,12 @@
   }
 
   <section class="account-section card">
-    <h2>Update email</h2>
-    <p class="section-hint">Change the email you use to sign in. You will need your current password.</p>
+    <h2>Change sign-in email</h2>
+    <p class="section-hint">
+      Change the email address you use to log in. You'll need your current password.
+      This does <strong>not</strong> verify you as a student — use
+      <em>Verify as Curtin student</em> below for the verified badge.
+    </p>
     <form (ngSubmit)="onUpdateEmail()" class="stacked-form">
       <div class="form-group">
         <label for="newEmail">New email</label>
@@ -85,11 +99,19 @@
   </section>
 
   @if (!authService.verifiedStudent()) {
-    <section class="account-section card">
+    <section id="verify-student" class="account-section card">
       <h2>Verify as Curtin student</h2>
       <p class="section-hint">
-        Link your @student.curtin.edu.au email to show a verified badge on your reviews.
+        Separate from your sign-in email: link a <strong>@student.curtin.edu.au</strong>
+        address to show a verified badge on your reviews. Your sign-in email stays the same —
+        we just send a confirmation link to your student address.
       </p>
+      @if (verifyError()) {
+        <div class="error-box">{{ verifyError() }}</div>
+      }
+      @if (verifyMessage()) {
+        <div class="success-box">{{ verifyMessage() }}</div>
+      }
       <form (ngSubmit)="onVerify()" class="stacked-form">
         <div class="form-group">
           <label for="studentEmail">Curtin student email</label>

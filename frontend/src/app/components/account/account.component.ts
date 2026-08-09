@@ -27,6 +27,10 @@ export class AccountComponent implements OnInit {
 
   errorMessage = signal<string | null>(null);
   successMessage = signal<string | null>(null);
+  // Verification feedback is shown next to the verify form (not at the page top)
+  // so the "check your student email" confirmation sits with the action it follows.
+  verifyMessage = signal<string | null>(null);
+  verifyError = signal<string | null>(null);
   isLoading = signal(false);
 
   ngOnInit() {
@@ -41,6 +45,12 @@ export class AccountComponent implements OnInit {
       next: (status) => this.account.set(status),
       error: () => this.authService.logout()
     });
+  }
+
+  // The account page is behind the auth guard, so it only ever runs in the
+  // browser — document access here is safe (no SSR path).
+  scrollToVerify() {
+    document.getElementById('verify-student')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   campaignProgressLabel(): string | null {
@@ -102,7 +112,8 @@ export class AccountComponent implements OnInit {
 
   onVerify() {
     if (!this.studentEmail.endsWith('@student.curtin.edu.au')) {
-      this.errorMessage.set('Please enter a valid @student.curtin.edu.au email.');
+      this.clearMessages();
+      this.verifyError.set('Please enter a valid @student.curtin.edu.au email.');
       return;
     }
 
@@ -115,14 +126,14 @@ export class AccountComponent implements OnInit {
     }).subscribe({
       next: (response) => {
         this.isLoading.set(false);
-        this.successMessage.set(response.message
+        this.verifyMessage.set(response.message
           || 'Check your student email for a confirmation link to finish verifying.');
         this.studentEmail = '';
         this.verifyPassword = '';
       },
       error: (err) => {
         this.isLoading.set(false);
-        this.errorMessage.set(err.error?.error || 'Verification failed. Please try again.');
+        this.verifyError.set(err.error?.error || 'Verification failed. Please try again.');
       }
     });
   }
@@ -163,5 +174,7 @@ export class AccountComponent implements OnInit {
   private clearMessages() {
     this.errorMessage.set(null);
     this.successMessage.set(null);
+    this.verifyMessage.set(null);
+    this.verifyError.set(null);
   }
 }

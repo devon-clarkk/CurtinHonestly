@@ -289,6 +289,14 @@
       </div>
 
       <div *ngFor="let review of filteredReviews(unit.reviews)" class="review-card">
+        @if (editingOwnReview() && isOwnReview(review)) {
+          <app-add-review
+            [unitCode]="unit.code"
+            [editReview]="myReview()"
+            (reviewAdded)="onReviewUpdated()"
+            (cancel)="cancelEditOwnReview()"
+          />
+        } @else {
         <div class="review-header">
           <div class="user-info">
             <span class="user-name">
@@ -360,8 +368,17 @@
                 <app-icon name="flag" [filled]="isFlagged(review)" />
               </button>
             }
+            @if (authService.isLoggedIn() && isOwnReview(review)) {
+              <button
+                type="button"
+                class="btn-text edit-review-btn"
+                (click)="startEditOwnReview()">
+                Edit review
+              </button>
+            }
           </div>
         </div>
+        }
       </div>
 
       @if (likeErrorMessage()) {

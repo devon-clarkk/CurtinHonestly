@@ -11,7 +11,7 @@ import { SeoService } from '../../services/seo.service';
 import { reviewAuthorName } from '../../utils/unit-seo.utils';
 import { GradeBand, gradeDistribution, gradedReviewCount } from '../../utils/grade-distribution.util';
 import { formatTerm, termSortKey } from '../../utils/semester-options.util';
-import { PrerequisiteGroup, REVIEW_TAGS, Review, Tip, UnitDetails } from '../../models/unit.model';
+import { MyReview, PrerequisiteGroup, REVIEW_TAGS, Review, Tip, UnitDetails } from '../../models/unit.model';
 import { Observable, switchMap, map, of, tap, catchError } from 'rxjs';
 import { AddReviewComponent } from '../add-review/add-review.component';
 import { IconComponent } from '../icon/icon.component';
@@ -50,6 +50,12 @@ export class UnitDetailComponent implements OnInit {
 
   likeErrorMessage = signal<string | null>(null);
   likingReviewId = signal<string | null>(null);
+
+  // The logged-in user's own review for this unit (if any), so we can show an
+  // "Edit review" button on it. Reviews are anonymous in the public list, so we
+  // match by the review id returned from /reviews/me.
+  myReview = signal<MyReview | null>(null);
+  editingOwnReview = signal(false);
 
   // Report/flag (review-experience.md #8). Tracked client-side per page load —
   // the backend flag is idempotent either way, so this only affects whether the
@@ -183,9 +189,42 @@ export class UnitDetailComponent implements OnInit {
           this.seoService.updateUnitPage(unit);
           this.currentUnitCode = unit.code;
           this.loadTips(unit.code);
+          this.loadMyReviewForUnit(unit.code);
         }
       })
     );
+  }
+
+  // Find the current user's review for this unit so its card can offer editing.
+  private loadMyReviewForUnit(unitCode: string) {
+    this.editingOwnReview.set(false);
+    this.myReview.set(null);
+    if (!this.authService.isLoggedIn()) {
+      return;
+    }
+    this.reviewService.getMyReviews().subscribe({
+      next: (reviews) => this.myReview.set(reviews.find(r => r.unitCode === unitCode) ?? null),
+      error: () => this.myReview.set(null)
+    });
+  }
+
+  isOwnReview(review: Review): boolean {
+    const mine = this.myReview();
+    return !!mine && !!review.id && mine.id === review.id;
+  }
+
+  startEditOwnReview() {
+    this.showAddReviewForm.set(false);
+    this.editingOwnReview.set(true);
+  }
+
+  cancelEditOwnReview() {
+    this.editingOwnReview.set(false);
+  }
+
+  onReviewUpdated() {
+    this.editingOwnReview.set(false);
+    this.loadUnit();
   }
 
   private loadTips(unitCode: string) {
