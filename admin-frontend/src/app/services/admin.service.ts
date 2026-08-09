@@ -81,6 +81,10 @@ export class AdminService {
     return this.http.post<CampaignAdmin>(`${this.apiUrl}/campaigns`, payload);
   }
 
+  createReferralLink(payload: { slug: string; name: string }): Observable<CampaignAdmin> {
+    return this.http.post<CampaignAdmin>(`${this.apiUrl}/referral-links`, payload);
+  }
+
   setCampaignActive(id: string, active: boolean): Observable<CampaignAdmin> {
     return this.http.patch<CampaignAdmin>(`${this.apiUrl}/campaigns/${id}/active`, { active });
   }

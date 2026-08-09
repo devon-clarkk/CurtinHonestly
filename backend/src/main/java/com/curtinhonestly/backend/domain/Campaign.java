@@ -66,6 +66,19 @@ public class Campaign {
     @Column(nullable = false)
     private int minLikesGiven = 0;
 
+    // Tracking-only referral links: no prize, no requirement, no draw entries.
+    // The link just forwards to the app and attributes downstream visits/signups/
+    // reviews. All the reward fields above are ignored when this is true.
+    // columnDefinition gives a DB-side default so ddl-auto=update can add this
+    // NOT NULL column to an already-populated campaigns table (see User.banned).
+    @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE NOT NULL")
+    private boolean trackingOnly = false;
+
+    // Attributed visits recorded when someone opens the referral link. Incremented
+    // atomically via CampaignRepo.incrementVisitCountBySlug.
+    @Column(nullable = false, columnDefinition = "BIGINT DEFAULT 0 NOT NULL")
+    private long visitCount = 0;
+
     @Column(nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
 }

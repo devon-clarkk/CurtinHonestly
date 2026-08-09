@@ -58,6 +58,7 @@ public class SecurityConfig {
                         .requestMatchers("/auth/forgot-password", "/auth/reset-password").permitAll()
                         .requestMatchers(HttpMethod.GET, "/auth/verify-student/confirm").permitAll()
                         .requestMatchers("/campaigns/validate").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/campaigns/visit").permitAll()
                         .requestMatchers(HttpMethod.POST, "/unit-requests").permitAll()
                         .requestMatchers("/auth/me", "/auth/verify-student").authenticated()
                         .requestMatchers("/error").permitAll()

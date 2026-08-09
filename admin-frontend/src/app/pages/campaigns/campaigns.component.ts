@@ -33,6 +33,10 @@ export class CampaignsComponent implements OnInit {
   minLikesReceived = 0;
   minLikesGiven = 0;
 
+  // Tracking-only referral link form (no reward config).
+  refSlug = '';
+  refName = '';
+
   ngOnInit(): void {
     this.refreshCampaigns();
     this.setDefaultDates();
@@ -79,6 +83,20 @@ export class CampaignsComponent implements OnInit {
     });
   }
 
+  createReferralLink(): void {
+    this.clearMessages();
+
+    this.adminService.createReferralLink({ slug: this.refSlug, name: this.refName }).subscribe({
+      next: () => {
+        this.successMessage.set('Referral link created.');
+        this.refSlug = '';
+        this.refName = '';
+        this.refreshCampaigns();
+      },
+      error: (err) => this.errorMessage.set(err.error?.error || 'Failed to create referral link.')
+    });
+  }
+
   toggleActive(campaign: CampaignAdmin): void {
     this.clearMessages();
     this.adminService.setCampaignActive(campaign.id, !campaign.active).subscribe({
@@ -101,12 +119,15 @@ export class CampaignsComponent implements OnInit {
 
   registrationLink(campaign: CampaignAdmin): string {
     const origin = typeof window !== 'undefined' ? window.location.origin.replace(':4201', ':4200') : 'https://curtinhonestly.com';
-    return `${origin}/register?ref=${encodeURIComponent(campaign.slug)}&code=${encodeURIComponent(campaign.code)}`;
+    // Tracking-only links carry only the ref (their code is a hidden placeholder);
+    // reward campaigns include the promo code so it prefills on the register page.
+    const base = `${origin}/register?ref=${encodeURIComponent(campaign.slug)}`;
+    return campaign.trackingOnly ? base : `${base}&code=${encodeURIComponent(campaign.code)}`;
   }
 
   copyLink(campaign: CampaignAdmin): void {
     navigator.clipboard.writeText(this.registrationLink(campaign)).then(() => {
-      this.successMessage.set('Registration link copied.');
+      this.successMessage.set(campaign.trackingOnly ? 'Referral link copied.' : 'Registration link copied.');
     }).catch(() => this.errorMessage.set('Could not copy link.'));
   }
 

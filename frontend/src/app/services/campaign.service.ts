@@ -26,4 +26,14 @@ export class CampaignService {
     }
     return this.http.get<CampaignValidation>(`${this.apiUrl}/validate`, { params });
   }
+
+  // Fire-and-forget beacon: record that a visitor arrived via a referral link.
+  // Errors are swallowed — tracking must never disrupt the signup flow.
+  recordVisit(ref: string): void {
+    if (!ref?.trim()) {
+      return;
+    }
+    this.http.post(`${this.apiUrl}/visit`, null, { params: { ref: ref.trim() } })
+      .subscribe({ error: () => {} });
+  }
 }

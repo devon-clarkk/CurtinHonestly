@@ -23,7 +23,10 @@ public class CampaignAdminDTO {
     private int requiredReviewCount;
     private int minLikesReceived;
     private int minLikesGiven;
+    private boolean trackingOnly;
+    private long visitCount;
     private long signupCount;
+    private long reviewCount;
     private long entryCount;
     private Instant createdAt;
 }

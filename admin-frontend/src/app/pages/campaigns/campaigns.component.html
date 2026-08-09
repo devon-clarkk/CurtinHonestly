@@ -44,14 +44,26 @@
 </section>
 
 <section class="card section">
-  <h2>Campaigns</h2>
+  <h2>Create referral link (tracking only)</h2>
+  <p class="page-subtitle">No prize and no requirement — just a link that forwards to the app and tracks visits, signups, and reviews attributed to it.</p>
+  <div class="form-grid">
+    <input type="text" placeholder="Link code (ref param), e.g. discord-jul26" [(ngModel)]="refSlug" name="refSlug" />
+    <input type="text" placeholder="Label (optional), e.g. Computing Discord" [(ngModel)]="refName" name="refName" />
+  </div>
+  <button type="button" class="btn btn-primary" (click)="createReferralLink()">Create referral link</button>
+</section>
+
+<section class="card section">
+  <h2>Campaigns &amp; referral links</h2>
   <table>
     <thead>
       <tr>
         <th>Name</th>
         <th>Slug / Code</th>
         <th>Window</th>
+        <th>Visits</th>
         <th>Signups</th>
+        <th>Reviews</th>
         <th>Entries</th>
         <th>Status</th>
         <th>Actions</th>
@@ -62,31 +74,46 @@
         <tr>
           <td>
             <strong>{{ campaign.name }}</strong>
+            @if (campaign.trackingOnly) {
+              <span class="badge">Tracking link</span>
+            }
             @if (campaign.prizeDescription) {
               <div class="subtle">{{ campaign.prizeDescription }}</div>
             }
           </td>
           <td>
             <div><code>{{ campaign.slug }}</code></div>
-            <div><code>{{ campaign.code }}</code></div>
+            @if (!campaign.trackingOnly) {
+              <div><code>{{ campaign.code }}</code></div>
+            }
             <div class="subtle">
-              {{ campaign.requiredReviewCount }} review(s) ·
-              {{ campaign.requireVerifiedStudent ? 'verified only' : 'any account' }} ·
-              min {{ campaign.minReviewLength }} chars
-              @if (campaign.minLikesReceived > 0) {
-                · ≥{{ campaign.minLikesReceived }} like(s) on review
-              }
-              @if (campaign.minLikesGiven > 0) {
-                · give ≥{{ campaign.minLikesGiven }} like(s)
+              @if (campaign.trackingOnly) {
+                no prize · no requirement · tracking only
+              } @else {
+                {{ campaign.requiredReviewCount }} review(s) ·
+                {{ campaign.requireVerifiedStudent ? 'verified only' : 'any account' }} ·
+                min {{ campaign.minReviewLength }} chars
+                @if (campaign.minLikesReceived > 0) {
+                  · ≥{{ campaign.minLikesReceived }} like(s) on review
+                }
+                @if (campaign.minLikesGiven > 0) {
+                  · give ≥{{ campaign.minLikesGiven }} like(s)
+                }
               }
             </div>
           </td>
           <td>
-            {{ campaign.startsAt | date: 'mediumDate' }} –
-            {{ campaign.endsAt | date: 'mediumDate' }}
+            @if (campaign.trackingOnly) {
+              ongoing
+            } @else {
+              {{ campaign.startsAt | date: 'mediumDate' }} –
+              {{ campaign.endsAt | date: 'mediumDate' }}
+            }
           </td>
+          <td>{{ campaign.visitCount }}</td>
           <td>{{ campaign.signupCount }}</td>
-          <td>{{ campaign.entryCount }}</td>
+          <td>{{ campaign.reviewCount }}</td>
+          <td>{{ campaign.trackingOnly ? '—' : campaign.entryCount }}</td>
           <td>
             @if (campaign.active) {
               <span class="badge badge-active">Active</span>
@@ -96,7 +123,9 @@
           </td>
           <td class="actions">
             <button type="button" class="btn" (click)="copyLink(campaign)">Copy link</button>
-            <button type="button" class="btn" (click)="viewEntries(campaign)">Entries</button>
+            @if (!campaign.trackingOnly) {
+              <button type="button" class="btn" (click)="viewEntries(campaign)">Entries</button>
+            }
             <button type="button" class="btn" (click)="toggleActive(campaign)">
               {{ campaign.active ? 'Deactivate' : 'Activate' }}
             </button>

@@ -51,7 +51,15 @@ public class UserService {
 
         if (campaign != null) {
             user.setCampaign(campaign);
-            user.setRegisteredViaRef(ref != null && !ref.isBlank() ? ref.trim() : campaign.getSlug());
+        }
+        // Record the referral slug even when there's no campaign enrolment, so
+        // tracking-only referral links (campaign == null, ref set) still attribute
+        // the signup. Falls back to the campaign slug when a reward signup omits ref.
+        String normalizedRef = ref != null && !ref.isBlank()
+                ? ref.trim()
+                : (campaign != null ? campaign.getSlug() : null);
+        if (normalizedRef != null) {
+            user.setRegisteredViaRef(normalizedRef);
         }
 
         User savedUser = userRepo.saveAndFlush(user);

@@ -1,5 +1,5 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, inject, OnInit, PLATFORM_ID, signal } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -22,6 +22,8 @@ export class RegisterComponent implements OnInit {
   private router = inject(Router);
   private seoService = inject(SeoService);
   private route = inject(ActivatedRoute);
+  private platformId = inject(PLATFORM_ID);
+  private visitRecorded = false;
 
   email = '';
   password = '';
@@ -42,6 +44,12 @@ export class RegisterComponent implements OnInit {
 
       if (params.get('ref')) {
         localStorage.setItem(CAMPAIGN_REF_KEY, refParam);
+        // Record the attributed visit once per arrival, only for refs that came in
+        // on the URL (not ones replayed from localStorage), and only in the browser.
+        if (!this.visitRecorded && isPlatformBrowser(this.platformId)) {
+          this.visitRecorded = true;
+          this.campaignService.recordVisit(refParam);
+        }
       }
       if (params.get('code')) {
         localStorage.setItem(CAMPAIGN_CODE_KEY, codeParam);

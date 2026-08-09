@@ -20,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -55,6 +56,15 @@ public class CampaignService {
 
         Campaign resolved = resolveCampaignForRegistration(ref, promoCode)
                 .orElseThrow(() -> new IllegalArgumentException("Campaign not found. Check your referral link or promo code."));
+
+        // Tracking-only referral links carry no reward and no eligibility gates. We
+        // record the attribution on the user (registeredViaRef = the link's slug) but
+        // deliberately do NOT enrol them in the campaign, so the draw-entry machinery
+        // and the student-facing "Campaign" section stay untouched. Signups and
+        // reviews are then counted off registeredViaRef, not campaign membership.
+        if (resolved.isTrackingOnly()) {
+            return userService.createUser(email, password, null, resolved.getSlug());
+        }
 
         Campaign locked = campaignRepo.findByIdForUpdate(resolved.getId())
                 .orElseThrow(() -> new IllegalArgumentException("Campaign not found. Check your referral link or promo code."));
@@ -95,6 +105,13 @@ public class CampaignService {
         }
 
         Campaign campaign = campaignOpt.get();
+        // Tracking-only links have no prize/campaign to advertise. Report them as
+        // "not a promotable campaign" so the register page shows no banner — the
+        // signup is still attributed server-side on /auth/register.
+        if (campaign.isTrackingOnly()) {
+            return new CampaignValidationDTO(false, INVALID_CAMPAIGN_MESSAGE, null, null, null);
+        }
+
         String message = validateCampaignState(campaign, true);
         if (message != null) {
             return new CampaignValidationDTO(false, INVALID_CAMPAIGN_MESSAGE, null, null, null);
@@ -107,6 +124,12 @@ public class CampaignService {
                 campaign.getPrizeDescription(),
                 campaign.getEndsAt()
         );
+    }
+
+    // Records an attributed visit for a referral link. Best-effort: an unknown slug
+    // updates nothing and is silently ignored, so a stale or mistyped link never errors.
+    public void recordVisit(String ref) {
+        normalize(ref).ifPresent(campaignRepo::incrementVisitCountBySlug);
     }
 
     public CampaignProgressDTO getCampaignProgress(User user) {
@@ -122,6 +145,11 @@ public class CampaignService {
         }
 
         Campaign campaign = user.getCampaign();
+        // Defensive: tracking-only campaigns never enrol members, but if one ever
+        // does (e.g. a campaign flipped to trackingOnly after signups), award nothing.
+        if (campaign.isTrackingOnly()) {
+            return new CampaignAwardResult(Optional.empty(), null);
+        }
         CampaignProgressDTO progress = buildProgress(user, campaign);
 
         if (campaign.isRequireVerifiedStudent() && !user.isVerifiedStudent()) {
@@ -311,6 +339,44 @@ public class CampaignService {
         return toAdminDTO(campaignRepo.save(campaign));
     }
 
+    // Creates a tracking-only referral link: no prize, no requirement, no draw
+    // entries — it just forwards to the app and attributes downstream signups and
+    // reviews. Reuses the Campaign row/table; the reward fields are set to inert
+    // defaults and ignored everywhere trackingOnly is checked. The window runs from
+    // now to the far future so the link never "expires", and a placeholder code is
+    // generated only to satisfy the unique/non-null constraint (it is never shown).
+    public CampaignAdminDTO createReferralLink(String slug, String name) {
+        String normalizedSlug = requireNormalized(slug, "Referral link code");
+
+        // A link's slug is resolved as a ?ref= value, which shares a namespace with
+        // promo codes (resolveCampaignForRegistration matches ref->slug and code->code).
+        // Reject a slug that collides with any existing slug OR code, so ?ref=X can
+        // never become ambiguous against a reward campaign's code.
+        if (campaignRepo.findBySlugIgnoreCase(normalizedSlug).isPresent()
+                || campaignRepo.findByCodeIgnoreCase(normalizedSlug).isPresent()) {
+            throw new IllegalArgumentException("A campaign or referral link with that code already exists.");
+        }
+
+        Campaign campaign = new Campaign();
+        campaign.setSlug(normalizedSlug);
+        campaign.setCode(generateUniquePlaceholderCode());
+        campaign.setName(normalize(name).orElse(normalizedSlug));
+        campaign.setPrizeDescription(null);
+        campaign.setStartsAt(Instant.now());
+        campaign.setEndsAt(Instant.now().plus(Duration.ofDays(3650)));
+        campaign.setMaxRedemptions(null);
+        campaign.setMinReviewLength(0);
+        campaign.setMaxEntriesPerUser(1);
+        campaign.setRequireVerifiedStudent(false);
+        campaign.setRequiredReviewCount(1);
+        campaign.setMinLikesReceived(0);
+        campaign.setMinLikesGiven(0);
+        campaign.setTrackingOnly(true);
+        campaign.setActive(true);
+
+        return toAdminDTO(campaignRepo.save(campaign));
+    }
+
     public CampaignAdminDTO setCampaignActive(String campaignId, boolean active) {
         Campaign campaign = campaignRepo.findById(campaignId)
                 .orElseThrow(() -> new IllegalArgumentException("Campaign not found."));
@@ -389,6 +455,15 @@ public class CampaignService {
     }
 
     private CampaignAdminDTO toAdminDTO(Campaign campaign) {
+        // Tracking-only links attribute off registeredViaRef (the user is never
+        // enrolled in the campaign); reward campaigns attribute off membership.
+        long signupCount = campaign.isTrackingOnly()
+                ? userRepo.countByRegisteredViaRefIgnoreCase(campaign.getSlug())
+                : userRepo.countByCampaign_Id(campaign.getId());
+        long reviewCount = campaign.isTrackingOnly()
+                ? reviewRepo.countByUser_RegisteredViaRefIgnoreCase(campaign.getSlug())
+                : reviewRepo.countByUser_Campaign_Id(campaign.getId());
+
         return new CampaignAdminDTO(
                 campaign.getId(),
                 campaign.getSlug(),
@@ -405,7 +480,10 @@ public class CampaignService {
                 campaign.getRequiredReviewCount(),
                 campaign.getMinLikesReceived(),
                 campaign.getMinLikesGiven(),
-                userRepo.countByCampaign_Id(campaign.getId()),
+                campaign.isTrackingOnly(),
+                campaign.getVisitCount(),
+                signupCount,
+                reviewCount,
                 campaignEntryRepo.countByCampaign_Id(campaign.getId()),
                 campaign.getCreatedAt()
         );
@@ -444,6 +522,16 @@ public class CampaignService {
         }
         log.error("Failed to generate a unique campaign entry token after {} attempts", 10);
         throw new CampaignEntryTokenExhaustedException("Unable to generate a unique entry token right now. Please try again.");
+    }
+
+    private String generateUniquePlaceholderCode() {
+        for (int attempt = 0; attempt < 10; attempt++) {
+            String code = "REF-" + randomTokenSuffix();
+            if (campaignRepo.findByCodeIgnoreCase(code).isEmpty()) {
+                return code;
+            }
+        }
+        throw new IllegalStateException("Unable to generate a unique referral link code. Please try again.");
     }
 
     private String randomTokenSuffix() {
