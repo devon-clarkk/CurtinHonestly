@@ -69,7 +69,11 @@ export class ResetPasswordComponent implements OnInit {
     // Same reasoning as the student-verification confirm page (security audit
     // finding #5): the token is held in this component from here on, so clear it
     // out of the address bar and out of browser history. Router.navigate rather
-    // than history.replaceState because ngOnInit also runs under SSR.
+    // than history.replaceState, for the same reason given there.
+    //
+    // Accepted cost: reloading this page after the strip loses the token, so the
+    // user has to request a fresh link. Standard for reset pages, and cheaper than
+    // leaving a live credential in history and in the Referer of every later request.
     if (this.token) {
       this.router.navigate([], {
         relativeTo: this.route,

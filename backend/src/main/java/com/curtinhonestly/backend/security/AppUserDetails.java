@@ -17,8 +17,17 @@ import java.util.Collection;
  */
 public class AppUserDetails extends org.springframework.security.core.userdetails.User {
 
-    /** Null means the account has never had a credential change, so no token is too old. */
-    private final transient Instant tokensValidAfter;
+    /**
+     * Null means the account has never had a credential change, so no token is too old.
+     *
+     * <p>Not {@code transient}: {@code Instant} is serializable, so marking it would buy
+     * nothing and would fail open. If this principal were ever serialized and restored,
+     * the field would come back null, {@link #isTokenStale} would return false, and every
+     * revoked token would be honoured again. Session policy is STATELESS today, so nothing
+     * serializes it, but a security control should not be one config change from silently
+     * disabling itself.
+     */
+    private final Instant tokensValidAfter;
 
     public AppUserDetails(String username,
                           String password,

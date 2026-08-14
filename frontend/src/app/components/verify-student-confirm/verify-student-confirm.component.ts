@@ -57,9 +57,11 @@ export class VerifyStudentConfirmComponent implements OnInit {
     // point does: leaving it there puts a live single-use credential into browser
     // history and into the Referer of any request this page later makes.
     //
-    // Router.navigate, not history.replaceState: ngOnInit also runs during SSR,
-    // where there is no window.history to call. replaceUrl keeps it out of history
-    // rather than pushing a second entry that still holds the token.
+    // Router.navigate, not history.replaceState. This route resolves to the '**'
+    // RenderMode.Client entry in app.routes.server.ts today, so ngOnInit happens in
+    // the browser, but the router-aware call keeps working if that ever changes,
+    // where a bare window.history reference would not. replaceUrl keeps the token
+    // out of history rather than pushing a second entry that still holds it.
     this.router.navigate([], {
       relativeTo: this.route,
       queryParams: {},

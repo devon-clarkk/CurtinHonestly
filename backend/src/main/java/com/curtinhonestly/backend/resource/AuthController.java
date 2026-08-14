@@ -65,8 +65,10 @@ public class AuthController {
         } catch (EmailAlreadyRegisteredException ex) {
             // Deliberately swallowed. The owner of the address is notified by email
             // (UserService.createUser); the caller gets the same 200 as a new signup.
-            // Note the email itself is never logged here: the log line would be the
-            // same oracle, just moved into the log file.
+            // Note this line does not log the submitted address: an outcome-keyed log
+            // line is the same oracle, just moved into the log file. (UserService still
+            // logs "Creating user: {}" on both branches, which is internal-only and
+            // deliberately identical for the two cases.)
             log.info("Registration attempt for an address that already has an account; returning the uniform response");
         }
 
