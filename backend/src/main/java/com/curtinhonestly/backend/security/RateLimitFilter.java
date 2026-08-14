@@ -4,7 +4,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -17,7 +17,6 @@ import java.util.Optional;
 // LIMITS to cover a new route/method - the mechanism (IP extraction, sliding
 // window, 429 response) is shared, not re-implemented per endpoint.
 @Component
-@RequiredArgsConstructor
 public class RateLimitFilter extends OncePerRequestFilter {
 
     private enum MatchType { EXACT, PREFIX, SUFFIX }
@@ -58,6 +57,20 @@ public class RateLimitFilter extends OncePerRequestFilter {
 
     private final RateLimiter rateLimiter;
 
+    // Number of trusted reverse proxies between the app and the internet (Azure
+    // Container Apps ingress = 1). The client IP is taken this many hops from the
+    // RIGHT of X-Forwarded-For, since only the proxy-appended right-hand entries are
+    // trustworthy — everything to the left is attacker-supplied and must be ignored,
+    // otherwise a spoofed leftmost value lets a caller rotate the rate-limit key and
+    // bypass every limit. Configurable via app.ratelimit.trusted-proxy-count.
+    private final int trustedProxyCount;
+
+    public RateLimitFilter(RateLimiter rateLimiter,
+                           @Value("${app.ratelimit.trusted-proxy-count:1}") int trustedProxyCount) {
+        this.rateLimiter = rateLimiter;
+        this.trustedProxyCount = Math.max(0, trustedProxyCount);
+    }
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
@@ -83,11 +96,38 @@ public class RateLimitFilter extends OncePerRequestFilter {
         chain.doFilter(request, response);
     }
 
+    // Resolve the real client IP from X-Forwarded-For, trusting only the entries our
+    // own proxies appended. Each proxy appends (to the RIGHT) the address it received
+    // the request from, so with `trustedProxyCount` trusted proxies in front of the
+    // app the real client is at index (length - trustedProxyCount): the address the
+    // outermost trusted proxy saw. Every entry to its left is client-supplied and must
+    // be ignored — trusting the leftmost value (the old behaviour) let a caller send a
+    // random X-Forwarded-For and rotate the rate-limit key to bypass every limit.
+    //
+    // Fails safe: absent/blank header, a chain shorter than the configured hop count,
+    // or a blank entry all fall back to the transport-level remote address rather than
+    // to an attacker-controlled value. The worst case is over-throttling on the proxy
+    // IP, never a silent bypass.
+    //
+    // ASSUMPTION: the fronting proxy (Azure Container Apps ingress) APPENDS the address
+    // it saw to the right of any client-supplied X-Forwarded-For. If a proxy instead
+    // passes a client-supplied header through untouched, the rightmost entry would be
+    // attacker-controlled — set app.ratelimit.trusted-proxy-count=0 for that topology
+    // so the socket address is used instead. Confirm the real header shape once before
+    // relying on this (see the security audit's Devon action items).
     private String clientIp(HttpServletRequest request) {
         String forwardedFor = request.getHeader("X-Forwarded-For");
-        if (forwardedFor != null && !forwardedFor.isBlank()) {
-            return forwardedFor.split(",")[0].trim();
+        if (forwardedFor == null || forwardedFor.isBlank()) {
+            return request.getRemoteAddr();
         }
-        return request.getRemoteAddr();
+
+        String[] parts = forwardedFor.split(",");
+        int idx = parts.length - trustedProxyCount;
+        if (idx < 0 || idx >= parts.length) {
+            return request.getRemoteAddr();
+        }
+
+        String candidate = parts[idx].trim();
+        return candidate.isEmpty() ? request.getRemoteAddr() : candidate;
     }
 }

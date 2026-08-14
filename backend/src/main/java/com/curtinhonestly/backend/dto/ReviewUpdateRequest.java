@@ -17,7 +17,10 @@ public record ReviewUpdateRequest(
         @Size(max = 2000) String reviewText,
         AcademicTerm termType,
         @Min(2000) @Max(2100) Integer termYear,
-        String professor,
+        // 200 rather than a tighter bound so an existing review with a long
+        // professor string never becomes un-editable (a create-side cap can't
+        // retroactively 400 an edit of already-stored data).
+        @Size(max = 200) String professor,
         @Min(0) @Max(10) int workload,
         boolean hasExam,
         boolean wouldTakeAgain,

@@ -12,6 +12,7 @@ import com.curtinhonestly.backend.util.StudentEmailValidator;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -175,7 +176,9 @@ public class AuthController {
                 "Your password has been reset. You can now log in with your new password."));
     }
 
-    public record RegisterRequest(@NotBlank @Email String email, @NotBlank String password, String ref, String promoCode) {}
+    // Password floor matches VerificationService.resetPassword (min 8) so the
+    // strength policy is consistent between signup and reset.
+    public record RegisterRequest(@NotBlank @Email String email, @NotBlank @Size(min = 8, max = 200) String password, String ref, String promoCode) {}
     public record LoginRequest(String email, String password) {}
     public record VerifyStudentRequest(String studentEmail, String password) {}
     public record UpdateEmailRequest(String newEmail, String password) {}
