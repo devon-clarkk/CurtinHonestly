@@ -30,11 +30,15 @@ public class RateLimitFilter extends OncePerRequestFilter {
             new Limit("POST", "/campaigns/visit", MatchType.EXACT, 30, Duration.ofMinutes(1)),
             // Enrolling by code from the account page — cap to blunt code enumeration.
             new Limit("POST", "/auth/me/campaigns", MatchType.EXACT, 15, Duration.ofMinutes(1)),
+            // Confirming a link: tokens are 256-bit so brute force is infeasible, so this is
+            // cheap defence-in-depth. MUST stay above the /auth/verify-student prefix entry
+            // below: both are POST and matching is first-hit, so with the order reversed the
+            // prefix rule would swallow confirms into the 5-per-10-minutes email-send bucket
+            // and 429 people clicking a legitimate link. (It was a GET on a distinct method
+            // before finding #5 moved the token out of the query string.)
+            new Limit("POST", "/auth/verify-student/confirm", MatchType.EXACT, 20, Duration.ofMinutes(1)),
             // Sending a verification email — cap to prevent inbox-bombing a student address.
             new Limit("POST", "/auth/verify-student", MatchType.PREFIX, 5, Duration.ofMinutes(10)),
-            // Confirming a link — tokens are 256-bit so brute force is infeasible; this is
-            // cheap defence-in-depth. Uses a distinct method so it doesn't collide with the POST above.
-            new Limit("GET", "/auth/verify-student/confirm", MatchType.PREFIX, 20, Duration.ofMinutes(1)),
             // Requesting a reset emails the account — cap to prevent inbox-bombing.
             new Limit("POST", "/auth/forgot-password", MatchType.PREFIX, 5, Duration.ofMinutes(10)),
             // Completing a reset — defence-in-depth against token guessing.

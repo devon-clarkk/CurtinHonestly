@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
+import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -67,6 +68,16 @@ public class JwtUtil {
 
     public Date extractExpiration(String token) {
         return extractClaim(token, Claims::getExpiration);
+    }
+
+    /**
+     * When the token was issued, to whole seconds (JWT {@code iat} has no sub-second
+     * precision). Compared against the account's {@code tokensValidAfter} so a password
+     * reset or email change kills sessions minted before it (security audit finding #4).
+     */
+    public Instant extractIssuedAt(String token) {
+        Date issuedAt = extractClaim(token, Claims::getIssuedAt);
+        return issuedAt == null ? null : issuedAt.toInstant();
     }
 
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {

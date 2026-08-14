@@ -2,6 +2,7 @@ package com.curtinhonestly.backend.service;
 
 import com.curtinhonestly.backend.domain.User;
 import com.curtinhonestly.backend.repo.UserRepo;
+import com.curtinhonestly.backend.security.AppUserDetails;
 import com.curtinhonestly.backend.util.EmailNormalizer;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -33,14 +34,15 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                 .map(role -> new SimpleGrantedAuthority(role.name())) // This gives "ROLE_USER", "ROLE_ADMIN"
                 .collect(Collectors.toList());
 
-        return new org.springframework.security.core.userdetails.User(
+        // AppUserDetails (a subclass of Spring's User) carries tokensValidAfter so the
+        // JWT filter can reject sessions older than the last credential change without
+        // a second query per request.
+        return new AppUserDetails(
                 user.getEmail(),
                 user.getPassword(),
                 !user.isBanned(),
-                true,
-                true,
-                true,
-                authorities
+                authorities,
+                user.getTokensValidAfter()
         );
     }
 }

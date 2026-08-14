@@ -18,6 +18,7 @@ import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Base64;
 import java.util.HexFormat;
 
@@ -169,12 +170,18 @@ public class VerificationService {
 
         User user = token.getUser();
         user.setPassword(passwordEncoder.encode(newPassword));
+        // Cut every session that predates the reset. A reset is what someone does
+        // after a device theft or a token leak, so leaving previously issued JWTs
+        // alive for the rest of their 7-day TTL made the reset false assurance
+        // (security audit finding #4). Truncated to whole seconds to match the JWT
+        // `iat` granularity the filter compares against.
+        user.setTokensValidAfter(Instant.now().truncatedTo(ChronoUnit.SECONDS));
         userRepo.saveAndFlush(user);
 
         token.setUsedAt(Instant.now());
         tokenRepo.save(token);
 
-        log.info("User {} completed a password reset", user.getId());
+        log.info("User {} completed a password reset; sessions issued before now are invalidated", user.getId());
     }
 
     private void assertEmailNotTakenByOther(String normalizedEmail, User user) {

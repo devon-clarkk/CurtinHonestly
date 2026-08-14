@@ -142,6 +142,56 @@ class RateLimitFilterTest {
     }
 
     @Test
+    void confirmingAVerificationLinkIsNotSwallowedByTheEmailSendLimit() throws Exception {
+        // Finding #5 turned the confirm endpoint from GET into POST, which put it on the
+        // same method as the /auth/verify-student PREFIX rule (5 per 10 minutes, there to
+        // stop inbox-bombing). Matching is first-hit, so the confirm entry has to sit
+        // above it; with the order reversed, the sixth person to click a legitimate link
+        // in a ten-minute window gets a 429.
+        for (int i = 0; i < 6; i++) {
+            MockHttpServletRequest request = new MockHttpServletRequest("POST", "/auth/verify-student/confirm");
+            MockHttpServletResponse response = new MockHttpServletResponse();
+            FilterChain chain = mock(FilterChain.class);
+            filter.doFilter(request, response, chain);
+            assertThat(response.getStatus()).isEqualTo(200);
+            verify(chain).doFilter(request, response);
+        }
+    }
+
+    @Test
+    void confirmingAVerificationLinkStillHasItsOwnCeiling() throws Exception {
+        // Defence-in-depth against token guessing survives the move to POST: 20/minute.
+        for (int i = 0; i < 20; i++) {
+            hit("POST", "/auth/verify-student/confirm");
+        }
+        MockHttpServletRequest twentyFirst = new MockHttpServletRequest("POST", "/auth/verify-student/confirm");
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        FilterChain chain = mock(FilterChain.class);
+
+        filter.doFilter(twentyFirst, response, chain);
+
+        assertThat(response.getStatus()).isEqualTo(429);
+        verifyNoInteractions(chain);
+    }
+
+    @Test
+    void sendingAVerificationEmailKeepsItsTighterLimit() throws Exception {
+        // The other half of the ordering: exhausting the confirm bucket must not have
+        // handed the email-send path a bigger allowance than the 5 it is meant to have.
+        for (int i = 0; i < 5; i++) {
+            hit("POST", "/auth/verify-student");
+        }
+        MockHttpServletRequest sixth = new MockHttpServletRequest("POST", "/auth/verify-student");
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        FilterChain chain = mock(FilterChain.class);
+
+        filter.doFilter(sixth, response, chain);
+
+        assertThat(response.getStatus()).isEqualTo(429);
+        verifyNoInteractions(chain);
+    }
+
+    @Test
     void reviewFlaggingIsThrottledAcrossDifferentReviewsViaSuffixMatch() throws Exception {
         for (int i = 0; i < 10; i++) {
             hit("POST", "/reviews/review-" + i + "/flags");

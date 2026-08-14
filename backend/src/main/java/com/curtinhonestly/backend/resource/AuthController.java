@@ -6,6 +6,7 @@ import com.curtinhonestly.backend.dto.ErrorResponse;
 import com.curtinhonestly.backend.dto.CampaignEntrySummaryDTO;
 import com.curtinhonestly.backend.security.JwtUtil;
 import com.curtinhonestly.backend.service.CampaignService;
+import com.curtinhonestly.backend.service.EmailAlreadyRegisteredException;
 import com.curtinhonestly.backend.service.UserService;
 import com.curtinhonestly.backend.service.VerificationService;
 import com.curtinhonestly.backend.util.StudentEmailValidator;
@@ -37,26 +38,39 @@ public class AuthController {
     private final CampaignService campaignService;
     private final VerificationService verificationService;
 
+    // Byte-for-byte identical whether or not the address already had an account, so
+    // /auth/register cannot be used to enumerate who has signed up (security audit
+    // finding #7). Registering no longer returns a session token, because a token can only
+    // be minted for an account we created, and returning one in exactly one of the
+    // two branches is the leak. The client completes signup by calling /auth/login,
+    // which is already enumeration-safe.
+    private static final String REGISTER_RESPONSE_MESSAGE =
+            "Thanks for signing up. If that email wasn't already registered, your account is ready. Sign in to continue.";
+
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {
-        log.info("Registration attempt for email: {}", request.email());
+        log.info("Registration attempt received");
 
-        User user = campaignService.registerUserWithCampaign(
-                request.email(), request.password(), request.ref(), request.promoCode());
+        try {
+            User user = campaignService.registerUserWithCampaign(
+                    request.email(), request.password(), request.ref(), request.promoCode());
 
-        // If they registered with a student-suffix address, send a confirmation link to it.
-        // The badge stays off until they click it.
-        if (!user.isVerifiedStudent() && StudentEmailValidator.isStudentEmail(user.getEmail())) {
-            verificationService.requestStudentVerification(user, user.getEmail());
+            // If they registered with a student-suffix address, send a confirmation link to it.
+            // The badge stays off until they click it.
+            if (!user.isVerifiedStudent() && StudentEmailValidator.isStudentEmail(user.getEmail())) {
+                verificationService.requestStudentVerification(user, user.getEmail());
+            }
+
+            log.info("User registered successfully: {}", user.getId());
+        } catch (EmailAlreadyRegisteredException ex) {
+            // Deliberately swallowed. The owner of the address is notified by email
+            // (UserService.createUser); the caller gets the same 200 as a new signup.
+            // Note the email itself is never logged here: the log line would be the
+            // same oracle, just moved into the log file.
+            log.info("Registration attempt for an address that already has an account; returning the uniform response");
         }
 
-        String token = jwtUtil.generateToken(
-                user.getEmail(),
-                user.getRoles().stream().map(Enum::name).toList()
-        );
-
-        log.info("User registered successfully: {}", user.getId());
-        return ResponseEntity.ok(new JwtResponse(token, user.isVerifiedStudent()));
+        return ResponseEntity.ok(new MessageResponse(REGISTER_RESPONSE_MESSAGE));
     }
 
     @PostMapping("/login")
@@ -150,15 +164,26 @@ public class AuthController {
                 "We've sent a confirmation link to your student email. Click it to verify your account."));
     }
 
-    @GetMapping("/verify-student/confirm")
-    public ResponseEntity<?> confirmStudent(@RequestParam("token") String token) {
-        User user = verificationService.confirmStudentVerification(token);
+    // POST with the token in the body, not GET with it in the query string
+    // (security audit finding #5). This call both consumes a single-use token and
+    // mints a session, and a URL-borne token leaks through Referer headers, browser
+    // history, and every proxy/access log on the way. The emailed link still lands
+    // on the SPA route /verify-student/confirm?token=..., which is unavoidable for a
+    // link in an email; the SPA strips the token from its own URL and hands it to
+    // this endpoint in a request body.
+    @PostMapping("/verify-student/confirm")
+    public ResponseEntity<?> confirmStudent(@Valid @RequestBody ConfirmStudentRequest request) {
+        User user = verificationService.confirmStudentVerification(request.token());
         String jwt = jwtUtil.generateToken(
                 user.getEmail(),
                 user.getRoles().stream().map(Enum::name).toList()
         );
         log.info("Student verification confirmed for user {}", user.getId());
-        return ResponseEntity.ok(new JwtResponse(jwt, user.isVerifiedStudent()));
+        return ResponseEntity.ok()
+                // Belt and braces: this response body carries a session token, so make
+                // sure no shared cache or bfcache-style store keeps a copy of it.
+                .header("Cache-Control", "no-store")
+                .body(new JwtResponse(jwt, user.isVerifiedStudent()));
     }
 
     @PostMapping("/forgot-password")
@@ -181,6 +206,7 @@ public class AuthController {
     public record RegisterRequest(@NotBlank @Email String email, @NotBlank @Size(min = 8, max = 200) String password, String ref, String promoCode) {}
     public record LoginRequest(String email, String password) {}
     public record VerifyStudentRequest(String studentEmail, String password) {}
+    public record ConfirmStudentRequest(@NotBlank String token) {}
     public record UpdateEmailRequest(String newEmail, String password) {}
     public record EnrolCampaignRequest(String code) {}
     public record DeleteAccountRequest(String password, boolean deleteReviews) {}

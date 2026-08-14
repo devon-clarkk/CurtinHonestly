@@ -254,6 +254,42 @@ class VerificationServiceTest {
     }
 
     @Test
+    void resetPassword_stampsTheCutOffThatInvalidatesAlreadyIssuedSessions() throws Exception {
+        User user = unverifiedUser();
+        user.setPassword("old-hash");
+        VerificationToken token = usableResetToken(user);
+        when(tokenRepo.findByTokenHash(sha256("raw-token"))).thenReturn(Optional.of(token));
+        when(passwordEncoder.encode("new-password-123")).thenReturn("new-hash");
+
+        Instant before = Instant.now().truncatedTo(ChronoUnit.SECONDS);
+        service().resetPassword("raw-token", "new-password-123");
+
+        // Security audit finding #4: JWTs are stateless with a 7-day TTL, so without
+        // this stamp a reset did not end the session it was meant to end: a stolen
+        // token stayed usable for the rest of the week. JwtAuthenticationFilter refuses
+        // any token issued before this instant.
+        assertThat(user.getTokensValidAfter()).isNotNull();
+        assertThat(user.getTokensValidAfter()).isBetween(before, Instant.now());
+        // Whole seconds, matching the JWT `iat` granularity the filter compares against.
+        assertThat(user.getTokensValidAfter().getNano()).isZero();
+    }
+
+    @Test
+    void resetPassword_leavesTheCutOffAloneWhenTheTokenIsRejected() throws Exception {
+        User user = unverifiedUser();
+        VerificationToken token = usableResetToken(user);
+        token.setUsedAt(Instant.now().minus(1, ChronoUnit.MINUTES));
+        when(tokenRepo.findByTokenHash(sha256("raw-token"))).thenReturn(Optional.of(token));
+
+        assertThatThrownBy(() -> service().resetPassword("raw-token", "new-password-123"))
+                .isInstanceOf(IllegalArgumentException.class);
+
+        // A failed reset must not log anyone out: replaying a spent link should not be
+        // usable as a way to kill an account's live sessions.
+        assertThat(user.getTokensValidAfter()).isNull();
+    }
+
+    @Test
     void resetPassword_rejectsTooShortPasswordBeforeTouchingToken() {
         assertThatThrownBy(() -> service().resetPassword("raw-token", "short"))
                 .isInstanceOf(IllegalArgumentException.class);

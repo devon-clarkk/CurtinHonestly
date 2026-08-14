@@ -15,10 +15,10 @@ Overall the codebase is in good shape: JPA is used with parameterised queries th
 | 1 | **Critical** | JWT signing secret (and DB password) committed to a **public** git history; forgeable admin tokens if still in use | Fixed-in-code already; **Devon must rotate** |
 | 2 | **Critical** | Stored XSS via JSON-LD `reviewBody` in prerendered/SSR HTML | **Fixed** on this branch |
 | 3 | **High** | Rate-limit bypass via spoofable `X-Forwarded-For` (defeats login/reset/register/visit limits) | **Fixed** on this branch |
-| 4 | **Medium** | Password reset does not invalidate existing JWTs (up to 7-day window) | Flagged (fix deferred, needs schema) |
-| 5 | **Medium** | Verification-confirm token travels in URL query string; auto-logs-in | Flagged |
+| 4 | **Medium** | Password reset does not invalidate existing JWTs (up to 7-day window) | **Fixed** on this branch (Flyway `V5`) |
+| 5 | **Medium** | Verification-confirm token travels in URL query string; auto-logs-in | **Fixed** on this branch (partial by nature, see below) |
 | 6 | **Low** | `isTipOwner` repeats the old `instanceof UserDetails` bug — denies every non-admin tip owner (fail-closed) | **Fixed** on this branch |
-| 7 | **Low** | Account enumeration on `/auth/register` ("email already registered") | Flagged |
+| 7 | **Low** | Account enumeration on `/auth/register` ("email already registered") | **Fixed** on this branch (residual noted) |
 | 8 | **Low** | No minimum password length on registration (reset enforces 8) | **Fixed** on this branch |
 | 9 | **Low** | `professor` review field has no length bound (storage/DoS) | **Fixed** on this branch |
 | 10 | **Info** | Actuator on classpath; keep web exposure to `health` only | Hardening note |
@@ -105,7 +105,15 @@ if (forwardedFor != null && !forwardedFor.isBlank()) {
 
 **Exploit:** a user who resets their password after a device theft or token leak does not actually cut off the attacker — the previously issued JWT remains valid for up to 7 days. The reset gives false assurance.
 
-**Fix (deferred — needs schema):** add `tokensValidAfter` (timestamp) to `User`, stamp it on password reset / email change, and reject tokens issued before it in `JwtAuthenticationFilter`. This requires a Flyway migration and a domain change, so it is flagged rather than applied in this Critical/High remediation pass. Recommend as the next security ticket.
+**Fix (code, applied):** `User.tokensValidAfter` (nullable `TIMESTAMPTZ`, added by `V5__app_users_tokens_valid_after.sql`), stamped by `VerificationService.resetPassword` and `UserService.updateEmail`, enforced in `JwtAuthenticationFilter`: a token whose `iat` predates the stamp is refused before authentication is set, even though it is still correctly signed and unexpired.
+
+Three details are load-bearing:
+
+- **The column is nullable, not `NOT NULL DEFAULT now()`.** Adding a `NOT NULL` column to a populated table without a default is precisely the `reviews.like_count` failure this repo's `db/migration/README.md` documents, and a `DEFAULT now()` backfill would have logged out every existing user on deploy. `NULL` means "no cut-off", so pre-existing accounts are untouched until they actually change a credential.
+- **The stamp is truncated to whole seconds.** A JWT `iat` carries whole seconds only. `PATCH /auth/me` stamps the cut-off and mints a replacement token in the same instant, so a nanosecond-precision stamp would be strictly newer than that fresh token and the filter would reject it, logging the user out the moment they changed their email. The comparison is a strict `issuedAt.isBefore(cutOff)` so a same-second token survives.
+- **The cut-off rides on the `UserDetails`.** `UserDetailsServiceImpl` now returns `AppUserDetails` (a subclass of Spring's `User`), so the filter reads the timestamp from the lookup it already performs rather than adding a second query per request.
+
+Residual: the window is one second wide. A token minted in the same second as the reset is accepted. Closing that would require sub-second `iat`, which JWT does not carry.
 
 ---
 
@@ -115,7 +123,18 @@ if (forwardedFor != null && !forwardedFor.isBlank()) {
 
 **Risk:** tokens in URLs leak via `Referer` headers (to any third-party asset on the landing page), browser history, and proxy/server logs. Because confirming also **logs the user in** (issues a JWT), a leaked-then-still-unused token grants a session. Mitigated by single-use + 256-bit entropy + 24h TTL, so exposure is low, but the pattern is worth changing: prefer POST-on-confirm from the SPA (token in body) or invalidate immediately and never echo a session token from a GET.
 
-**Fix:** flagged, not changed (product-flow decision).
+**Fix (code, applied):**
+
+- `GET /auth/verify-student/confirm?token=...` is **replaced** by `POST /auth/verify-student/confirm` with the token in the request body. The GET is gone rather than deprecated: leaving a second, leakier entry point that also auto-logs-in would keep the finding open. The response carries `Cache-Control: no-store`.
+- Both landing pages (`/verify-student/confirm` and `/reset-password`) strip the token from the address bar as soon as they have read it, via `Router.navigate(..., { replaceUrl: true })`. `replaceUrl` keeps it out of browser history instead of pushing a second entry that still holds it. Router navigation rather than `history.replaceState` because these components' `ngOnInit` also runs under SSR, where there is no `window.history`.
+- `index.html` pins `<meta name="referrer" content="strict-origin-when-cross-origin">`, so the token cannot reach a third-party host in a `Referer` header even on a browser whose default is laxer.
+- `SecurityConfig` permits the new POST route unauthenticated (the recipient may open the link on a device that is not signed in). The rate-limit entry moved with it and **must stay above** the `POST /auth/verify-student` prefix rule: both are now POST, matching is first-hit, and with the order reversed a legitimate confirm would be charged to the 5-per-10-minutes email-send bucket. There is a regression test for that ordering.
+
+**What necessarily stays:** the emailed link itself carries the token in a URL, because it is a link in an email. Everything downstream of the click no longer does. The reset flow's backend was already clean (the token travels in the `POST /auth/reset-password` body), so the backend change here is confirm-only.
+
+**Stale-tab caveat:** a user who had the verify page open in a tab from before the deploy would have an old bundle calling the removed GET. They get the error state and can request a fresh link.
+
+**Optional hardening for Devon (config, not code):** `staticwebapp.config.json` `globalHeaders` could add a site-wide `Referrer-Policy` to complement the meta tag. Left alone deliberately, per the split of code work from config work.
 
 ---
 
@@ -140,7 +159,21 @@ This fails **closed** — it is a correctness/availability bug, not an unauthori
 
 ## 7. Low — Account enumeration on registration
 
-**File:** `UserService.createUser:40-42` → `"That email is already registered."` surfaced via `GlobalExceptionHandler` as a 400. Lets an attacker probe which emails have accounts. `forgot-password` is correctly enumeration-safe (`AuthController:156-162`); registration is not. Low impact for a student-review site; flagged for awareness. (Left as-is to preserve the clear signup UX; the privacy trade-off is Devon's call.)
+**File:** `UserService.createUser` → `"That email is already registered."` surfaced via `GlobalExceptionHandler` as a 400, while a new address got a 200. Lets an attacker probe which emails have accounts. `forgot-password` is correctly enumeration-safe; registration was not.
+
+**Fix (code, applied):** `POST /auth/register` now returns a byte-identical `200 {"message": ...}` in both cases.
+
+- `UserService.createUser` throws a new `EmailAlreadyRegisteredException` (a subclass of `IllegalArgumentException`, so every other caller and the 400 mapping are unchanged) and `AuthController.register` catches exactly that one type. Unrelated registration failures, such as a bad referral slug or promo code, still surface as errors: they are not a signal about email addresses, and swallowing them would hide a real mistake from the user.
+- **Registration no longer returns a session token.** This is forced: a token can only be minted for an account we just created, so returning one in exactly one of the two branches would be the same oracle in a different field. The SPA completes signup by calling `/auth/login` immediately afterwards with the credentials just entered, which keeps the one-submit UX, and `/auth/login` is already enumeration-safe.
+- **The duplicate branch still runs bcrypt** before throwing, and the result is discarded. A uniform body is defeated by a stopwatch if the create path spends ~100ms hashing and the duplicate path returns instantly. Parity is close, not perfect: the create path also does an insert, and a student-suffix address triggers a verification email, so the branches are not identical in cost. Perfect timing parity is not achievable here and is not claimed.
+- **The real owner is emailed** ("someone tried to sign up with your email"), which is the standard companion to an enumeration-safe signup: the person who owns the address learns about the attempt, the person who made it learns nothing. This also restores, to the right recipient, the signal that the removed error message used to give the wrong one.
+- The controller no longer logs the submitted email on this path, since a log line keyed to the outcome is the same oracle moved into a log file.
+
+**Residual, stated plainly:** an attacker can still infer existence by registering an address and then attempting to log in with the password they chose. Success means the account was new. That is inherent to any signup that produces an immediately usable account, and closing it requires activation-before-login, which is a product decision (see Devon action items) and not something this pass takes on its own initiative. What this fix removes is the free, single-request, unambiguous oracle.
+
+**Campaign path checked:** with attribution, `registerUserWithCampaign` takes the campaign row lock and validates state before `createUser`, so a duplicate email throws inside that transaction and it rolls back. No redemption slot is consumed and no `CampaignEntry` is created.
+
+**Note (out of scope, unchanged):** `PATCH /auth/me` still answers `"That email is already in use."` That is an authenticated endpoint, so probing it costs an account and is rate-limited by that, but it is the same class of signal if it ever matters.
 
 ---
 
@@ -184,16 +217,25 @@ This fails **closed** — it is a correctness/availability bug, not an unauthori
 
 ---
 
-## What was changed on this branch (Critical + High + cheap Lows)
+## What was changed on this branch
 
-Code fixes applied:
+**First pass (Critical + High + cheap Lows), commit `c57754d`:**
 - **#2** JSON-LD escaping via new `serializeJsonLd` in `unit-seo.utils.ts`, wired into `seo.service.ts` + regression tests.
 - **#3** `X-Forwarded-For` right-of-chain resolution with trusted-hop config (`app.ratelimit.trusted-proxy-count`, default 1), fail-safe fallback + tests.
 - **#6** `isTipOwner` corrected + ownership tests (review and tip).
 - **#8** registration password `@Size(min = 8)`.
 - **#9** `professor` `@Size(max = 200)` on create and update.
 
-**Test status:** 18 targeted backend unit tests green (8 `RateLimitFilterTest` including the two new XFF-spoofing cases, 5 `ReviewSecurityServiceTest`, 5 `UnitTipSecurityServiceTest`); 41 frontend `unit-seo.utils.spec.ts` green. Three `@SpringBootTest` integration tests (`ApplicationTests.contextLoads`, `ReviewLikeCampaignTest`, `ReviewOrderingTest`) could not run in this environment — they fail on `password authentication failed for user "postgres"` (a Testcontainers/local-DB wiring issue), and fail identically on the clean base with the changes stashed, so they are pre-existing and not regressions. Devon should confirm they pass in CI before promoting.
+**Second pass (the deferred Mediums and Low), this commit:**
+- **#4** `V5__app_users_tokens_valid_after.sql` + `User.tokensValidAfter`, stamped on password reset and email change, enforced in `JwtAuthenticationFilter` via the new `AppUserDetails`.
+- **#5** confirm endpoint moved from `GET ?token=` to `POST` with the token in the body; both token-bearing SPA routes strip it from the URL; referrer-policy meta tag; `Cache-Control: no-store` on the confirm response; rate-limit entry re-ordered to match.
+- **#7** `EmailAlreadyRegisteredException` + uniform `200` from `/auth/register`, register-then-login in the SPA, bcrypt on the duplicate branch for timing parity, notice emailed to the real owner.
+
+Nothing in the Devon-owned column (secret rotation, environment config) was touched.
+
+**Test status:** 137 backend tests, 134 green. New this pass: `JwtSessionInvalidationTest` (6, including the same-second acceptance case that guards against the fix logging users out), `SessionInvalidationIntegrationTest` (2, against a real Postgres, proving the migration and column round-trip and that the filter turns the cut-off into a 401), `RegisterEnumerationTest` (5), `VerifyStudentConfirmEndpointTest` (3), plus new cases in `UserServiceTest`, `VerificationServiceTest`, `RateLimitFilterTest`, `ExceptionHandlerTest`, and `EmailNormalizationTest`. Frontend: 73 unit tests green and `ng build` clean (including the prerender step).
+
+The same three `@SpringBootTest` tests still fail (`ApplicationTests.contextLoads`, `ReviewLikeCampaignTest`, `ReviewOrderingTest`). Re-confirmed pre-existing this pass by stashing every change and running them on the clean base, where they fail identically. `ApplicationTests` fails on `password authentication failed for user "postgres"` (it does not import `TestcontainersConfig`, so it tries the local DB); the other two fail on an assertion, `201` expected but `400`. Both are unrelated to this work. Devon should confirm CI's view before promoting.
 
 Committed, **not deployed**. Deployment is Devon's dev→main promotion.
 
@@ -201,7 +243,8 @@ Committed, **not deployed**. Deployment is Devon's dev→main promotion.
 
 1. **Rotate `JWT_SECRET`** in prod and dev to a fresh 256-bit random value (finding #1). Highest priority.
 2. **Rotate the DB password** if `CurtinHonestly` was ever a real credential (finding #1).
-3. Decide on **finding #4** (session invalidation on password reset) — recommend scheduling as the next security ticket (needs a Flyway migration).
-4. Decide on **findings #5 and #7** (token-in-URL flow, registration enumeration) — product/UX trade-offs.
-5. **Verify the `X-Forwarded-For` shape on dev** (finding #3) and set `app.ratelimit.trusted-proxy-count` accordingly (0 if the ingress does not append). One-time check.
-6. Consider a shared rate-limit store (Redis) if the backend ever runs more than one replica (finding #3 note).
+3. **Verify the `X-Forwarded-For` shape on dev** (finding #3) and set `app.ratelimit.trusted-proxy-count` accordingly (0 if the ingress does not append). One-time check.
+4. Consider a shared rate-limit store (Redis) if the backend ever runs more than one replica (finding #3 note).
+5. **Decide whether to close finding #7's residual** by requiring email activation before a new account can log in. That removes the last inference path, at the cost of adding a confirmation step to signup. It is a conversion trade-off, so it is your call rather than a security default. Everything cheaper than that is already done.
+6. Optional: add a site-wide `Referrer-Policy` to `staticwebapp.config.json` `globalHeaders` alongside the meta tag (finding #5).
+7. Watch the first deploy after **#4**: the migration adds a nullable column, so no existing session is invalidated by the deploy itself. If sessions do start dropping, the cause is the truncation or comparison direction, not the migration.

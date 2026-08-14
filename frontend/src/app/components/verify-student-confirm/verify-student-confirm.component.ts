@@ -1,6 +1,6 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { SeoService } from '../../services/seo.service';
 
@@ -35,6 +35,7 @@ type ConfirmState = 'loading' | 'success' | 'error';
 })
 export class VerifyStudentConfirmComponent implements OnInit {
   private route = inject(ActivatedRoute);
+  private router = inject(Router);
   private authService = inject(AuthService);
   private seoService = inject(SeoService);
 
@@ -50,6 +51,20 @@ export class VerifyStudentConfirmComponent implements OnInit {
       this.errorMessage.set('No verification token was provided.');
       return;
     }
+
+    // Drop the token from the address bar as soon as we've read it (security audit
+    // finding #5). The emailed link has to carry it in a URL, but nothing after this
+    // point does: leaving it there puts a live single-use credential into browser
+    // history and into the Referer of any request this page later makes.
+    //
+    // Router.navigate, not history.replaceState: ngOnInit also runs during SSR,
+    // where there is no window.history to call. replaceUrl keeps it out of history
+    // rather than pushing a second entry that still holds the token.
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: {},
+      replaceUrl: true
+    });
 
     this.authService.confirmStudentVerification(token).subscribe({
       next: () => {

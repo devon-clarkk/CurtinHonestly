@@ -1,5 +1,5 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 import { environment } from '../../environments/environment';
 
@@ -84,10 +84,15 @@ export class AuthService {
     );
   }
 
-  register(request: RegisterRequest): Observable<JwtResponse> {
-    return this.http.post<JwtResponse>(`${this.apiUrl}/register`, request).pipe(
-      tap(response => this.persistSession(response.token, response.verifiedStudent, request.email))
-    );
+  // Registering no longer returns a session. The endpoint answers identically
+  // whether or not the address already had an account, so it cannot be used to
+  // find out who has signed up (security audit finding #7), and a response that
+  // carried a token in only one of those two cases would be exactly that tell.
+  // Signup therefore completes as register-then-login: for a genuinely new
+  // account the follow-up login succeeds with the password just chosen, so the
+  // user still lands signed in from a single form submit.
+  register(request: RegisterRequest): Observable<MessageResponse> {
+    return this.http.post<MessageResponse>(`${this.apiUrl}/register`, request);
   }
 
   // Requests a confirmation email to the student address. Verification only
@@ -103,9 +108,11 @@ export class AuthService {
   }
 
   // Completes verification from the emailed link; logs the user in as verified.
+  // POST with the token in the body, never a GET query param: this call consumes
+  // a single-use token and returns a session, and a token in a URL leaks through
+  // Referer headers, browser history, and proxy logs (security audit finding #5).
   confirmStudentVerification(token: string): Observable<JwtResponse> {
-    const params = new HttpParams().set('token', token);
-    return this.http.get<JwtResponse>(`${this.apiUrl}/verify-student/confirm`, { params }).pipe(
+    return this.http.post<JwtResponse>(`${this.apiUrl}/verify-student/confirm`, { token }).pipe(
       tap(response => this.persistSession(response.token, response.verifiedStudent, null))
     );
   }

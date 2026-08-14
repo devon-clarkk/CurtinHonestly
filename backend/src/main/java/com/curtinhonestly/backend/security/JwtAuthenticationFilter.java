@@ -44,6 +44,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
+                if (isStaleAfterCredentialChange(userDetails, token)) {
+                    // A password reset or email change has happened since this token was
+                    // issued, so the session it represents was explicitly revoked. Without
+                    // this the reset gave false assurance: a stolen token stayed usable for
+                    // the remainder of its 7-day TTL (security audit finding #4).
+                    log.debug("Token predates the account's last credential change - rejected");
+                    filterChain.doFilter(request, response);
+                    return;
+                }
+
                 if (jwtUtil.isTokenValid(token, userDetails.getUsername()) && userDetails.isEnabled()) {
                     // Authorities always come from the DB, never the token's roles claim, so a
                     // ban or role change takes effect immediately rather than at token expiry.
@@ -71,5 +81,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    /**
+     * Fails open only for accounts that have never had a credential change (cut-off
+     * null) or for a token with no {@code iat} - both of which this app never
+     * produces for a live session, since JwtUtil always stamps issued-at.
+     */
+    private boolean isStaleAfterCredentialChange(UserDetails userDetails, String token) {
+        if (!(userDetails instanceof AppUserDetails appUser) || appUser.getTokensValidAfter() == null) {
+            return false;
+        }
+        return appUser.isTokenStale(jwtUtil.extractIssuedAt(token));
     }
 }
