@@ -1,7 +1,7 @@
 import { Component, inject, input, output, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { CampaignProgress, CreateReviewResponse, ReviewService } from '../../services/review.service';
+import { CreateReviewResponse, ReviewService } from '../../services/review.service';
 import { SemesterOption, formatTerm, generateSemesterOptions } from '../../utils/semester-options.util';
 import { AcademicTerm, MyReview, REVIEW_TAGS } from '../../models/unit.model';
 
@@ -146,12 +146,12 @@ export class AddReviewComponent implements OnInit {
   }
 
   private handleSuccess(response: CreateReviewResponse) {
-    const progressMessage = this.buildProgressMessage(response.campaignProgress);
-
-    if (response.campaignEntryToken) {
-      this.successMessage.set(
-        `Review submitted! You're entered in the ${response.campaignName ?? 'campaign'} draw. Entry token: ${response.campaignEntryToken}`
-      );
+    // A single review can now earn an entry in several campaigns at once.
+    if (response.newEntryCount > 0) {
+      const message = response.newEntryCount === 1
+        ? `Review submitted! You're entered in the ${response.campaignName ?? 'campaign'} draw. Entry token: ${response.campaignEntryToken}`
+        : `Review submitted! You earned ${response.newEntryCount} draw entries — see them on your account page.`;
+      this.successMessage.set(message);
       setTimeout(() => {
         this.reviewAdded.emit();
         this.resetForm();
@@ -159,48 +159,8 @@ export class AddReviewComponent implements OnInit {
       return;
     }
 
-    if (progressMessage) {
-      this.successMessage.set(`Review submitted! ${progressMessage}`);
-      setTimeout(() => {
-        this.reviewAdded.emit();
-        this.resetForm();
-      }, 3000);
-      return;
-    }
-
     this.reviewAdded.emit();
     this.resetForm();
-  }
-
-  private buildProgressMessage(progress: CampaignProgress | null): string | null {
-    if (!progress) {
-      return null;
-    }
-
-    if (progress.requireVerifiedStudent && progress.entriesEarned === 0 && progress.qualifyingReviews > 0) {
-      return 'Verify your student email to earn draw entries.';
-    }
-
-    if (progress.minLikesGiven > 0 && progress.likesGiven < progress.minLikesGiven) {
-      const needed = progress.minLikesGiven - progress.likesGiven;
-      return `Mark ${needed} more review${needed === 1 ? '' : 's'} as helpful to unlock draw entries (${progress.likesGiven}/${progress.minLikesGiven}).`;
-    }
-
-    if (progress.entriesEarned >= progress.maxEntries) {
-      return 'You have earned the maximum draw entries for this campaign.';
-    }
-
-    if (progress.minLikesReceived > 0 && progress.qualifyingReviews === 0) {
-      return `Your review needs at least ${progress.minLikesReceived} helpful mark${progress.minLikesReceived === 1 ? '' : 's'} before it counts toward a draw entry.`;
-    }
-
-    const remainder = progress.qualifyingReviews % progress.requiredReviews;
-    if (remainder !== 0) {
-      const needed = progress.requiredReviews - remainder;
-      return `${needed} more qualifying review${needed === 1 ? '' : 's'} needed for a draw entry (${progress.qualifyingReviews}/${progress.requiredReviews}).`;
-    }
-
-    return null;
   }
 
   /**

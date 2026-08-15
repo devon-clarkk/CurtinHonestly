@@ -44,8 +44,8 @@
 </section>
 
 <section class="card section">
-  <h2>Create referral link (tracking only)</h2>
-  <p class="page-subtitle">No prize and no requirement — just a link that forwards to the app and tracks visits, signups, and reviews attributed to it.</p>
+  <h2>Create referral link</h2>
+  <p class="page-subtitle">A shareable link that tracks visits/signups/reviews and enrols signups into the campaigns you tick — pick none for a pure tracking link, or several to run multiple draws off one link.</p>
   <div class="form-grid">
     <input type="text" placeholder="Link code (ref param), e.g. discord-jul26" [(ngModel)]="refSlug" name="refSlug" />
     <input type="text" placeholder="Label (optional), e.g. Computing Discord" [(ngModel)]="refName" name="refName" />
@@ -65,8 +65,83 @@
       <input type="text" placeholder="Path, e.g. /compare" [(ngModel)]="refCustomPath" name="refCustomPath" />
     }
   </div>
-  <p class="page-subtitle">The visitor lands on the chosen page; the ref is captured site-wide, so any page still tracks and attributes.</p>
+
+  <div class="ref-campaigns">
+    <span class="ref-campaigns-label">Enrols signups into (optional — tick one or more draws):</span>
+    @if (rewardCampaigns().length) {
+      <div class="ref-campaigns-list">
+        @for (campaign of rewardCampaigns(); track campaign.id) {
+          <label class="ref-campaign-option">
+            <input type="checkbox" [checked]="isRefCampaignSelected(campaign.id)" (change)="toggleRefCampaign(campaign.id)" />
+            {{ campaign.name }} <code>{{ campaign.slug }}</code>
+          </label>
+        }
+      </div>
+    } @else {
+      <span class="subtle">No reward campaigns yet — create one above to attach it to a link.</span>
+    }
+  </div>
+
+  <p class="page-subtitle">The visitor lands on the chosen page; the ref is captured site-wide, so any page still tracks and enrols.</p>
   <button type="button" class="btn btn-primary" (click)="createReferralLink()">Create referral link</button>
+</section>
+
+<section class="card section">
+  <h2>Referral links</h2>
+  @if (!referralLinks().length) {
+    <p class="subtle">No referral links yet.</p>
+  } @else {
+    <table>
+      <thead>
+        <tr>
+          <th>Name / Slug</th>
+          <th>Lands on</th>
+          <th>Enrols into</th>
+          <th>Visits</th>
+          <th>Signups</th>
+          <th>Reviews</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (link of referralLinks(); track link.id) {
+          <tr>
+            <td>
+              <strong>{{ link.name }}</strong>
+              <div><code>{{ link.slug }}</code></div>
+            </td>
+            <td><code>{{ link.landingPath || '/' }}</code></td>
+            <td>
+              @if (link.campaigns.length) {
+                @for (c of link.campaigns; track c.id) {
+                  <span class="badge">{{ c.name }}</span>
+                }
+              } @else {
+                <span class="subtle">tracking only</span>
+              }
+            </td>
+            <td>{{ link.visitCount }}</td>
+            <td>{{ link.signupCount }}</td>
+            <td>{{ link.reviewCount }}</td>
+            <td>
+              @if (link.active) {
+                <span class="badge badge-active">Active</span>
+              } @else {
+                <span class="badge">Inactive</span>
+              }
+            </td>
+            <td class="actions">
+              <button type="button" class="btn" (click)="copyReferralLinkUrl(link)">Copy link</button>
+              <button type="button" class="btn" (click)="toggleReferralLinkActive(link)">
+                {{ link.active ? 'Deactivate' : 'Activate' }}
+              </button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
 </section>
 
 <section class="card section">

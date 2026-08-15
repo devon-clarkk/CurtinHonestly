@@ -2,7 +2,7 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { AuthService, AccountStatus } from '../../services/auth.service';
+import { AuthService, AccountStatus, CampaignProgress } from '../../services/auth.service';
 import { SeoService } from '../../services/seo.service';
 
 @Component({
@@ -56,8 +56,7 @@ export class AccountComponent implements OnInit {
     document.getElementById('verify-student')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
-  campaignProgressLabel(): string | null {
-    const progress = this.account()?.campaignProgress;
+  campaignProgressLabel(progress: CampaignProgress | null | undefined): string | null {
     if (!progress) {
       return null;
     }

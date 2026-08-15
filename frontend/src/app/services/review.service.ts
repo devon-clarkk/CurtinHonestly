@@ -19,7 +19,7 @@ export interface CreateReviewResponse {
   review: unknown;
   campaignEntryToken: string | null;
   campaignName: string | null;
-  campaignProgress: CampaignProgress | null;
+  newEntryCount: number;
 }
 
 export interface ReviewLikeResponse {

@@ -8,6 +8,7 @@ import {
   AdminReview,
   CampaignAdmin,
   CampaignEntryAdmin,
+  ReferralLinkAdmin,
   FlaggedReviewAdmin,
   PagedReviews,
   UnitRequestAdmin,
@@ -81,8 +82,16 @@ export class AdminService {
     return this.http.post<CampaignAdmin>(`${this.apiUrl}/campaigns`, payload);
   }
 
-  createReferralLink(payload: { slug: string; name: string; landingPath: string }): Observable<CampaignAdmin> {
-    return this.http.post<CampaignAdmin>(`${this.apiUrl}/referral-links`, payload);
+  listReferralLinks(): Observable<ReferralLinkAdmin[]> {
+    return this.http.get<ReferralLinkAdmin[]>(`${this.apiUrl}/referral-links`);
+  }
+
+  createReferralLink(payload: { slug: string; name: string; landingPath: string; campaignIds: string[] }): Observable<ReferralLinkAdmin> {
+    return this.http.post<ReferralLinkAdmin>(`${this.apiUrl}/referral-links`, payload);
+  }
+
+  setReferralLinkActive(id: string, active: boolean): Observable<ReferralLinkAdmin> {
+    return this.http.patch<ReferralLinkAdmin>(`${this.apiUrl}/referral-links/${id}/active`, { active });
   }
 
   setCampaignActive(id: string, active: boolean): Observable<CampaignAdmin> {

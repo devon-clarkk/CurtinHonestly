@@ -2,7 +2,7 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AdminService } from '../../services/admin.service';
-import { CampaignAdmin, CampaignEntryAdmin } from '../../models/admin.model';
+import { CampaignAdmin, CampaignEntryAdmin, ReferralLinkAdmin } from '../../models/admin.model';
 
 @Component({
   selector: 'app-campaigns',
@@ -14,6 +14,7 @@ export class CampaignsComponent implements OnInit {
   private adminService = inject(AdminService);
 
   campaigns = signal<CampaignAdmin[]>([]);
+  referralLinks = signal<ReferralLinkAdmin[]>([]);
   selectedEntries = signal<CampaignEntryAdmin[]>([]);
   selectedCampaignId = signal<string | null>(null);
   errorMessage = signal<string | null>(null);
@@ -33,7 +34,8 @@ export class CampaignsComponent implements OnInit {
   minLikesReceived = 0;
   minLikesGiven = 0;
 
-  // Tracking-only referral link form (no reward config).
+  // Referral link form: a slug + name + landing page + which campaigns it enrols
+  // signups into (none = a pure tracking link; several = multiple draws per link).
   refSlug = '';
   refName = '';
   // Landing-page picker: which page the link forwards to. 'unit'/'custom' reveal
@@ -41,10 +43,37 @@ export class CampaignsComponent implements OnInit {
   refLandingType: 'home' | 'register' | 'unit' | 'custom' = 'home';
   refUnitCode = '';
   refCustomPath = '';
+  refCampaignIds = new Set<string>();
 
   ngOnInit(): void {
     this.refreshCampaigns();
+    this.refreshReferralLinks();
     this.setDefaultDates();
+  }
+
+  // Only reward campaigns can be attached to a referral link (tracking-only ones
+  // enrol no one), so they're the options in the multi-select.
+  rewardCampaigns(): CampaignAdmin[] {
+    return this.campaigns().filter(c => !c.trackingOnly);
+  }
+
+  refreshReferralLinks(): void {
+    this.adminService.listReferralLinks().subscribe({
+      next: (data) => this.referralLinks.set(data),
+      error: () => this.errorMessage.set('Failed to load referral links.')
+    });
+  }
+
+  isRefCampaignSelected(id: string): boolean {
+    return this.refCampaignIds.has(id);
+  }
+
+  toggleRefCampaign(id: string): void {
+    if (this.refCampaignIds.has(id)) {
+      this.refCampaignIds.delete(id);
+    } else {
+      this.refCampaignIds.add(id);
+    }
   }
 
   refreshCampaigns(): void {
@@ -94,7 +123,8 @@ export class CampaignsComponent implements OnInit {
     this.adminService.createReferralLink({
       slug: this.refSlug,
       name: this.refName,
-      landingPath: this.resolveLandingPath()
+      landingPath: this.resolveLandingPath(),
+      campaignIds: [...this.refCampaignIds]
     }).subscribe({
       next: () => {
         this.successMessage.set('Referral link created.');
@@ -103,9 +133,32 @@ export class CampaignsComponent implements OnInit {
         this.refLandingType = 'home';
         this.refUnitCode = '';
         this.refCustomPath = '';
-        this.refreshCampaigns();
+        this.refCampaignIds = new Set<string>();
+        this.refreshReferralLinks();
       },
       error: (err) => this.errorMessage.set(err.error?.error || 'Failed to create referral link.')
+    });
+  }
+
+  referralLinkUrl(link: ReferralLinkAdmin): string {
+    const origin = typeof window !== 'undefined' ? window.location.origin.replace(':4201', ':4200') : 'https://curtinhonestly.com';
+    return `${origin}${link.landingPath || '/'}?ref=${encodeURIComponent(link.slug)}`;
+  }
+
+  copyReferralLinkUrl(link: ReferralLinkAdmin): void {
+    navigator.clipboard.writeText(this.referralLinkUrl(link)).then(() => {
+      this.successMessage.set('Referral link copied.');
+    }).catch(() => this.errorMessage.set('Could not copy link.'));
+  }
+
+  toggleReferralLinkActive(link: ReferralLinkAdmin): void {
+    this.clearMessages();
+    this.adminService.setReferralLinkActive(link.id, !link.active).subscribe({
+      next: () => {
+        this.successMessage.set(link.active ? 'Referral link deactivated.' : 'Referral link activated.');
+        this.refreshReferralLinks();
+      },
+      error: () => this.errorMessage.set('Failed to update referral link.')
     });
   }
 

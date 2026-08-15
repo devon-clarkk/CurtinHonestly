@@ -45,13 +45,18 @@ export interface CampaignProgress {
   likesGiven: number;
 }
 
+export interface CampaignMembership {
+  name: string;
+  prizeDescription: string | null;
+  endsAt: string | null;
+  progress: CampaignProgress | null;
+}
+
 export interface AccountStatus {
   email: string;
   verifiedStudent: boolean;
-  campaignName: string | null;
-  campaignPrizeDescription: string | null;
-  campaignEndsAt: string | null;
-  campaignProgress: CampaignProgress | null;
+  // A user can be enrolled in several campaigns at once (multiple draws per link).
+  campaigns: CampaignMembership[];
   campaignEntries: CampaignEntrySummary[];
 }
 

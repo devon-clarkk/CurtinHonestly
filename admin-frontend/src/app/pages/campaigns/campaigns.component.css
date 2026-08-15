@@ -71,3 +71,25 @@ code {
   gap: 8px;
   font-weight: 600;
 }
+
+/* Referral-link campaign multi-select */
+.ref-campaigns {
+  margin: 12px 0 4px;
+}
+.ref-campaigns-label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.ref-campaigns-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+}
+.ref-campaign-option {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.9rem;
+}

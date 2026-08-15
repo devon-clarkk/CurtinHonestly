@@ -79,6 +79,19 @@ export interface CampaignEntryAdmin {
   createdAt: string;
 }
 
+export interface ReferralLinkAdmin {
+  id: string;
+  slug: string;
+  name: string;
+  landingPath: string | null;
+  active: boolean;
+  visitCount: number;
+  signupCount: number;
+  reviewCount: number;
+  campaigns: { id: string; name: string }[];
+  createdAt: string;
+}
+
 export interface UnitRequestAdmin {
   id: string;
   requestedCode: string;

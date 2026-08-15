@@ -37,27 +37,32 @@
     </div>
   }
 
-  @if (account()?.campaignName) {
+  @if (account()?.campaigns?.length) {
     <section class="account-section card campaign-section">
-      <h2>Campaign</h2>
-      <p class="section-hint">
-        You joined via <strong>{{ account()?.campaignName }}</strong>.
-        @if (account()?.campaignPrizeDescription) {
-          Prize: {{ account()?.campaignPrizeDescription }}.
-        }
-        @if (account()?.campaignEndsAt) {
-          Draw entries close {{ account()?.campaignEndsAt | date: 'mediumDate' }}.
-        }
-      </p>
+      <h2>{{ account()!.campaigns.length === 1 ? 'Campaign' : 'Campaigns' }}</h2>
 
-      @if (account()?.campaignProgress?.requireVerifiedStudent && !authService.verifiedStudent()) {
-        <p class="campaign-note">Verify your student email below to earn draw entries when you leave qualifying reviews.</p>
-      } @else if (account()?.campaignProgress && !account()?.campaignProgress?.requireVerifiedStudent) {
-        <p class="campaign-note">This campaign accepts unverified accounts (e.g. alumni). One review per unit counts toward your entry.</p>
-      }
+      @for (campaign of account()?.campaigns; track campaign.name) {
+        <div class="campaign-membership">
+          <p class="section-hint">
+            You joined <strong>{{ campaign.name }}</strong>.
+            @if (campaign.prizeDescription) {
+              Prize: {{ campaign.prizeDescription }}.
+            }
+            @if (campaign.endsAt) {
+              Draw entries close {{ campaign.endsAt | date: 'mediumDate' }}.
+            }
+          </p>
 
-      @if (campaignProgressLabel()) {
-        <p class="campaign-progress">{{ campaignProgressLabel() }}</p>
+          @if (campaign.progress?.requireVerifiedStudent && !authService.verifiedStudent()) {
+            <p class="campaign-note">Verify your student email below to earn draw entries when you leave qualifying reviews.</p>
+          } @else if (campaign.progress && !campaign.progress.requireVerifiedStudent) {
+            <p class="campaign-note">This campaign accepts unverified accounts (e.g. alumni). One review per unit counts toward your entry.</p>
+          }
+
+          @if (campaignProgressLabel(campaign.progress)) {
+            <p class="campaign-progress">{{ campaignProgressLabel(campaign.progress) }}</p>
+          }
+        </div>
       }
 
       @if (account()?.campaignEntries?.length) {
@@ -66,12 +71,12 @@
           @for (entry of account()?.campaignEntries; track entry.entryToken) {
             <li>
               <span class="entry-token">{{ entry.entryToken }}</span>
-              <span class="entry-meta">{{ entry.unitCode }} · {{ entry.createdAt | date: 'medium' }}</span>
+              <span class="entry-meta">{{ entry.campaignName }} · {{ entry.unitCode }} · {{ entry.createdAt | date: 'medium' }}</span>
             </li>
           }
         </ul>
-      } @else if (authService.verifiedStudent() || !account()?.campaignProgress?.requireVerifiedStudent) {
-        <p class="campaign-note">Leave qualifying reviews on different units to receive a draw entry token.</p>
+      } @else {
+        <p class="campaign-note">Your draw entry tokens will appear here once you've earned them.</p>
       }
     </section>
   }
