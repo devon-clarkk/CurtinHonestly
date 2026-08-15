@@ -11,7 +11,8 @@ public interface UserRepo extends JpaRepository<User, String> {
     Optional<User> findByEmail(String email);
     long countByCreatedAtAfter(Instant since);
     List<User> findByCreatedAtAfter(Instant since);
-    long countByCampaign_Id(String campaignId);
+    // Users enrolled in a campaign (via the user_campaigns many-to-many).
+    long countByCampaigns_Id(String campaignId);
 
     // Signups attributed to a referral link. registeredViaRef stores the campaign
     // slug the user arrived through, so tracking-only links (which don't enrol the

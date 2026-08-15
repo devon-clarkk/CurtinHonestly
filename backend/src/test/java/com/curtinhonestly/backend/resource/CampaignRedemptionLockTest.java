@@ -85,7 +85,7 @@ class CampaignRedemptionLockTest {
 
         long successCount = List.of(statusA, statusB).stream().filter(s -> s == 200).count();
         assertThat(successCount).isEqualTo(1);
-        assertThat(userRepo.countByCampaign_Id(campaign.getId())).isEqualTo(1);
+        assertThat(userRepo.countByCampaigns_Id(campaign.getId())).isEqualTo(1);
     }
 
     private Callable<Integer> registerCallable(String email, String code, CountDownLatch ready, CountDownLatch go) {

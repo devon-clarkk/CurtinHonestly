@@ -88,15 +88,11 @@ public class AuthController {
     public ResponseEntity<AccountDTO> getCurrentAccount() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userService.getUserByEmail(email);
-        var campaign = user.getCampaign();
         List<CampaignEntrySummaryDTO> entries = campaignService.getEntriesForUser(user);
 
         return ResponseEntity.ok(new AccountDTO(
                 user.getEmail(),
                 user.isVerifiedStudent(),
-                campaign != null ? campaign.getName() : null,
-                campaign != null ? campaign.getPrizeDescription() : null,
-                campaign != null ? campaign.getEndsAt() : null,
                 campaignService.getCampaignProgress(user),
                 entries
         ));

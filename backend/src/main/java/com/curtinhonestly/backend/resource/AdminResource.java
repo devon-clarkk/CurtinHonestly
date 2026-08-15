@@ -4,6 +4,7 @@ import com.curtinhonestly.backend.dto.*;
 import com.curtinhonestly.backend.security.SecurityConstants;
 import com.curtinhonestly.backend.service.AdminService;
 import com.curtinhonestly.backend.service.CampaignService;
+import com.curtinhonestly.backend.service.ReferralLinkService;
 import com.curtinhonestly.backend.service.ReviewFlagService;
 import com.curtinhonestly.backend.service.ReviewService;
 import com.curtinhonestly.backend.service.UnitAggregateService;
@@ -27,6 +28,7 @@ public class AdminResource {
     private final ReviewService reviewService;
     private final UnitAggregateService unitAggregateService;
     private final CampaignService campaignService;
+    private final ReferralLinkService referralLinkService;
     private final UnitRequestService unitRequestService;
     private final ReviewFlagService reviewFlagService;
 
@@ -114,10 +116,24 @@ public class AdminResource {
         ));
     }
 
-    // Tracking-only referral link: a slug + optional name + which page it lands on.
+    // Referral link: a slug + name + landing page + the campaigns it enrols signups
+    // into (0 campaigns = a pure tracking link; 1+ = multiple draws under one link).
+    @GetMapping("/referral-links")
+    public ResponseEntity<List<ReferralLinkAdminDTO>> listReferralLinks() {
+        return ResponseEntity.ok(referralLinkService.listReferralLinks());
+    }
+
     @PostMapping("/referral-links")
-    public ResponseEntity<CampaignAdminDTO> createReferralLink(@RequestBody CreateReferralLinkRequest request) {
-        return ResponseEntity.ok(campaignService.createReferralLink(request.slug(), request.name(), request.landingPath()));
+    public ResponseEntity<ReferralLinkAdminDTO> createReferralLink(@RequestBody CreateReferralLinkRequest request) {
+        return ResponseEntity.ok(referralLinkService.createReferralLink(
+                request.slug(), request.name(), request.landingPath(), request.campaignIds()));
+    }
+
+    @PatchMapping("/referral-links/{id}/active")
+    public ResponseEntity<ReferralLinkAdminDTO> setReferralLinkActive(
+            @PathVariable String id,
+            @RequestBody SetCampaignActiveRequest request) {
+        return ResponseEntity.ok(referralLinkService.setActive(id, request.active()));
     }
 
     @PatchMapping("/campaigns/{id}/active")
@@ -174,5 +190,5 @@ public class AdminResource {
 
     public record SetCampaignActiveRequest(boolean active) {}
 
-    public record CreateReferralLinkRequest(String slug, String name, String landingPath) {}
+    public record CreateReferralLinkRequest(String slug, String name, String landingPath, List<String> campaignIds) {}
 }

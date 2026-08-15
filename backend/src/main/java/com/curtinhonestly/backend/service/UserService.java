@@ -14,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -33,7 +34,7 @@ public class UserService {
         return createUser(email, password, null, null);
     }
 
-    public User createUser(String email, String password, Campaign campaign, String ref) {
+    public User createUser(String email, String password, Collection<Campaign> campaigns, String ref) {
         String normalizedEmail = EmailNormalizer.normalize(email);
         log.info("Creating user: {}", normalizedEmail);
 
@@ -49,23 +50,23 @@ public class UserService {
         user.setVerifiedStudent(false);
         user.setRoles(List.of(UserRole.ROLE_USER));
 
-        if (campaign != null) {
-            user.setCampaign(campaign);
+        Set<Campaign> enrolments = campaigns == null ? Set.of() : new HashSet<>(campaigns);
+        if (!enrolments.isEmpty()) {
+            user.setCampaigns(enrolments);
         }
         // Record the referral slug even when there's no campaign enrolment, so
-        // tracking-only referral links (campaign == null, ref set) still attribute
-        // the signup. Falls back to the campaign slug when a reward signup omits ref.
+        // tracking-only referral links (no campaigns, ref set) still attribute the
+        // signup. Falls back to a joined campaign's slug when a reward signup omits ref.
         String normalizedRef = ref != null && !ref.isBlank()
                 ? ref.trim()
-                : (campaign != null ? campaign.getSlug() : null);
+                : enrolments.stream().findFirst().map(Campaign::getSlug).orElse(null);
         if (normalizedRef != null) {
             user.setRegisteredViaRef(normalizedRef);
         }
 
         User savedUser = userRepo.saveAndFlush(user);
-        log.info("User created successfully with ID: {}, verifiedStudent={}, campaign={}",
-                savedUser.getId(), savedUser.isVerifiedStudent(),
-                campaign != null ? campaign.getSlug() : "none");
+        log.info("User created successfully with ID: {}, verifiedStudent={}, campaigns={}",
+                savedUser.getId(), savedUser.isVerifiedStudent(), enrolments.size());
         return savedUser;
     }
 

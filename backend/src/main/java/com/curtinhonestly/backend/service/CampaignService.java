@@ -2,15 +2,18 @@ package com.curtinhonestly.backend.service;
 
 import com.curtinhonestly.backend.domain.Campaign;
 import com.curtinhonestly.backend.domain.CampaignEntry;
+import com.curtinhonestly.backend.domain.ReferralLink;
 import com.curtinhonestly.backend.domain.Review;
 import com.curtinhonestly.backend.domain.User;
 import com.curtinhonestly.backend.dto.CampaignAdminDTO;
 import com.curtinhonestly.backend.dto.CampaignEntryAdminDTO;
 import com.curtinhonestly.backend.dto.CampaignEntrySummaryDTO;
+import com.curtinhonestly.backend.dto.CampaignMembershipDTO;
 import com.curtinhonestly.backend.dto.CampaignProgressDTO;
 import com.curtinhonestly.backend.dto.CampaignValidationDTO;
 import com.curtinhonestly.backend.repo.CampaignEntryRepo;
 import com.curtinhonestly.backend.repo.CampaignRepo;
+import com.curtinhonestly.backend.repo.ReferralLinkRepo;
 import com.curtinhonestly.backend.repo.ReviewLikeRepo;
 import com.curtinhonestly.backend.repo.ReviewRepo;
 import com.curtinhonestly.backend.repo.UserRepo;
@@ -22,6 +25,8 @@ import org.springframework.stereotype.Service;
 import java.security.SecureRandom;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -36,13 +41,15 @@ public class CampaignService {
 
     private final CampaignRepo campaignRepo;
     private final CampaignEntryRepo campaignEntryRepo;
+    private final ReferralLinkRepo referralLinkRepo;
     private final UserRepo userRepo;
     private final ReviewRepo reviewRepo;
     private final ReviewLikeRepo reviewLikeRepo;
     private final UserService userService;
     private final SecureRandom secureRandom = new SecureRandom();
 
-    public record CampaignAwardResult(Optional<CampaignEntry> newEntry, CampaignProgressDTO progress) {}
+    // Entries created across all of the user's campaigns for one triggering action.
+    public record CampaignAwardResult(List<CampaignEntry> newEntries) {}
 
     // Resolves attribution, locks the campaign row, re-validates its state under
     // that lock, then creates the user - all in this one transaction. Holding the
@@ -52,6 +59,23 @@ public class CampaignService {
         boolean hasAttribution = normalize(ref).isPresent() || normalize(promoCode).isPresent();
         if (!hasAttribution) {
             return userService.createUser(email, password, null, null);
+        }
+
+        // A ref may name a multi-campaign referral link, which enrols the user into
+        // every currently-joinable campaign it bundles. Checked before single-campaign
+        // resolution so a link slug wins its namespace.
+        Optional<ReferralLink> link = normalize(ref).flatMap(referralLinkRepo::findBySlugIgnoreCase);
+        if (link.isPresent()) {
+            // maxRedemptions is BEST-EFFORT for bundled links: unlike the single-campaign
+            // path below, we don't take a per-campaign pessimistic lock here, so two
+            // concurrent signups could both pass a near-full campaign's redemption check.
+            // Acceptable for referral-link campaigns (typically no hard cap); the locked
+            // guarantee still holds for promo-code / single-slug signups.
+            List<Campaign> joinable = link.get().getCampaigns().stream()
+                    .filter(c -> !c.isTrackingOnly())
+                    .filter(c -> validateCampaignState(c, true) == null)
+                    .toList();
+            return userService.createUser(email, password, joinable, link.get().getSlug());
         }
 
         Campaign resolved = resolveCampaignForRegistration(ref, promoCode)
@@ -74,7 +98,7 @@ public class CampaignService {
             throw new IllegalArgumentException(stateError);
         }
 
-        return userService.createUser(email, password, locked, ref);
+        return userService.createUser(email, password, List.of(locked), ref);
     }
 
     public Optional<Campaign> resolveCampaignForRegistration(String ref, String promoCode) {
@@ -127,53 +151,67 @@ public class CampaignService {
     }
 
     // Records an attributed visit for a referral link. Best-effort: an unknown slug
-    // updates nothing and is silently ignored, so a stale or mistyped link never errors.
+    // updates nothing and is silently ignored. A slug may name either a multi-campaign
+    // referral link or a (tracking-only) campaign, so bump both counters by slug.
     public void recordVisit(String ref) {
-        normalize(ref).ifPresent(campaignRepo::incrementVisitCountBySlug);
+        normalize(ref).ifPresent(slug -> {
+            referralLinkRepo.incrementVisitCountBySlug(slug);
+            campaignRepo.incrementVisitCountBySlug(slug);
+        });
     }
 
-    public CampaignProgressDTO getCampaignProgress(User user) {
-        if (user.getCampaign() == null) {
-            return null;
-        }
-        return buildProgress(user, user.getCampaign());
+    // One membership card per (non-tracking) campaign the user has joined, each with
+    // its own prize + progress. Feeds the account page's list of campaigns.
+    public List<CampaignMembershipDTO> getCampaignProgress(User user) {
+        return user.getCampaigns().stream()
+                .filter(c -> !c.isTrackingOnly())
+                .sorted(Comparator.comparing(Campaign::getCreatedAt))
+                .map(c -> new CampaignMembershipDTO(
+                        c.getName(),
+                        c.getPrizeDescription(),
+                        c.getEndsAt(),
+                        buildProgress(user, c)))
+                .toList();
     }
 
+    // Awards entries across EVERY campaign the user is enrolled in for one review: a
+    // single qualifying review independently drops a ticket in each eligible campaign.
     public CampaignAwardResult tryAwardCampaignEntries(User user, Review triggeringReview) {
-        if (user.getCampaign() == null || user.isBanned()) {
-            return new CampaignAwardResult(Optional.empty(), null);
+        if (user.isBanned() || user.getCampaigns().isEmpty()) {
+            return new CampaignAwardResult(List.of());
         }
+        List<CampaignEntry> created = new ArrayList<>();
+        for (Campaign campaign : user.getCampaigns()) {
+            awardForCampaign(user, triggeringReview, campaign).ifPresent(created::add);
+        }
+        return new CampaignAwardResult(created);
+    }
 
-        Campaign campaign = user.getCampaign();
-        // Defensive: tracking-only campaigns never enrol members, but if one ever
-        // does (e.g. a campaign flipped to trackingOnly after signups), award nothing.
+    // Per-campaign accrual for a single triggering review. All the eligibility gates
+    // live here so both the review-submit path and the like-driven reconcile path
+    // share exactly the same rules.
+    private Optional<CampaignEntry> awardForCampaign(User user, Review triggeringReview, Campaign campaign) {
         if (campaign.isTrackingOnly()) {
-            return new CampaignAwardResult(Optional.empty(), null);
+            return Optional.empty();
         }
-        CampaignProgressDTO progress = buildProgress(user, campaign);
-
         if (campaign.isRequireVerifiedStudent() && !user.isVerifiedStudent()) {
-            return new CampaignAwardResult(Optional.empty(), progress);
+            return Optional.empty();
         }
-
         if (!userMeetsLikeGiveRequirement(user, campaign)) {
-            return new CampaignAwardResult(Optional.empty(), progress);
+            return Optional.empty();
         }
-
         if (!reviewQualifies(triggeringReview, campaign)) {
-            return new CampaignAwardResult(Optional.empty(), progress);
+            return Optional.empty();
         }
-
         if (validateCampaignState(campaign, false) != null) {
-            return new CampaignAwardResult(Optional.empty(), progress);
+            return Optional.empty();
         }
-
         // A unit whose review already produced an entry can't trigger another one.
         // Without this, deleting and resubmitting a review for the same unit would
         // free up the (user_id, unit_id) slot and let qualifyingCount recount it,
         // looping indefinitely for unlimited entries.
         if (campaignEntryRepo.existsByCampaign_IdAndUser_IdAndUnit_Id(campaign.getId(), user.getId(), triggeringReview.getUnit().getId())) {
-            return new CampaignAwardResult(Optional.empty(), progress);
+            return Optional.empty();
         }
 
         long qualifyingCount = countQualifyingReviews(user, campaign);
@@ -181,60 +219,48 @@ public class CampaignService {
         int maxEntriesPerUser = Math.max(1, campaign.getMaxEntriesPerUser());
         long entriesShouldHave = Math.min(qualifyingCount / requiredReviewCount, maxEntriesPerUser);
         long existingEntries = campaignEntryRepo.countByCampaign_IdAndUser_Id(campaign.getId(), user.getId());
-        long entriesToCreate = entriesShouldHave - existingEntries;
-
-        Optional<CampaignEntry> newEntry = Optional.empty();
-        if (entriesToCreate > 0) {
-            CampaignEntry entry = new CampaignEntry();
-            entry.setCampaign(campaign);
-            entry.setUser(user);
-            entry.setUnit(triggeringReview.getUnit());
-            entry.setReview(triggeringReview);
-            entry.setEntryToken(generateUniqueEntryToken());
-            CampaignEntry saved = campaignEntryRepo.save(entry);
-            newEntry = Optional.of(saved);
-            log.info("Campaign entry {} created for user {} on review {}", saved.getEntryToken(), user.getId(), triggeringReview.getId());
+        if (entriesShouldHave - existingEntries <= 0) {
+            return Optional.empty();
         }
 
-        progress = buildProgress(user, campaign);
-        return new CampaignAwardResult(newEntry, progress);
+        CampaignEntry entry = new CampaignEntry();
+        entry.setCampaign(campaign);
+        entry.setUser(user);
+        entry.setUnit(triggeringReview.getUnit());
+        entry.setReview(triggeringReview);
+        entry.setEntryToken(generateUniqueEntryToken());
+        CampaignEntry saved = campaignEntryRepo.save(entry);
+        log.info("Campaign entry {} created for user {} on review {} (campaign {})",
+                saved.getEntryToken(), user.getId(), triggeringReview.getId(), campaign.getId());
+        return Optional.of(saved);
     }
 
     /**
-     * Recomputes whether a user is owed any campaign entries based on current
-     * qualifying reviews + like thresholds. Used when likes push either
-     * minLikesReceived (review author) or minLikesGiven (liker) over the line.
+     * Recomputes owed entries across all the user's campaigns. Used when likes push
+     * minLikesReceived (author) or minLikesGiven (liker) over the line.
      */
     public CampaignAwardResult reconcileCampaignEntries(User user) {
-        if (user == null || user.getCampaign() == null || user.isBanned()) {
-            return new CampaignAwardResult(Optional.empty(), null);
+        if (user == null || user.isBanned() || user.getCampaigns().isEmpty()) {
+            return new CampaignAwardResult(List.of());
         }
-
-        Campaign campaign = user.getCampaign();
-        Optional<CampaignEntry> latestEntry = Optional.empty();
-
-        // Award all outstanding entries (e.g. a likes-given gate unlocking several
-        // already-posted reviews at once), stopping when nothing new can be created.
-        while (true) {
-            CampaignAwardResult result = tryAwardNextOutstandingEntry(user, campaign);
-            if (result.newEntry().isEmpty()) {
-                return new CampaignAwardResult(latestEntry, result.progress());
+        List<CampaignEntry> created = new ArrayList<>();
+        for (Campaign campaign : user.getCampaigns()) {
+            // Drain all outstanding entries for this campaign (e.g. a likes-given gate
+            // unlocking several already-posted reviews at once).
+            Optional<CampaignEntry> next;
+            while ((next = tryAwardNextOutstandingEntry(user, campaign)).isPresent()) {
+                created.add(next.get());
             }
-            latestEntry = result.newEntry();
         }
+        return new CampaignAwardResult(created);
     }
 
-    private CampaignAwardResult tryAwardNextOutstandingEntry(User user, Campaign campaign) {
-        CampaignProgressDTO progress = buildProgress(user, campaign);
-
-        if (campaign.isRequireVerifiedStudent() && !user.isVerifiedStudent()) {
-            return new CampaignAwardResult(Optional.empty(), progress);
-        }
-        if (!userMeetsLikeGiveRequirement(user, campaign)) {
-            return new CampaignAwardResult(Optional.empty(), progress);
-        }
-        if (validateCampaignState(campaign, false) != null) {
-            return new CampaignAwardResult(Optional.empty(), progress);
+    private Optional<CampaignEntry> tryAwardNextOutstandingEntry(User user, Campaign campaign) {
+        if (campaign.isTrackingOnly()
+                || (campaign.isRequireVerifiedStudent() && !user.isVerifiedStudent())
+                || !userMeetsLikeGiveRequirement(user, campaign)
+                || validateCampaignState(campaign, false) != null) {
+            return Optional.empty();
         }
 
         long qualifyingCount = countQualifyingReviews(user, campaign);
@@ -243,7 +269,7 @@ public class CampaignService {
         long entriesShouldHave = Math.min(qualifyingCount / requiredReviewCount, maxEntriesPerUser);
         long existingEntries = campaignEntryRepo.countByCampaign_IdAndUser_Id(campaign.getId(), user.getId());
         if (entriesShouldHave <= existingEntries) {
-            return new CampaignAwardResult(Optional.empty(), progress);
+            return Optional.empty();
         }
 
         Optional<Review> trigger = reviewRepo.findByUser_IdOrderByCreatedAtDesc(user.getId()).stream()
@@ -252,11 +278,7 @@ public class CampaignService {
                         campaign.getId(), user.getId(), review.getUnit().getId()))
                 .findFirst();
 
-        if (trigger.isEmpty()) {
-            return new CampaignAwardResult(Optional.empty(), progress);
-        }
-
-        return tryAwardCampaignEntries(user, trigger.get());
+        return trigger.flatMap(review -> awardForCampaign(user, review, campaign));
     }
 
     public List<CampaignEntrySummaryDTO> getEntriesForUser(User user) {
@@ -484,10 +506,10 @@ public class CampaignService {
         // enrolled in the campaign); reward campaigns attribute off membership.
         long signupCount = campaign.isTrackingOnly()
                 ? userRepo.countByRegisteredViaRefIgnoreCase(campaign.getSlug())
-                : userRepo.countByCampaign_Id(campaign.getId());
+                : userRepo.countByCampaigns_Id(campaign.getId());
         long reviewCount = campaign.isTrackingOnly()
                 ? reviewRepo.countByUser_RegisteredViaRefIgnoreCase(campaign.getSlug())
-                : reviewRepo.countByUser_Campaign_Id(campaign.getId());
+                : reviewRepo.countByUser_Campaigns_Id(campaign.getId());
 
         return new CampaignAdminDTO(
                 campaign.getId(),
@@ -527,7 +549,7 @@ public class CampaignService {
             return "This campaign has ended.";
         }
         if (checkRedemptions && campaign.getMaxRedemptions() != null) {
-            long currentSignups = userRepo.countByCampaign_Id(campaign.getId());
+            long currentSignups = userRepo.countByCampaigns_Id(campaign.getId());
             if (currentSignups >= campaign.getMaxRedemptions()) {
                 return "This campaign has reached its signup limit.";
             }

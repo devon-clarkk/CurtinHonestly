@@ -44,10 +44,13 @@ public class CampaignEntry {
     @JoinColumn(name = "unit_id", nullable = false)
     private Unit unit;
 
-    // Nullable + SET_NULL: deleting the review must not delete the entry (the
-    // user keeps a token they already earned), only detach it from the review.
-    @OneToOne
-    @JoinColumn(name = "review_id", unique = true)
+    // ManyToOne, not OneToOne: one review can now back an entry in EACH campaign the
+    // user is enrolled in, so review_id is no longer unique. Duplicate entries within
+    // a single campaign are still prevented by the per-(campaign,user,unit) gate.
+    // Nullable + SET_NULL: deleting the review must not delete the entry (the user
+    // keeps a token they already earned), only detach it from the review.
+    @ManyToOne
+    @JoinColumn(name = "review_id")
     @OnDelete(action = OnDeleteAction.SET_NULL)
     private Review review;
 

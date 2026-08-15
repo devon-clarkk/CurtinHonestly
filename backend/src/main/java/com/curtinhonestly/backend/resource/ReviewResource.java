@@ -52,13 +52,14 @@ public class ReviewResource {
 
         String entryToken = null;
         String campaignName = null;
-        if (result.campaignEntry().isPresent()) {
-            var entry = result.campaignEntry().get();
-            entryToken = entry.getEntryToken();
-            campaignName = entry.getCampaign().getName();
+        if (!result.newEntries().isEmpty()) {
+            var first = result.newEntries().get(0);
+            entryToken = first.getEntryToken();
+            campaignName = first.getCampaign().getName();
         }
 
-        CreateReviewResponseDTO response = new CreateReviewResponseDTO(reviewDto, entryToken, campaignName, result.campaignProgress());
+        CreateReviewResponseDTO response = new CreateReviewResponseDTO(
+                reviewDto, entryToken, campaignName, result.newEntries().size());
         return ResponseEntity.created(URI.create("/reviews/" + savedReview.getId())).body(response);
     }
 

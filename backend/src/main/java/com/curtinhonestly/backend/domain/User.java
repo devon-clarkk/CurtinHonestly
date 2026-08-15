@@ -66,9 +66,16 @@ public class User {
     @OneToMany(mappedBy = "user")
     private List<Review> reviews;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "campaign_id")
-    private Campaign campaign;
+    // A user can be enrolled in several campaigns at once (e.g. two draws under one
+    // referral link). Entries accrue independently per campaign. The join table is
+    // created + backfilled from the old single campaign_id column by Flyway V6; the
+    // orphaned campaign_id column is left in place (ddl-auto never drops columns).
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "user_campaigns",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "campaign_id"))
+    private Set<Campaign> campaigns = new HashSet<>();
 
     @Column(length = 100)
     private String registeredViaRef;

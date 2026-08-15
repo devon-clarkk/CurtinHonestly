@@ -77,7 +77,7 @@ class CampaignReferralTrackingTest {
         // The visitor signs up through the link. The signup is attributed via
         // registeredViaRef, and the user is NOT enrolled in the campaign.
         User user = campaignService.registerUserWithCampaign(EMAIL, "password123", slug, null);
-        assertThat(user.getCampaign()).isNull();
+        assertThat(user.getCampaigns()).isEmpty();
         assertThat(user.getRegisteredViaRef()).isEqualToIgnoringCase(slug);
         assertThat(userRepo.countByRegisteredViaRefIgnoreCase(slug)).isEqualTo(1);
 
@@ -86,7 +86,7 @@ class CampaignReferralTrackingTest {
                 4, 80, "This review is long enough to look like a real one.",
                 AcademicTerm.SEMESTER_1, 2026, "Prof Test", 5, true, true, unit.getCode(), null);
         var result = reviewService.createReviewWithCampaignEntry(request);
-        assertThat(result.campaignEntry()).isEmpty();
+        assertThat(result.newEntries()).isEmpty();
         assertThat(reviewRepo.countByUser_RegisteredViaRefIgnoreCase(slug)).isEqualTo(1);
 
         // The admin view rolls the three counts up per link, with zero entries.

@@ -21,5 +21,5 @@ public interface ReviewRepo extends JpaRepository<Review, String> {
     // Reviews written by users who signed up through a referral link (tracking-only
     // attribution) or who are enrolled in a reward campaign, respectively.
     long countByUser_RegisteredViaRefIgnoreCase(String ref);
-    long countByUser_Campaign_Id(String campaignId);
+    long countByUser_Campaigns_Id(String campaignId);
 }

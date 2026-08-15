@@ -87,7 +87,7 @@ class ReviewCampaignAggregateTest {
         user.setEmail("agg-campaign-test@student.curtin.edu.au");
         user.setPassword(passwordEncoder.encode("password123"));
         user.setRoles(List.of(UserRole.ROLE_USER));
-        user.setCampaign(campaign);
+        user.getCampaigns().add(campaign);
         user = userRepo.saveAndFlush(user);
 
         String token = jwtUtil.generateToken(user.getEmail(), List.of("ROLE_USER"));

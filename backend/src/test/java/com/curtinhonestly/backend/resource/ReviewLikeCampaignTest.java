@@ -103,7 +103,7 @@ class ReviewLikeCampaignTest {
                 AcademicTerm.SEMESTER_1, 2026, "Prof Test", 5, true, true, authorUnit.getCode(), null);
 
         var created = reviewService.createReviewWithCampaignEntry(request);
-        assertThat(created.campaignEntry()).isEmpty();
+        assertThat(created.newEntries()).isEmpty();
         assertThat(campaignEntryRepo.countByCampaign_IdAndUser_Id(campaign.getId(), author.getId())).isZero();
 
         Review review = reviewRepo.findById(created.review().getId()).orElseThrow();
@@ -182,7 +182,7 @@ class ReviewLikeCampaignTest {
                 AcademicTerm.SEMESTER_1, 2026, "Prof Gate", 4, false, true, authorUnit.getCode(), null);
 
         var created = reviewService.createReviewWithCampaignEntry(request);
-        assertThat(created.campaignEntry()).isEmpty();
+        assertThat(created.newEntries()).isEmpty();
         assertThat(campaignEntryRepo.countByCampaign_IdAndUser_Id(campaign.getId(), author.getId())).isZero();
 
         String authorToken = jwtUtil.generateToken(author.getEmail(), List.of("ROLE_USER"));
@@ -232,7 +232,7 @@ class ReviewLikeCampaignTest {
         user.setEmail(email);
         user.setPassword(passwordEncoder.encode("password123"));
         user.setRoles(List.of(UserRole.ROLE_USER));
-        user.setCampaign(campaign);
+        user.getCampaigns().add(campaign);
         return userRepo.saveAndFlush(user);
     }
 }

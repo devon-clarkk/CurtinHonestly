@@ -149,13 +149,14 @@ public class ReviewService {
     public ReviewCreationResult createReviewWithCampaignEntry(ReviewCreateRequest request) {
         Review savedReview = createReview(request);
         CampaignService.CampaignAwardResult award = campaignService.tryAwardCampaignEntries(savedReview.getUser(), savedReview);
-        return new ReviewCreationResult(savedReview, award.newEntry(), award.progress());
+        return new ReviewCreationResult(savedReview, award.newEntries());
     }
 
+    // A single review can now mint entries in several campaigns at once, so this
+    // carries the full list of entries created rather than a single one.
     public record ReviewCreationResult(
             Review review,
-            Optional<CampaignEntry> campaignEntry,
-            CampaignProgressDTO campaignProgress
+            List<CampaignEntry> newEntries
     ) {}
 
     public void deleteReview(Review review) {

@@ -76,7 +76,7 @@ class CampaignReEarnTest {
         user.setEmail("re-earn-test@student.curtin.edu.au");
         user.setPassword(passwordEncoder.encode("password123"));
         user.setRoles(List.of(UserRole.ROLE_USER));
-        user.setCampaign(campaign);
+        user.getCampaigns().add(campaign);
         user = userRepo.saveAndFlush(user);
 
         ReviewCreateRequest request = new ReviewCreateRequest(
@@ -85,7 +85,7 @@ class CampaignReEarnTest {
 
         // First submission earns an entry.
         var firstResult = reviewService.createReviewWithCampaignEntry(request);
-        assertThat(firstResult.campaignEntry()).isPresent();
+        assertThat(firstResult.newEntries()).isNotEmpty();
         assertThat(campaignEntryRepo.countByCampaign_IdAndUser_Id(campaign.getId(), user.getId())).isEqualTo(1);
 
         // Delete the review - the entry (and its token) must survive.
@@ -94,7 +94,7 @@ class CampaignReEarnTest {
 
         // Resubmitting a fresh qualifying review for the SAME unit must not earn a second entry.
         var secondResult = reviewService.createReviewWithCampaignEntry(request);
-        assertThat(secondResult.campaignEntry()).isEmpty();
+        assertThat(secondResult.newEntries()).isEmpty();
         assertThat(campaignEntryRepo.countByCampaign_IdAndUser_Id(campaign.getId(), user.getId())).isEqualTo(1);
     }
 }
