@@ -116,6 +116,15 @@ public class Unit {
     @JsonIgnoreProperties("unit")
     private List<UnitPrerequisiteGroup> prerequisiteGroups;
 
+    /**
+     * Deliberately has no @OrderBy: display order is owned by ReviewRanking
+     * (newest first, well-liked reviews pulled up), which re-sorts this list
+     * before it reaches a DTO. An entity-level ordering here would be a second
+     * answer to the same question, and ranking would silently overwrite it.
+     *
+     * So the order this collection loads in is undefined - Postgres heap order,
+     * which an UPDATE reshuffles. Nothing may render it unranked.
+     */
     @OneToMany(mappedBy = "unit", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnoreProperties("unit")
     @BatchSize(size = 30)

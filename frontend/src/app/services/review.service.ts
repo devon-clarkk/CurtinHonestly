@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, tap } from 'rxjs';
+import { UnitCacheService } from './unit-cache.service';
 import { environment } from '../../environments/environment';
 import { MyReview } from '../models/unit.model';
 
@@ -33,6 +34,9 @@ export interface ReviewLikeResponse {
 })
 export class ReviewService {
   private http = inject(HttpClient);
+  // Writing a review changes review counts and ratings on the catalog, so the
+  // cached unit list has to go with it.
+  private unitCache = inject(UnitCacheService);
   private apiUrl = `${environment.apiUrl}/reviews`;
 
   getMyReviews(): Observable<MyReview[]> {
@@ -40,15 +44,18 @@ export class ReviewService {
   }
 
   createReview(review: unknown): Observable<CreateReviewResponse> {
-    return this.http.post<CreateReviewResponse>(this.apiUrl, review);
+    return this.http.post<CreateReviewResponse>(this.apiUrl, review)
+      .pipe(tap(() => this.unitCache.clear()));
   }
 
   updateReview(id: string, review: unknown): Observable<unknown> {
-    return this.http.put(`${this.apiUrl}/${id}`, review);
+    return this.http.put(`${this.apiUrl}/${id}`, review)
+      .pipe(tap(() => this.unitCache.clear()));
   }
 
   deleteReview(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+    return this.http.delete<void>(`${this.apiUrl}/${id}`)
+      .pipe(tap(() => this.unitCache.clear()));
   }
 
   likeReview(id: string): Observable<ReviewLikeResponse> {

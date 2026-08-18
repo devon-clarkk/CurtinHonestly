@@ -72,7 +72,7 @@
 
     <div class="form-group">
       <label for="reviewText">Your Review (min 10 characters)</label>
-      <textarea id="reviewText" [ngModel]="reviewText()" (ngModelChange)="reviewText.set($event)" name="reviewText" rows="4" class="form-control" placeholder="What did you think of this unit? Was it hard? Interesting?"></textarea>
+      <textarea id="reviewText" [ngModel]="reviewText()" (ngModelChange)="reviewText.set($event)" name="reviewText" rows="6" appAutoGrow class="form-control review-textarea" placeholder="What did you think of this unit? Was it hard? Interesting?"></textarea>
     </div>
 
     <div *ngIf="errorMessage()" class="error-box">

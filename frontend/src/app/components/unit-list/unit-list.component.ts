@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, OnDestroy, ElementRef, ViewChild, PLATFORM_ID, signal } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, ElementRef, ViewChild, PLATFORM_ID, TransferState, makeStateKey, signal } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -6,7 +6,8 @@ import { UnitService } from '../../services/unit.service';
 import { SeoService } from '../../services/seo.service';
 import { UnitRequestService } from '../../services/unit-request.service';
 import { isResultsSeasonWindow } from '../../utils/results-season.util';
-import { UnitSummary, Faculty, UnitLevel } from '../../models/unit.model';
+import { Page, UnitSummary, Faculty, UnitLevel } from '../../models/unit.model';
+import { environment } from '../../../environments/environment';
 import { BehaviorSubject, Subject } from 'rxjs';
 import { debounceTime, takeUntil } from 'rxjs/operators';
 
@@ -14,11 +15,25 @@ interface UnitListState {
   units: UnitSummary[];
   page: number;
   totalPages: number;
+  /** Nothing to show yet — the only state that gets a full-page spinner. */
   loading: boolean;
+  /** Re-running the query with results already on screen (search, filter, sort). */
+  refreshing: boolean;
   loadingMore: boolean;
   error: string | null;
   hasMore: boolean;
 }
+
+/**
+ * The first page of the catalog, rendered during prerender and handed to the
+ * browser inside the HTML.
+ *
+ * Angular's own HTTP transfer cache would nearly do this, but it skips any
+ * request carrying an Authorization header, so a logged-in visitor would
+ * hydrate a spinner over a server-rendered grid. An explicit key does not care
+ * who is logged in.
+ */
+const UNIT_LIST_PAGE0 = makeStateKey<Page<UnitSummary>>('unit-list-page0');
 
 @Component({
   selector: 'app-unit-list',
@@ -34,6 +49,7 @@ export class UnitListComponent implements OnInit, OnDestroy {
   private platformId = inject(PLATFORM_ID);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
+  private transferState = inject(TransferState);
 
   private destroy$ = new Subject<void>();
   private searchSubject = new Subject<void>();
@@ -70,6 +86,7 @@ export class UnitListComponent implements OnInit, OnDestroy {
     page: 0,
     totalPages: 0,
     loading: true,
+    refreshing: false,
     loadingMore: false,
     error: null,
     hasMore: false
@@ -80,6 +97,11 @@ export class UnitListComponent implements OnInit, OnDestroy {
   // Reconnect IntersectionObserver whenever the sentinel appears/disappears
   @ViewChild('scrollSentinel', { static: false })
   set scrollSentinel(el: ElementRef<HTMLElement> | undefined) {
+    // The sentinel now renders during prerender too, because the server draws a
+    // real first page. There is no IntersectionObserver in Node, and nothing to
+    // scroll there either.
+    if (!isPlatformBrowser(this.platformId)) return;
+
     this.observer?.disconnect();
     if (el) {
       this.observer = new IntersectionObserver(
@@ -105,9 +127,10 @@ export class UnitListComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.seoService.updateHomePage();
 
-    // Skip all data fetching during SSR prerender — avoids CI build timeouts.
-    // The browser hydrates and fetches data client-side via the async pipe.
-    if (!isPlatformBrowser(this.platformId)) return;
+    if (!isPlatformBrowser(this.platformId)) {
+      this.prerenderFirstPage();
+      return;
+    }
 
     if (isResultsSeasonWindow() && sessionStorage.getItem(this.SEASONAL_BANNER_DISMISS_KEY) !== 'true') {
       this.showSeasonalBanner.set(true);
@@ -115,6 +138,22 @@ export class UnitListComponent implements OnInit, OnDestroy {
 
     // Search input is debounced; sort/faculty/level fire immediately
     this.searchSubject.pipe(debounceTime(300), takeUntil(this.destroy$)).subscribe(() => this.loadPage0());
+
+    // Prerendered HTML already contains page 0. Adopt it instead of asking for
+    // it again — this is what makes the first paint instant and lets hydration
+    // match what the server drew.
+    const prerendered = this.transferState.get(UNIT_LIST_PAGE0, null);
+    if (prerendered) {
+      this.transferState.remove(UNIT_LIST_PAGE0);
+      this.applyPage0(prerendered);
+    }
+
+    // Always follow up with a real load. Prerendered data is as old as the last
+    // deploy, and this page is nothing but review aggregates — freezing it there
+    // would be worse than the spinner it replaced. With rows already on screen
+    // loadPage0 refreshes in place instead of blanking, so this costs a dim and
+    // no layout shift, and it seeds the TTL cache so the next reload inside the
+    // window really is free.
     this.loadPage0();
 
     // The custom 404 page links here with ?request=1 to open the request-a-unit
@@ -146,25 +185,70 @@ export class UnitListComponent implements OnInit, OnDestroy {
     this.observer?.disconnect();
   }
 
+  /**
+   * Renders the first page of the catalog into the prerendered HTML and hands
+   * it to the browser via TransferState, so the homepage no longer ships as an
+   * empty shell that only fills in after hydration.
+   *
+   * Gated on seoEnabled, which is true only for builds pointed at a real
+   * backend. Those builds already require it to be reachable — fetch-unit-codes
+   * fails the CI build outright if it is not — so this cannot introduce a new
+   * way for a build to hang. Dev and local builds skip it exactly as before.
+   *
+   * If it fails anyway, leave the state untouched. That leaves the component in
+   * `loading`, which prerenders exactly the markup it does today, and the
+   * browser fetches normally. Better a spinner in the HTML than a baked-in
+   * error every visitor then hydrates.
+   */
+  private prerenderFirstPage(): void {
+    if (!environment.seoEnabled) return;
+
+    this.fetchPage(0).subscribe({
+      next: page => {
+        this.applyPage0(page);
+        this.transferState.set(UNIT_LIST_PAGE0, page);
+      },
+      error: () => {}
+    });
+  }
+
+  private applyPage0(page: Page<UnitSummary>): void {
+    this.stateSubject.next({
+      units: this.normalizeRatios(page.content),
+      page: 0,
+      totalPages: page.totalPages,
+      loading: false,
+      refreshing: false,
+      loadingMore: false,
+      error: null,
+      hasMore: page.totalPages > 1
+    });
+  }
+
   loadPage0(): void {
     this.fetchCancel$.next();
     const current = this.stateSubject.value;
-    this.stateSubject.next({ ...current, loading: true, units: [], page: 0, error: null, hasMore: false });
+    // Keep whatever is on screen while the new query runs. Blanking the grid on
+    // every keystroke is what made searching feel like the page was reloading
+    // the whole catalog; the full-page spinner is only for having nothing yet.
+    const hasResults = current.units.length > 0;
+    this.stateSubject.next({
+      ...current,
+      loading: !hasResults,
+      refreshing: hasResults,
+      page: 0,
+      error: null
+    });
 
     this.fetchPage(0).pipe(takeUntil(this.fetchCancel$)).subscribe({
-      next: page => {
-        this.stateSubject.next({
-          units: this.normalizeRatios(page.content),
-          page: 0,
-          totalPages: page.totalPages,
-          loading: false,
-          loadingMore: false,
-          error: null,
-          hasMore: page.totalPages > 1
-        });
-      },
+      next: page => this.applyPage0(page),
       error: () => {
-        this.stateSubject.next({ ...this.stateSubject.value, loading: false, error: 'Failed to load units.' });
+        this.stateSubject.next({
+          ...this.stateSubject.value,
+          loading: false,
+          refreshing: false,
+          error: 'Failed to load units.'
+        });
       }
     });
   }
@@ -183,6 +267,7 @@ export class UnitListComponent implements OnInit, OnDestroy {
           page: nextPage,
           totalPages: page.totalPages,
           loading: false,
+          refreshing: false,
           loadingMore: false,
           error: null,
           hasMore: nextPage < page.totalPages - 1

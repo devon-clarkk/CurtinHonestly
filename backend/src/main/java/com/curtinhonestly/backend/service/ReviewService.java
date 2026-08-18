@@ -11,6 +11,7 @@ import com.curtinhonestly.backend.dto.ReviewUpdateRequest;
 import com.curtinhonestly.backend.repo.ReviewRepo;
 import com.curtinhonestly.backend.repo.UnitRepo;
 import com.curtinhonestly.backend.repo.UserRepo;
+import com.curtinhonestly.backend.util.ReviewRanking;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -42,7 +43,9 @@ public class ReviewService {
 
     public List<Review> getReviewsByUnitCode(String unitCode) {
         Unit unit = unitService.getUnitByCode(unitCode);
-        return reviewRepo.findByUnit_IdOrderByCreatedAtDesc(unit.getId());
+        // Same ranking the unit page gets from UnitMapper, so the two endpoints
+        // cannot disagree about what order a unit's reviews are in.
+        return ReviewRanking.rank(reviewRepo.findByUnit_IdOrderByCreatedAtDesc(unit.getId()));
     }
 
     public Page<Review> getPageOfReviews(int page, int size) {

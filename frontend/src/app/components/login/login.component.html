@@ -19,13 +19,16 @@
 
       <div class="form-group">
         <label for="password">Password</label>
-        <input 
-          type="password" 
-          id="password" 
-          name="password" 
-          [(ngModel)]="password" 
-          required
-        >
+        <app-password-field>
+          <input
+            type="password"
+            id="password"
+            name="password"
+            [(ngModel)]="password"
+            autocomplete="current-password"
+            required
+          >
+        </app-password-field>
       </div>
 
       <div *ngIf="errorMessage()" class="error-box">
