@@ -76,6 +76,40 @@ export class CampaignsComponent implements OnInit {
     }
   }
 
+  // Live plain-English restatement of the entry rules, so the admin can see what
+  // their numbers actually do without decoding each field.
+  campaignRulesSummary(): string {
+    const per = Math.max(1, this.requiredReviewCount || 1);
+    const max = Math.max(1, this.maxEntriesPerUser || 1);
+    const minLen = Math.max(0, this.minReviewLength || 0);
+
+    let sentence = per === 1
+      ? `Students earn 1 draw entry for every qualifying review`
+      : `Students earn 1 draw entry for every ${per} qualifying reviews`;
+    sentence += `, up to ${max} ${max === 1 ? 'entry' : 'entries'} each.`;
+
+    const quals: string[] = [];
+    if (minLen > 0) {
+      quals.push(`at least ${minLen} characters long`);
+    }
+    if (this.minLikesReceived > 0) {
+      quals.push(`marked helpful by at least ${this.minLikesReceived} ${this.minLikesReceived === 1 ? 'person' : 'people'}`);
+    }
+    if (quals.length) {
+      sentence += ` A review counts once it's ${quals.join(' and ')}.`;
+    }
+
+    if (this.requireVerifiedStudent) {
+      sentence += ' Only verified Curtin students earn entries.';
+    }
+    if (this.minLikesGiven > 0) {
+      sentence += ` Each user must first mark at least ${this.minLikesGiven} review${this.minLikesGiven === 1 ? '' : 's'} helpful.`;
+    }
+
+    sentence += ' Only reviews left between the start and end dates count.';
+    return sentence;
+  }
+
   refreshCampaigns(): void {
     this.adminService.listCampaigns().subscribe({
       next: (data) => this.campaigns.set(data),

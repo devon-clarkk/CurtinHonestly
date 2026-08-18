@@ -10,36 +10,98 @@
 
 <section class="card section">
   <h2>Create campaign</h2>
-  <div class="form-grid">
-    <input type="text" placeholder="Slug (ref param), e.g. discord-computing-jul26" [(ngModel)]="slug" name="slug" />
-    <input type="text" placeholder="Promo code, e.g. CURTIN-JUL26" [(ngModel)]="code" name="code" />
-    <input type="text" placeholder="Campaign name" [(ngModel)]="name" name="name" />
-    <input type="text" placeholder="Prize description" [(ngModel)]="prizeDescription" name="prizeDescription" />
-    <label>
-      Starts
-      <input type="datetime-local" [(ngModel)]="startsAt" name="startsAt" />
-    </label>
-    <label>
-      Ends
-      <input type="datetime-local" [(ngModel)]="endsAt" name="endsAt" />
-    </label>
-    <input type="number" placeholder="Max signups (optional)" [(ngModel)]="maxRedemptions" name="maxRedemptions" />
-    <input type="number" placeholder="Min review length" [(ngModel)]="minReviewLength" name="minReviewLength" />
-    <input type="number" placeholder="Required reviews for entry" [(ngModel)]="requiredReviewCount" name="requiredReviewCount" />
-    <input type="number" placeholder="Max draw entries per user" [(ngModel)]="maxEntriesPerUser" name="maxEntriesPerUser" />
-    <label>
-      Min likes on review to qualify
-      <input type="number" min="0" [(ngModel)]="minLikesReceived" name="minLikesReceived" />
-    </label>
-    <label>
-      Min likes user must give
-      <input type="number" min="0" [(ngModel)]="minLikesGiven" name="minLikesGiven" />
-    </label>
-    <label class="checkbox">
-      <input type="checkbox" [(ngModel)]="requireVerifiedStudent" name="requireVerifiedStudent" />
-      Require verified student
-    </label>
-  </div>
+  <p class="page-subtitle">A campaign is a prize draw students enter by leaving reviews. Set the basics, when it runs, and how entries are earned — the plain-English summary at the bottom updates as you type.</p>
+
+  <fieldset class="form-fieldset">
+    <legend>Basics</legend>
+    <div class="form-grid">
+      <label>
+        Campaign name
+        <span class="field-hint">Shown to students on their account page, e.g. "Semester 2 Book Draw".</span>
+        <input type="text" placeholder="Semester 2 Book Draw" [(ngModel)]="name" name="name" />
+      </label>
+      <label>
+        Prize
+        <span class="field-hint">What they can win. Shown to students.</span>
+        <input type="text" placeholder="$50 gift card" [(ngModel)]="prizeDescription" name="prizeDescription" />
+      </label>
+      <label>
+        Referral slug
+        <span class="field-hint">The <code>?ref=</code> code in the share link. Lowercase, no spaces.</span>
+        <input type="text" placeholder="discord-computing-jul26" [(ngModel)]="slug" name="slug" />
+      </label>
+      <label>
+        Promo code
+        <span class="field-hint">Optional. Students can type this at signup instead of using the link.</span>
+        <input type="text" placeholder="CURTIN-JUL26" [(ngModel)]="code" name="code" />
+      </label>
+    </div>
+  </fieldset>
+
+  <fieldset class="form-fieldset">
+    <legend>Schedule &amp; limits</legend>
+    <div class="form-grid">
+      <label>
+        Starts
+        <span class="field-hint">Only reviews left on or after this date count.</span>
+        <input type="datetime-local" [(ngModel)]="startsAt" name="startsAt" />
+      </label>
+      <label>
+        Ends
+        <span class="field-hint">Only reviews left on or before this date count.</span>
+        <input type="datetime-local" [(ngModel)]="endsAt" name="endsAt" />
+      </label>
+      <label>
+        Max signups
+        <span class="field-hint">Cap on how many people can join this campaign. Leave blank for unlimited.</span>
+        <input type="number" min="1" placeholder="unlimited" [(ngModel)]="maxRedemptions" name="maxRedemptions" />
+      </label>
+    </div>
+  </fieldset>
+
+  <fieldset class="form-fieldset">
+    <legend>How students earn draw entries</legend>
+    <div class="form-grid">
+      <label>
+        Reviews per entry
+        <span class="field-hint">How many qualifying reviews earn one entry. 1 = an entry for every review.</span>
+        <input type="number" min="1" [(ngModel)]="requiredReviewCount" name="requiredReviewCount" />
+      </label>
+      <label>
+        Max entries per user
+        <span class="field-hint">The most entries one person can earn in this campaign.</span>
+        <input type="number" min="1" [(ngModel)]="maxEntriesPerUser" name="maxEntriesPerUser" />
+      </label>
+      <label>
+        Min review length (characters)
+        <span class="field-hint">Shortest a review can be and still count — blocks one-word reviews. 50 is a good default.</span>
+        <input type="number" min="0" [(ngModel)]="minReviewLength" name="minReviewLength" />
+      </label>
+      <label>
+        Min "helpful" marks on a review
+        <span class="field-hint">A review must be liked by this many people before it counts. 0 = no requirement.</span>
+        <input type="number" min="0" [(ngModel)]="minLikesReceived" name="minLikesReceived" />
+      </label>
+      <label>
+        Min "helpful" marks the user must give
+        <span class="field-hint">The user must mark this many reviews helpful before earning entries. 0 = no requirement.</span>
+        <input type="number" min="0" [(ngModel)]="minLikesGiven" name="minLikesGiven" />
+      </label>
+      <label class="checkbox-field">
+        <span class="checkbox-row">
+          <input type="checkbox" [(ngModel)]="requireVerifiedStudent" name="requireVerifiedStudent" />
+          Require verified Curtin student
+        </span>
+        <span class="field-hint">Only students who verified their @student.curtin.edu.au email earn entries.</span>
+      </label>
+    </div>
+
+    <div class="rules-summary">
+      <span class="rules-summary-label">In plain English</span>
+      <p>{{ campaignRulesSummary() }}</p>
+    </div>
+  </fieldset>
+
   <button type="button" class="btn btn-primary" (click)="createCampaign()">Create campaign</button>
 </section>
 
