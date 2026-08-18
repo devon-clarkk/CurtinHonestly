@@ -3,12 +3,13 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
+import { PasswordFieldComponent } from '../password-field/password-field.component';
 import { SeoService } from '../../services/seo.service';
 
 @Component({
   selector: 'app-reset-password',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, PasswordFieldComponent],
   template: `
     <section class="auth-wrap">
       <h1>Choose a new password</h1>
@@ -20,10 +21,16 @@ import { SeoService } from '../../services/seo.service';
         <a routerLink="/login" class="btn">Go to login</a>
       } @else {
         <form (ngSubmit)="onSubmit()" #f="ngForm">
-          <input type="password" name="pw" [(ngModel)]="password" required minlength="8"
-                 placeholder="New password (min 8 chars)" class="field" />
-          <input type="password" name="pw2" [(ngModel)]="confirm" required
-                 placeholder="Confirm new password" class="field" />
+          <app-password-field>
+            <input type="password" name="pw" [(ngModel)]="password" required minlength="8"
+                   autocomplete="new-password"
+                   placeholder="New password (min 8 chars)" class="field" />
+          </app-password-field>
+          <app-password-field>
+            <input type="password" name="pw2" [(ngModel)]="confirm" required
+                   autocomplete="new-password"
+                   placeholder="Confirm new password" class="field" />
+          </app-password-field>
           @if (error()) { <p class="error">{{ error() }}</p> }
           <button type="submit" [disabled]="!f.valid || loading()" class="btn">
             {{ loading() ? 'Resetting…' : 'Reset password' }}
