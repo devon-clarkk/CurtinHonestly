@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, of, tap } from 'rxjs';
+import { UnitCacheService } from './unit-cache.service';
 import { Page, UnitSummary, UnitDetails, Review, Faculty, FacultyDisplayNames, UnitLevel, UnitLevelDisplayNames } from '../models/unit.model';
 import { environment } from '../../environments/environment';
 
@@ -9,6 +10,7 @@ import { environment } from '../../environments/environment';
 })
 export class UnitService {
   private http = inject(HttpClient);
+  private cache = inject(UnitCacheService);
   // Tip for beginners: This is the URL where your backend is running.
   private apiUrl = `${environment.apiUrl}/units`;
 
@@ -32,7 +34,21 @@ export class UnitService {
     if (level) params = params.set('level', level);
     if (sortBy) params = params.set('sortBy', sortBy);
 
-    return this.http.get<Page<UnitSummary>>(this.apiUrl, { params });
+    // Served from the tab's short-lived cache when it is still warm, so a
+    // reload — or going into a unit and coming back — costs no request at all.
+    // Returns synchronously on a hit, which is why a cached page never flashes
+    // a spinner. Null on the server: SSR always fetches.
+    //
+    // Keyed on the query alone. Safe because a unit summary carries nothing
+    // user-specific — if that ever changes, the key has to change with it.
+    const key = params.toString();
+    const cached = this.cache.read<Page<UnitSummary>>(key);
+    if (cached) {
+      return of(cached);
+    }
+
+    return this.http.get<Page<UnitSummary>>(this.apiUrl, { params })
+      .pipe(tap(page => this.cache.write(key, page)));
   }
 
   getFaculties() {

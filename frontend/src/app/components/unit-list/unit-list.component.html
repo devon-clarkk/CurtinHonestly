@@ -157,8 +157,26 @@
         }
       </div>
     } @else {
+      <!-- A failed refresh leaves the previous results on screen, so it has to
+           say so — otherwise the list silently answers the old query. -->
+      @if (state.error) {
+        <div class="list-error" role="status">
+          <span>{{ state.error }} Showing your previous results.</span>
+          <button type="button" class="btn-text" (click)="loadPage0()">Try again</button>
+        </div>
+      }
+
+      <!-- Re-running the query with results still on screen. The previous
+           results stay put underneath rather than being replaced by a spinner. -->
+      @if (state.refreshing) {
+        <div class="loading-more">
+          <div class="spinner-sm"></div>
+          <span>Updating results…</span>
+        </div>
+      }
+
       <!-- The grid of unit cards -->
-      <div class="unit-grid">
+      <div class="unit-grid" [class.is-refreshing]="state.refreshing">
         @for (unit of state.units; track unit.code) {
           <div class="unit-card" [class.compare-selected]="isSelectedForCompare(unit.code)">
             <div class="card-header">

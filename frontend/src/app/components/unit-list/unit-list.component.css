@@ -473,6 +473,33 @@
 }
 
 /* Loading-more bar at the bottom of the grid */
+/* A refresh failed but there are still results on screen from the previous
+   query. Says so, rather than letting the list quietly answer the old query. */
+.list-error {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  margin-bottom: 16px;
+  padding: 12px;
+  background-color: #fff5f5;
+  color: #c53030;
+  border-left: 4px solid #c53030;
+  font-size: 0.9rem;
+}
+
+.list-error .btn-text {
+  color: #c53030;
+  text-decoration: underline;
+}
+
+/* Results already on screen while a new query runs. Dimmed rather than removed
+   so the list does not collapse and jump the page under the user's cursor. */
+.unit-grid.is-refreshing {
+  opacity: 0.55;
+  transition: opacity 0.15s ease;
+}
+
 .loading-more {
   display: flex;
   align-items: center;
