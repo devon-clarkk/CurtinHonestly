@@ -60,6 +60,39 @@
   opacity: 0.6;
 }
 
+/* Text button — same reset as .btn-ghost but not underlined at rest, for inline
+   actions inside a card or bar ("Edit", "Clear", "Request it").
+
+   This lives here rather than in a component because four components use the
+   class (unit-list, unit-detail, compare, my-reviews) and only one of them ever
+   defined it. Everywhere else the buttons kept the browser's default grey
+   button chrome — and in the compare bar, which paints them white, that meant
+   white text on a light grey button at roughly 1.1:1. Global CSS is unscoped,
+   so defining it once here reaches all four. */
+.btn-text {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--primary-ink);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-text:hover:not(:disabled) {
+  text-decoration: underline;
+}
+
+.btn-text:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.btn-text.danger {
+  color: #c53030;
+}
+
+
 /* Visible keyboard-focus ring on every interactive element, site-wide.
    Uses --primary-ink (not the raw brand gold) so the ring itself passes
    AA against light backgrounds. */

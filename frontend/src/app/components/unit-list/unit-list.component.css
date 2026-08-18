@@ -320,6 +320,14 @@
   z-index: 50;
 }
 
+/* Was relying on the browser's default button padding for spacing, which went
+   away once .btn-text became a real text button. */
+.compare-bar-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
 .compare-bar .btn-text {
   color: #fff;
   text-decoration: underline;

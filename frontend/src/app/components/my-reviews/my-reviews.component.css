@@ -173,22 +173,7 @@
   gap: 16px;
 }
 
-.btn-text {
-  background: none;
-  border: none;
-  padding: 0;
-  color: var(--primary-color);
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.btn-text.danger {
-  color: #c53030;
-}
-
-.btn-text:hover {
-  text-decoration: underline;
-}
+/* .btn-text lives in global styles.css — it is used by four components. */
 
 .empty-state {
   text-align: center;
