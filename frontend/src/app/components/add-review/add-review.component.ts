@@ -4,11 +4,12 @@ import { FormsModule } from '@angular/forms';
 import { CreateReviewResponse, ReviewService } from '../../services/review.service';
 import { SemesterOption, formatTerm, generateSemesterOptions } from '../../utils/semester-options.util';
 import { AcademicTerm, MyReview, REVIEW_TAGS } from '../../models/unit.model';
+import { AutoGrowDirective } from '../../directives/auto-grow.directive';
 
 @Component({
   selector: 'app-add-review',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, AutoGrowDirective],
   templateUrl: './add-review.component.html',
   styleUrl: './add-review.component.css'
 })
