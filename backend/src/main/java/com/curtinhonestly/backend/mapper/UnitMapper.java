@@ -2,6 +2,7 @@ package com.curtinhonestly.backend.mapper;
 
 import com.curtinhonestly.backend.domain.*;
 import com.curtinhonestly.backend.dto.*;
+import com.curtinhonestly.backend.util.ReviewRanking;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -60,7 +61,9 @@ public class UnitMapper {
                         .map(UnitMapper::toPrerequisiteGroupDTO)
                         .collect(Collectors.toList()) : new ArrayList<>());
 
-        List<Review> reviews = unit.getReviews() != null ? unit.getReviews() : new ArrayList<>();
+        // Display order lives in ReviewRanking, not on the entity or the query -
+        // newest first, with well-liked reviews pulled up. See its javadoc.
+        List<Review> reviews = ReviewRanking.rank(unit.getReviews());
 
         // Review-based information
         dto.setNumberOfReviews(reviews.size());

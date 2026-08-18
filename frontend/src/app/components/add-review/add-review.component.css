@@ -76,6 +76,34 @@
   box-shadow: 0 0 0 2px rgba(192, 151, 17, 0.1);
 }
 
+/* The review box. Two things are going on here.
+
+   1. It grows with the text (appAutoGrow), so for any realistic review it
+      never scrolls — which is the actual fix for lines being clipped at the
+      bottom edge.
+   2. The numbers are chosen so that *if* it does scroll (past max-height), it
+      scrolls in whole lines. A textarea's padding sits inside the scrollport,
+      so the visible height is content + padding; with a 26px line and 13px top
+      and bottom, the padding is exactly one line and the scrollport is always
+      a whole multiple of the line height. The old box was 4 lines of 25.6px
+      plus 20px of padding — 4.39 lines — which is why a line always sat half
+      cut-off at one edge or the other.
+
+   Sizes assume 16px text and box-sizing: border-box, so each one is
+   (lines x 26) + 26px padding + 2px border: min-height 184px is 6 lines,
+   max-height 522px is 19. Both leave the scrollport itself a whole number of
+   lines (182 = 7 x 26, 520 = 20 x 26). The cap keeps the submit button on
+   screen for a very long review. */
+.review-textarea {
+  line-height: 26px;
+  padding: 13px 12px;
+  min-height: 184px;
+  max-height: 522px;
+  overflow-y: auto;
+  /* The directive owns the height; a drag would be undone on the next keystroke. */
+  resize: none;
+}
+
 .rating-input {
   display: flex;
   align-items: center;
