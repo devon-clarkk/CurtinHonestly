@@ -37,6 +37,29 @@
     </div>
   }
 
+  <section class="account-section card">
+    <h2>Join a campaign</h2>
+    <p class="section-hint">
+      Have a campaign link or code? Enter it to join and start earning draw entries —
+      any reviews you've already left count too.
+    </p>
+    @if (joinError()) {
+      <div class="error-box">{{ joinError() }}</div>
+    }
+    @if (joinMessage()) {
+      <div class="success-box">{{ joinMessage() }}</div>
+    }
+    <form (ngSubmit)="onJoinCampaign()" class="stacked-form">
+      <div class="form-group">
+        <label for="joinCode">Campaign code or link</label>
+        <input type="text" id="joinCode" name="joinCode" [(ngModel)]="joinCode" placeholder="e.g. discord-jul26 or CURTIN-JUL26" required />
+      </div>
+      <button type="submit" class="btn btn-primary" [disabled]="isLoading() || !joinCode.trim()">
+        {{ isLoading() ? 'Joining…' : 'Join campaign' }}
+      </button>
+    </form>
+  </section>
+
   @if (account()?.campaigns?.length) {
     <section class="account-section card campaign-section">
       <h2>{{ account()!.campaigns.length === 1 ? 'Campaign' : 'Campaigns' }}</h2>

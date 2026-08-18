@@ -101,6 +101,64 @@ public class CampaignService {
         return userService.createUser(email, password, List.of(locked), ref);
     }
 
+    /**
+     * Enrol an already-registered user into the campaign(s) a code names, from their
+     * account page. Accepts a referral-link slug (enrols into all its joinable
+     * campaigns), a campaign slug, or a promo code. Idempotent for campaigns the user
+     * is already in, and reconciles entries for their existing qualifying reviews so
+     * joining late still credits reviews they've already left.
+     */
+    public void enrolCurrentUserByCode(String email, String code) {
+        // Load the user inside this transaction so it's attached and its lazy
+        // campaigns collection can be read/mutated without relying on OSIV.
+        User user = userService.getUserByEmail(email);
+        String normalized = normalize(code)
+                .orElseThrow(() -> new IllegalArgumentException("Enter a campaign code."));
+
+        List<Campaign> candidates;
+        Optional<ReferralLink> link = referralLinkRepo.findBySlugIgnoreCase(normalized);
+        if (link.isPresent()) {
+            candidates = link.get().getCampaigns().stream()
+                    .filter(c -> !c.isTrackingOnly())
+                    .toList();
+        } else {
+            Campaign campaign = campaignRepo.findBySlugIgnoreCase(normalized)
+                    .or(() -> campaignRepo.findByCodeIgnoreCase(normalized))
+                    .filter(c -> !c.isTrackingOnly())
+                    .orElseThrow(() -> new IllegalArgumentException("That code isn't valid. Check it and try again."));
+            candidates = List.of(campaign);
+        }
+
+        if (candidates.isEmpty()) {
+            throw new IllegalArgumentException("That link isn't running any draws right now.");
+        }
+
+        boolean alreadyInAll = candidates.stream()
+                .allMatch(c -> isEnrolled(user, c));
+        if (alreadyInAll) {
+            throw new IllegalArgumentException("You're already in that campaign.");
+        }
+
+        List<Campaign> joinable = candidates.stream()
+                .filter(c -> !isEnrolled(user, c))
+                .filter(c -> validateCampaignState(c, true) == null)
+                .toList();
+        if (joinable.isEmpty()) {
+            throw new IllegalArgumentException("That campaign isn't accepting entries right now.");
+        }
+
+        user.getCampaigns().addAll(joinable);
+        userRepo.saveAndFlush(user);
+        log.info("User {} enrolled into {} campaign(s) via code", user.getId(), joinable.size());
+
+        // Credit any qualifying reviews they've already left toward the new campaign(s).
+        reconcileCampaignEntries(user);
+    }
+
+    private boolean isEnrolled(User user, Campaign campaign) {
+        return user.getCampaigns().stream().anyMatch(c -> c.getId().equals(campaign.getId()));
+    }
+
     public Optional<Campaign> resolveCampaignForRegistration(String ref, String promoCode) {
         Campaign byRef = normalize(ref)
                 .flatMap(campaignRepo::findBySlugIgnoreCase)

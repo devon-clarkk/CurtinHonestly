@@ -87,15 +87,26 @@ public class AuthController {
     @GetMapping("/me")
     public ResponseEntity<AccountDTO> getCurrentAccount() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        User user = userService.getUserByEmail(email);
-        List<CampaignEntrySummaryDTO> entries = campaignService.getEntriesForUser(user);
+        return ResponseEntity.ok(accountFor(userService.getUserByEmail(email)));
+    }
 
-        return ResponseEntity.ok(new AccountDTO(
+    // Join a campaign after signup by entering its referral link, campaign slug, or
+    // promo code on the account page. Returns the refreshed account so the new
+    // campaign(s) and any credited entries appear immediately.
+    @PostMapping("/me/campaigns")
+    public ResponseEntity<AccountDTO> enrolInCampaign(@RequestBody EnrolCampaignRequest request) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        campaignService.enrolCurrentUserByCode(email, request.code());
+        return ResponseEntity.ok(accountFor(userService.getUserByEmail(email)));
+    }
+
+    private AccountDTO accountFor(User user) {
+        return new AccountDTO(
                 user.getEmail(),
                 user.isVerifiedStudent(),
                 campaignService.getCampaignProgress(user),
-                entries
-        ));
+                campaignService.getEntriesForUser(user)
+        );
     }
 
     @PatchMapping("/me")
@@ -168,6 +179,7 @@ public class AuthController {
     public record LoginRequest(String email, String password) {}
     public record VerifyStudentRequest(String studentEmail, String password) {}
     public record UpdateEmailRequest(String newEmail, String password) {}
+    public record EnrolCampaignRequest(String code) {}
     public record DeleteAccountRequest(String password, boolean deleteReviews) {}
     public record ForgotPasswordRequest(@NotBlank @Email String email) {}
     public record ResetPasswordRequest(@NotBlank String token, @NotBlank String newPassword) {}

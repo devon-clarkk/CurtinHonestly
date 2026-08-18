@@ -96,6 +96,12 @@ export class AuthService {
     return this.http.post<MessageResponse>(`${this.apiUrl}/verify-student`, request);
   }
 
+  // Join a campaign after signup with a referral link / campaign slug / promo code.
+  // Returns the refreshed account (new campaigns + any credited entries).
+  enrolInCampaign(code: string): Observable<AccountStatus> {
+    return this.http.post<AccountStatus>(`${this.apiUrl}/me/campaigns`, { code });
+  }
+
   // Completes verification from the emailed link; logs the user in as verified.
   confirmStudentVerification(token: string): Observable<JwtResponse> {
     const params = new HttpParams().set('token', token);

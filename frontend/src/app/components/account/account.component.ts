@@ -34,6 +34,10 @@ export class AccountComponent implements OnInit {
   // Once a link has been sent, the button becomes "Resend" so a user whose email
   // landed in spam can trigger another without hunting for a separate control.
   verifySent = signal(false);
+  // Join-a-campaign-by-code feedback, shown next to that form.
+  joinCode = '';
+  joinMessage = signal<string | null>(null);
+  joinError = signal<string | null>(null);
   isLoading = signal(false);
 
   ngOnInit() {
@@ -88,6 +92,27 @@ export class AccountComponent implements OnInit {
 
     const needed = progress.requiredReviews - remainder;
     return `${progress.qualifyingReviews}/${progress.requiredReviews} qualifying reviews. ${needed} more needed for a draw entry.`;
+  }
+
+  onJoinCampaign() {
+    if (!this.joinCode.trim()) {
+      return;
+    }
+    this.clearMessages();
+    this.isLoading.set(true);
+
+    this.authService.enrolInCampaign(this.joinCode.trim()).subscribe({
+      next: (status) => {
+        this.isLoading.set(false);
+        this.account.set(status);
+        this.joinMessage.set('You\'re in! Your campaign now shows below.');
+        this.joinCode = '';
+      },
+      error: (err) => {
+        this.isLoading.set(false);
+        this.joinError.set(err.error?.error || 'Could not join that campaign. Check the code and try again.');
+      }
+    });
   }
 
   onUpdateEmail() {
@@ -183,5 +208,7 @@ export class AccountComponent implements OnInit {
     this.successMessage.set(null);
     this.verifyMessage.set(null);
     this.verifyError.set(null);
+    this.joinMessage.set(null);
+    this.joinError.set(null);
   }
 }

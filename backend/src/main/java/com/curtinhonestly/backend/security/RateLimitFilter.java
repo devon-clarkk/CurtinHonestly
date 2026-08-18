@@ -29,6 +29,8 @@ public class RateLimitFilter extends OncePerRequestFilter {
             // Referral-link visit beacon — public and unauthenticated, so cap per IP
             // to stop a single client inflating a link's visit count.
             new Limit("POST", "/campaigns/visit", MatchType.EXACT, 30, Duration.ofMinutes(1)),
+            // Enrolling by code from the account page — cap to blunt code enumeration.
+            new Limit("POST", "/auth/me/campaigns", MatchType.EXACT, 15, Duration.ofMinutes(1)),
             // Sending a verification email — cap to prevent inbox-bombing a student address.
             new Limit("POST", "/auth/verify-student", MatchType.PREFIX, 5, Duration.ofMinutes(10)),
             // Confirming a link — tokens are 256-bit so brute force is infeasible; this is
