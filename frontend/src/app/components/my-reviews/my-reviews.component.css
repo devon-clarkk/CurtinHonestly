@@ -158,6 +158,10 @@
 .review-excerpt {
   margin: 0 0 12px;
   line-height: 1.5;
+  /* Keep the paragraph breaks the author typed. Matches how the same text is
+     rendered on the unit page (unit-detail.component.css .review-body p) —
+     without this the preview collapses every newline into a space. */
+  white-space: pre-line;
 }
 
 .review-meta {
