@@ -174,8 +174,20 @@ export class CampaignsComponent implements OnInit {
     });
   }
 
+  // Share links must point at the STUDENT site, not wherever the admin panel is
+  // served from. In prod the admin runs on admin.curtinhonestly.com, so strip the
+  // admin. subdomain; locally the admin runs on :4201, so map it to the app's :4200.
+  private studentOrigin(): string {
+    if (typeof window === 'undefined') {
+      return 'https://curtinhonestly.com';
+    }
+    return window.location.origin
+      .replace('://admin.', '://')
+      .replace(':4201', ':4200');
+  }
+
   referralLinkUrl(link: ReferralLinkAdmin): string {
-    const origin = typeof window !== 'undefined' ? window.location.origin.replace(':4201', ':4200') : 'https://curtinhonestly.com';
+    const origin = this.studentOrigin();
     return `${origin}${link.landingPath || '/'}?ref=${encodeURIComponent(link.slug)}`;
   }
 
@@ -240,7 +252,7 @@ export class CampaignsComponent implements OnInit {
   }
 
   registrationLink(campaign: CampaignAdmin): string {
-    const origin = typeof window !== 'undefined' ? window.location.origin.replace(':4201', ':4200') : 'https://curtinhonestly.com';
+    const origin = this.studentOrigin();
     const ref = encodeURIComponent(campaign.slug);
     if (campaign.trackingOnly) {
       // Tracking links forward to the admin-chosen page (site-wide capture records
