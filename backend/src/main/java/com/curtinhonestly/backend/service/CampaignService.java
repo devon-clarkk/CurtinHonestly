@@ -450,13 +450,22 @@ public class CampaignService {
         campaign.setStartsAt(startsAt);
         campaign.setEndsAt(endsAt);
         campaign.setMaxRedemptions(maxRedemptions);
-        applyEntryRules(campaign, minReviewLength, maxEntriesPerUser, requireVerifiedStudent,
-                requiredReviewCount, minLikesReceived, minLikesGiven);
+
+        // Entry rules belong to reward campaigns only. A tracking link stores inert
+        // values for them (createReferralLink writes minReviewLength = 0), and the edit
+        // form hides the whole fieldset for one, so running the clamps here would turn
+        // that hidden 0 into 50 behind the admin's back.
+        if (!campaign.isTrackingOnly()) {
+            applyEntryRules(campaign, minReviewLength, maxEntriesPerUser, requireVerifiedStudent,
+                    requiredReviewCount, minLikesReceived, minLikesGiven);
+        }
 
         // Only tracking links forward to an admin-chosen page. Reward campaigns always
         // land on /register, so theirs stays null rather than storing a value that
-        // nothing reads.
-        if (campaign.isTrackingOnly()) {
+        // nothing reads. A blank submission leaves the stored path as it was, because
+        // normalizeLandingPath would otherwise turn null into "/" and show up as a
+        // change the admin never made.
+        if (campaign.isTrackingOnly() && normalize(landingPath).isPresent()) {
             campaign.setLandingPath(normalizeLandingPath(landingPath));
         }
 

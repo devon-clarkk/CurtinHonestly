@@ -241,6 +241,75 @@ class AdminCampaignUpdateTest {
         assertThat(reloaded.getEndsAt()).isEqualTo(EXTENDED_END);
     }
 
+    // A tracking link carries inert reward fields (createReferralLink stores
+    // minReviewLength = 0, requireVerifiedStudent = false). The edit modal hides those
+    // fields for tracking links, so an admin moving only the end date must not have the
+    // hidden values rewritten underneath them.
+    @Test
+    @WithMockUser(username = "admin@curtinhonestly.com", authorities = {"ROLE_ADMIN"})
+    void editingATrackingLinkLeavesItsInertRewardFieldsAlone() throws Exception {
+        Campaign link = new Campaign();
+        link.setSlug("track-test-" + UUID.randomUUID());
+        link.setCode("TRACK" + System.nanoTime());
+        link.setName("Past Students Tracking Link");
+        link.setStartsAt(START);
+        link.setEndsAt(ORIGINAL_END);
+        link.setActive(true);
+        link.setTrackingOnly(true);
+        link.setLandingPath("/register");
+        link.setMinReviewLength(0);
+        link.setMaxEntriesPerUser(1);
+        link.setRequireVerifiedStudent(false);
+        link.setRequiredReviewCount(1);
+        link = campaignRepo.save(link);
+
+        Map<String, Object> body = editableBodyFor(link);
+        body.put("endsAt", EXTENDED_END.toString());
+
+        mockMvc.perform(patch("/admin/campaigns/" + link.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(body)))
+                .andExpect(status().isOk());
+
+        Campaign reloaded = campaignRepo.findById(link.getId()).orElseThrow();
+        assertThat(reloaded.getEndsAt()).isEqualTo(EXTENDED_END);
+        assertThat(reloaded.isTrackingOnly()).isTrue();
+        assertThat(reloaded.getLandingPath()).isEqualTo("/register");
+        // The clamp that gives reward campaigns a 50-character floor must not reach in
+        // here and turn an inert 0 into 50.
+        assertThat(reloaded.getMinReviewLength()).isEqualTo(0);
+        assertThat(reloaded.isRequireVerifiedStudent()).isFalse();
+    }
+
+    // A tracking link that never had a landing path set keeps null rather than being
+    // rewritten to "/", which would read as an unexplained change on read-back.
+    @Test
+    @WithMockUser(username = "admin@curtinhonestly.com", authorities = {"ROLE_ADMIN"})
+    void editingATrackingLinkWithNoLandingPathLeavesItNull() throws Exception {
+        Campaign link = new Campaign();
+        link.setSlug("track-nopath-" + UUID.randomUUID());
+        link.setCode("NOPATH" + System.nanoTime());
+        link.setName("Tracking Link Without A Landing Path");
+        link.setStartsAt(START);
+        link.setEndsAt(ORIGINAL_END);
+        link.setActive(true);
+        link.setTrackingOnly(true);
+        link.setLandingPath(null);
+        link = campaignRepo.save(link);
+
+        Map<String, Object> body = editableBodyFor(link);
+        body.put("endsAt", EXTENDED_END.toString());
+
+        mockMvc.perform(patch("/admin/campaigns/" + link.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(body)))
+                .andExpect(status().isOk());
+
+        Campaign reloaded = campaignRepo.findById(link.getId()).orElseThrow();
+        assertThat(reloaded.getEndsAt()).isEqualTo(EXTENDED_END);
+        assertThat(reloaded.getLandingPath()).isNull();
+    }
+
     @Test
     void unauthenticatedRequestIsRejected() throws Exception {
         Campaign campaign = seedCampaign();
