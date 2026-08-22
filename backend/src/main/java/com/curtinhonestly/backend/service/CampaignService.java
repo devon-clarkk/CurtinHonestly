@@ -384,22 +384,6 @@ public class CampaignService {
             throw new IllegalArgumentException("Campaign end date must be after the start date.");
         }
 
-        if (minReviewLength <= 0) {
-            minReviewLength = 50;
-        }
-        if (maxEntriesPerUser <= 0) {
-            maxEntriesPerUser = 1;
-        }
-        if (requiredReviewCount <= 0) {
-            requiredReviewCount = 1;
-        }
-        if (minLikesReceived < 0) {
-            minLikesReceived = 0;
-        }
-        if (minLikesGiven < 0) {
-            minLikesGiven = 0;
-        }
-
         Campaign campaign = new Campaign();
         campaign.setSlug(normalizedSlug);
         campaign.setCode(normalizedCode);
@@ -408,15 +392,95 @@ public class CampaignService {
         campaign.setStartsAt(startsAt);
         campaign.setEndsAt(endsAt);
         campaign.setMaxRedemptions(maxRedemptions);
-        campaign.setMinReviewLength(minReviewLength);
-        campaign.setMaxEntriesPerUser(maxEntriesPerUser);
-        campaign.setRequireVerifiedStudent(requireVerifiedStudent);
-        campaign.setRequiredReviewCount(requiredReviewCount);
-        campaign.setMinLikesReceived(minLikesReceived);
-        campaign.setMinLikesGiven(minLikesGiven);
+        applyEntryRules(campaign, minReviewLength, maxEntriesPerUser, requireVerifiedStudent,
+                requiredReviewCount, minLikesReceived, minLikesGiven);
         campaign.setActive(true);
 
         return toAdminDTO(campaignRepo.save(campaign));
+    }
+
+    /**
+     * Edits an existing campaign's mutable settings in place.
+     *
+     * Deliberately NOT editable here:
+     *   slug / code  - both are baked into share links already handed out, and they
+     *                  share one resolution namespace (see createReferralLink), so
+     *                  renaming one could break live links or collide with another.
+     *   trackingOnly - flips which side of the attribution split the campaign counts
+     *                  on (registeredViaRef vs user_campaigns membership), which
+     *                  would strand whichever set of rows already exists.
+     *   active       - owned solely by setCampaignActive, so the edit form can never
+     *                  silently reactivate a campaign from a stale prefill.
+     *   visitCount / createdAt and the derived counts - system-maintained.
+     *
+     * The body carries the FULL editable set rather than a partial patch:
+     * maxRedemptions is genuinely nullable (null = unlimited), so a
+     * null-means-unchanged protocol could not express "clear the cap". The admin
+     * form prefills every field from the row being edited, so it always has them.
+     */
+    public CampaignAdminDTO updateCampaign(
+            String campaignId,
+            String name,
+            String prizeDescription,
+            Instant startsAt,
+            Instant endsAt,
+            Integer maxRedemptions,
+            int minReviewLength,
+            int maxEntriesPerUser,
+            boolean requireVerifiedStudent,
+            int requiredReviewCount,
+            int minLikesReceived,
+            int minLikesGiven,
+            String landingPath
+    ) {
+        Campaign campaign = campaignRepo.findById(campaignId)
+                .orElseThrow(() -> new IllegalArgumentException("Campaign not found."));
+
+        String normalizedName = requireNormalized(name, "Campaign name");
+
+        if (startsAt == null || endsAt == null) {
+            throw new IllegalArgumentException("Campaign start and end dates are required.");
+        }
+        if (!endsAt.isAfter(startsAt)) {
+            throw new IllegalArgumentException("Campaign end date must be after the start date.");
+        }
+
+        campaign.setName(normalizedName);
+        campaign.setPrizeDescription(normalize(prizeDescription).orElse(null));
+        campaign.setStartsAt(startsAt);
+        campaign.setEndsAt(endsAt);
+        campaign.setMaxRedemptions(maxRedemptions);
+        applyEntryRules(campaign, minReviewLength, maxEntriesPerUser, requireVerifiedStudent,
+                requiredReviewCount, minLikesReceived, minLikesGiven);
+
+        // Only tracking links forward to an admin-chosen page. Reward campaigns always
+        // land on /register, so theirs stays null rather than storing a value that
+        // nothing reads.
+        if (campaign.isTrackingOnly()) {
+            campaign.setLandingPath(normalizeLandingPath(landingPath));
+        }
+
+        return toAdminDTO(campaignRepo.save(campaign));
+    }
+
+    // Entry-rule fields clamped to their safe floors. Shared by createCampaign and
+    // updateCampaign so both coerce out-of-range numbers identically instead of each
+    // re-deriving the floors.
+    private void applyEntryRules(
+            Campaign campaign,
+            int minReviewLength,
+            int maxEntriesPerUser,
+            boolean requireVerifiedStudent,
+            int requiredReviewCount,
+            int minLikesReceived,
+            int minLikesGiven
+    ) {
+        campaign.setMinReviewLength(minReviewLength <= 0 ? 50 : minReviewLength);
+        campaign.setMaxEntriesPerUser(maxEntriesPerUser <= 0 ? 1 : maxEntriesPerUser);
+        campaign.setRequireVerifiedStudent(requireVerifiedStudent);
+        campaign.setRequiredReviewCount(requiredReviewCount <= 0 ? 1 : requiredReviewCount);
+        campaign.setMinLikesReceived(Math.max(0, minLikesReceived));
+        campaign.setMinLikesGiven(Math.max(0, minLikesGiven));
     }
 
     // Creates a tracking-only referral link: no prize, no requirement, no draw

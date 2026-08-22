@@ -116,6 +116,31 @@ public class AdminResource {
         ));
     }
 
+    // Edits a campaign's mutable settings. Identity (slug/code), the tracking-vs-reward
+    // mode, and active are NOT accepted here; see CampaignService.updateCampaign for why.
+    // Unknown keys in the body are ignored by Jackson, so sending e.g. "code" is a no-op
+    // rather than an error.
+    @PatchMapping("/campaigns/{id}")
+    public ResponseEntity<CampaignAdminDTO> updateCampaign(
+            @PathVariable String id,
+            @RequestBody UpdateCampaignRequest request) {
+        return ResponseEntity.ok(campaignService.updateCampaign(
+                id,
+                request.name(),
+                request.prizeDescription(),
+                request.startsAt(),
+                request.endsAt(),
+                request.maxRedemptions(),
+                request.minReviewLength(),
+                request.maxEntriesPerUser(),
+                request.requireVerifiedStudent(),
+                request.requiredReviewCount(),
+                request.minLikesReceived(),
+                request.minLikesGiven(),
+                request.landingPath()
+        ));
+    }
+
     // Referral link: a slug + name + landing page + the campaigns it enrols signups
     // into (0 campaigns = a pure tracking link; 1+ = multiple draws under one link).
     @GetMapping("/referral-links")
@@ -186,6 +211,23 @@ public class AdminResource {
             int requiredReviewCount,
             int minLikesReceived,
             int minLikesGiven
+    ) {}
+
+    // Full editable field set, not a partial patch. Sibling of CreateCampaignRequest
+    // minus slug/code (immutable identity) and plus landingPath (tracking links only).
+    public record UpdateCampaignRequest(
+            String name,
+            String prizeDescription,
+            Instant startsAt,
+            Instant endsAt,
+            Integer maxRedemptions,
+            int minReviewLength,
+            int maxEntriesPerUser,
+            boolean requireVerifiedStudent,
+            int requiredReviewCount,
+            int minLikesReceived,
+            int minLikesGiven,
+            String landingPath
     ) {}
 
     public record SetCampaignActiveRequest(boolean active) {}

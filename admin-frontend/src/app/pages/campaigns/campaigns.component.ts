@@ -45,6 +45,23 @@ export class CampaignsComponent implements OnInit {
   refCustomPath = '';
   refCampaignIds = new Set<string>();
 
+  // Edit form. editingCampaign holds the row being edited (null = modal closed);
+  // every field is prefilled from that row, because the update endpoint takes the
+  // full editable set rather than a partial patch.
+  editingCampaign = signal<CampaignAdmin | null>(null);
+  editName = '';
+  editPrizeDescription = '';
+  editStartsAt = '';
+  editEndsAt = '';
+  editMaxRedemptions: number | null = null;
+  editMinReviewLength = 50;
+  editMaxEntriesPerUser = 1;
+  editRequireVerifiedStudent = true;
+  editRequiredReviewCount = 1;
+  editMinLikesReceived = 0;
+  editMinLikesGiven = 0;
+  editLandingPath = '';
+
   ngOnInit(): void {
     this.refreshCampaigns();
     this.refreshReferralLinks();
@@ -240,6 +257,76 @@ export class CampaignsComponent implements OnInit {
       },
       error: () => this.errorMessage.set('Failed to update campaign status.')
     });
+  }
+
+  startEdit(campaign: CampaignAdmin): void {
+    this.clearMessages();
+    this.editingCampaign.set(campaign);
+    this.editName = campaign.name;
+    this.editPrizeDescription = campaign.prizeDescription ?? '';
+    this.editStartsAt = this.toLocalInputValue(campaign.startsAt);
+    this.editEndsAt = this.toLocalInputValue(campaign.endsAt);
+    this.editMaxRedemptions = campaign.maxRedemptions;
+    this.editMinReviewLength = campaign.minReviewLength;
+    this.editMaxEntriesPerUser = campaign.maxEntriesPerUser;
+    this.editRequireVerifiedStudent = campaign.requireVerifiedStudent;
+    this.editRequiredReviewCount = campaign.requiredReviewCount;
+    this.editMinLikesReceived = campaign.minLikesReceived;
+    this.editMinLikesGiven = campaign.minLikesGiven;
+    this.editLandingPath = campaign.landingPath ?? '';
+  }
+
+  cancelEdit(): void {
+    this.editingCampaign.set(null);
+  }
+
+  saveEdit(): void {
+    const campaign = this.editingCampaign();
+    if (!campaign) {
+      return;
+    }
+    this.clearMessages();
+
+    this.adminService.updateCampaign(campaign.id, {
+      name: this.editName,
+      prizeDescription: this.editPrizeDescription,
+      startsAt: this.toIsoPreservingSeconds(this.editStartsAt, campaign.startsAt),
+      endsAt: this.toIsoPreservingSeconds(this.editEndsAt, campaign.endsAt),
+      maxRedemptions: this.editMaxRedemptions,
+      minReviewLength: this.editMinReviewLength,
+      maxEntriesPerUser: this.editMaxEntriesPerUser,
+      requireVerifiedStudent: this.editRequireVerifiedStudent,
+      requiredReviewCount: this.editRequiredReviewCount,
+      minLikesReceived: this.editMinLikesReceived,
+      minLikesGiven: this.editMinLikesGiven,
+      landingPath: campaign.trackingOnly ? this.editLandingPath : null
+    }).subscribe({
+      next: () => {
+        this.successMessage.set('Campaign updated.');
+        this.editingCampaign.set(null);
+        this.refreshCampaigns();
+      },
+      error: (err) => this.errorMessage.set(err.error?.error || 'Failed to update campaign.')
+    });
+  }
+
+  // An ISO instant rendered for a datetime-local input, which reads its value as
+  // LOCAL time. Shifting by the offset first is what keeps a 23:59 Perth deadline
+  // showing as 23:59 instead of the 15:59 its UTC form would display.
+  private toLocalInputValue(iso: string): string {
+    const parsed = new Date(iso);
+    const localMs = parsed.getTime() - parsed.getTimezoneOffset() * 60000;
+    return new Date(localMs).toISOString().slice(0, 16);
+  }
+
+  // datetime-local is minute precision, so a straight round-trip would silently
+  // round an existing deadline down. Carry the original seconds across so moving
+  // only the date leaves the time-of-day exactly where it was.
+  private toIsoPreservingSeconds(localValue: string, originalIso: string): string {
+    const picked = new Date(localValue);
+    const original = new Date(originalIso);
+    picked.setSeconds(original.getSeconds(), original.getMilliseconds());
+    return picked.toISOString();
   }
 
   viewEntries(campaign: CampaignAdmin): void {
