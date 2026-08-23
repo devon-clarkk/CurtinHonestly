@@ -276,6 +276,7 @@
           </td>
           <td class="actions">
             <button type="button" class="btn" (click)="copyLink(campaign)">Copy link</button>
+            <button type="button" class="btn" (click)="startEdit(campaign)">Edit</button>
             @if (!campaign.trackingOnly) {
               <button type="button" class="btn" (click)="viewEntries(campaign)">Entries</button>
             }
@@ -316,4 +317,110 @@
       </tbody>
     </table>
   </section>
+}
+
+@if (editingCampaign(); as editing) {
+  <div class="modal-backdrop" (click)="cancelEdit()">
+    <div class="modal card" role="dialog" aria-modal="true" aria-labelledby="edit-campaign-title" (click)="$event.stopPropagation()">
+      <div class="section-header">
+        <h2 id="edit-campaign-title">Edit campaign</h2>
+        <button type="button" class="btn" (click)="cancelEdit()">Close</button>
+      </div>
+
+      <p class="page-subtitle">
+        Editing <strong>{{ editing.name }}</strong>. The referral slug
+        (<code>{{ editing.slug }}</code>)@if (!editing.trackingOnly) {, the promo code
+        (<code>{{ editing.code }}</code>)} and the tracking/reward mode are fixed: links
+        already shared point at them. Use Activate/Deactivate in the table to change status.
+      </p>
+
+      <fieldset class="form-fieldset">
+        <legend>Basics</legend>
+        <div class="form-grid">
+          <label>
+            Campaign name
+            <span class="field-hint">Shown to students on their account page.</span>
+            <input type="text" [(ngModel)]="editName" name="editName" />
+          </label>
+          <label>
+            Prize
+            <span class="field-hint">What they can win. Shown to students.</span>
+            <input type="text" [(ngModel)]="editPrizeDescription" name="editPrizeDescription" />
+          </label>
+          @if (editing.trackingOnly) {
+            <label>
+              Landing page
+              <span class="field-hint">Site-relative path the tracking link forwards to, e.g. <code>/units/COMP1000</code>.</span>
+              <input type="text" [(ngModel)]="editLandingPath" name="editLandingPath" />
+            </label>
+          }
+        </div>
+      </fieldset>
+
+      <fieldset class="form-fieldset">
+        <legend>Schedule &amp; limits</legend>
+        <div class="form-grid">
+          <label>
+            Starts
+            <span class="field-hint">Only reviews left on or after this date count.</span>
+            <input type="datetime-local" [(ngModel)]="editStartsAt" name="editStartsAt" />
+          </label>
+          <label>
+            Ends
+            <span class="field-hint">Only reviews left on or before this date count. Extend this to run the campaign longer.</span>
+            <input type="datetime-local" [(ngModel)]="editEndsAt" name="editEndsAt" />
+          </label>
+          <label>
+            Max signups
+            <span class="field-hint">Cap on how many people can join. Leave blank for unlimited.</span>
+            <input type="number" min="1" placeholder="unlimited" [(ngModel)]="editMaxRedemptions" name="editMaxRedemptions" />
+          </label>
+        </div>
+      </fieldset>
+
+      @if (!editing.trackingOnly) {
+        <fieldset class="form-fieldset">
+          <legend>How students earn draw entries</legend>
+          <div class="form-grid">
+            <label>
+              Reviews per entry
+              <input type="number" min="1" [(ngModel)]="editRequiredReviewCount" name="editRequiredReviewCount" />
+            </label>
+            <label>
+              Max entries per user
+              <input type="number" min="1" [(ngModel)]="editMaxEntriesPerUser" name="editMaxEntriesPerUser" />
+            </label>
+            <label>
+              Min review length (characters)
+              <input type="number" min="0" [(ngModel)]="editMinReviewLength" name="editMinReviewLength" />
+            </label>
+            <label>
+              Min "helpful" marks on a review
+              <input type="number" min="0" [(ngModel)]="editMinLikesReceived" name="editMinLikesReceived" />
+            </label>
+            <label>
+              Min "helpful" marks the user must give
+              <input type="number" min="0" [(ngModel)]="editMinLikesGiven" name="editMinLikesGiven" />
+            </label>
+            <label class="checkbox-field">
+              <span class="checkbox-row">
+                <input type="checkbox" [(ngModel)]="editRequireVerifiedStudent" name="editRequireVerifiedStudent" />
+                Require verified Curtin student
+              </span>
+            </label>
+          </div>
+        </fieldset>
+      } @else {
+        <p class="page-subtitle">
+          This is a tracking link: it carries no prize and awards no draw entries, so the
+          entry rules do not apply. Changing its dates does not affect what it attributes.
+        </p>
+      }
+
+      <div class="actions">
+        <button type="button" class="btn btn-primary" (click)="saveEdit()">Save changes</button>
+        <button type="button" class="btn" (click)="cancelEdit()">Cancel</button>
+      </div>
+    </div>
+  </div>
 }

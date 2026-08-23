@@ -94,6 +94,25 @@ export class AdminService {
     return this.http.patch<ReferralLinkAdmin>(`${this.apiUrl}/referral-links/${id}/active`, { active });
   }
 
+  // Full editable field set. Identity (slug/code), trackingOnly and active are not
+  // accepted by the endpoint; active has its own setCampaignActive call below.
+  updateCampaign(id: string, payload: {
+    name: string;
+    prizeDescription: string | null;
+    startsAt: string;
+    endsAt: string;
+    maxRedemptions: number | null;
+    minReviewLength: number;
+    maxEntriesPerUser: number;
+    requireVerifiedStudent: boolean;
+    requiredReviewCount: number;
+    minLikesReceived: number;
+    minLikesGiven: number;
+    landingPath: string | null;
+  }): Observable<CampaignAdmin> {
+    return this.http.patch<CampaignAdmin>(`${this.apiUrl}/campaigns/${id}`, payload);
+  }
+
   setCampaignActive(id: string, active: boolean): Observable<CampaignAdmin> {
     return this.http.patch<CampaignAdmin>(`${this.apiUrl}/campaigns/${id}/active`, { active });
   }
