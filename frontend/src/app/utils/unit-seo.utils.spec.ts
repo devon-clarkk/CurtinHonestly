@@ -62,6 +62,30 @@ describe('unitPageTitle', () => {
     );
   });
 
+  // Search results cut a title around 60 characters. The brand is the part
+  // worth losing there: the domain is shown alongside the title anyway, while
+  // the code, the name and the review count are what tell this page apart from
+  // the handbook's entry for the same unit.
+  it('keeps the brand when the whole title fits', () => {
+    const title = unitPageTitle('COMP1000', 'Unix and C Programming', 2);
+    expect(title).toBe('COMP1000 Unix and C Programming - 2 Reviews | CurtinHonestly');
+    expect(title.length).toBeLessThanOrEqual(60);
+  });
+
+  it('drops the brand rather than the unit name when the title runs long', () => {
+    const title = unitPageTitle(
+      'INDH2008',
+      'Behavioural Science for Indigenous Mental Health Practitioners'
+    );
+    expect(title).toBe('INDH2008 Behavioural Science for Indigenous Mental Health Practitioners');
+    expect(title).not.toContain('CurtinHonestly');
+  });
+
+  it('keeps the review count ahead of the brand', () => {
+    const title = unitPageTitle('ISYS3014', 'Business Process Modelling and Analysis', 7);
+    expect(title).toContain('7 Reviews');
+  });
+
   it('defaults to no-review format when numberOfReviews is omitted', () => {
     expect(unitPageTitle('ISYS1000', 'Introduction to BIS')).toBe(
       'ISYS1000 Introduction to BIS | CurtinHonestly'
