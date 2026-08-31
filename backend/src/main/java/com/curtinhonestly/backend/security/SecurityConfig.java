@@ -56,7 +56,14 @@ public class SecurityConfig {
                         .requestMatchers("/actuator/health").permitAll()
                         .requestMatchers("/auth/register", "/auth/login").permitAll()
                         .requestMatchers("/auth/forgot-password", "/auth/reset-password").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/auth/verify-student/confirm").permitAll()
+                        // Confirming an emailed link is unauthenticated (the recipient may
+                        // be opening it on a device that isn't signed in) and is now a POST
+                        // carrying the token in the body rather than the query string, per
+                        // security audit finding #5. Declared before the exact-match
+                        // "/auth/verify-student" .authenticated() rule below; that rule does
+                        // not cover this sub-path, but keeping the order explicit avoids a
+                        // trap if it is ever widened to a wildcard.
+                        .requestMatchers(HttpMethod.POST, "/auth/verify-student/confirm").permitAll()
                         .requestMatchers("/campaigns/validate").permitAll()
                         .requestMatchers(HttpMethod.POST, "/campaigns/visit").permitAll()
                         .requestMatchers(HttpMethod.POST, "/unit-requests").permitAll()

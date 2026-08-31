@@ -8,6 +8,7 @@ import {
   buildUnitJsonLd,
   homePageDescription,
   homePageTitle,
+  serializeJsonLd,
   unitPageDescription,
   unitPagePath,
   unitPageTitle,
@@ -136,7 +137,7 @@ export class SeoService {
       this.document.head.appendChild(script);
     }
 
-    script.textContent = JSON.stringify(data);
+    script.textContent = serializeJsonLd(data);
   }
 
   private removeJsonLd(): void {

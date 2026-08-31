@@ -47,22 +47,52 @@ class ExceptionHandlerTest {
 
     @Test
     void illegalArgumentExceptionMapsTo400WithSafeMessage() throws Exception {
-        String email = "duplicate-exc-test@student.curtin.edu.au";
+        // An unresolvable referral slug throws IllegalArgumentException out of
+        // CampaignService, which must come back as a 400 carrying that fixed safe
+        // message - never a raw DB or stack detail.
+        //
+        // This used to assert on a duplicate registration instead. That path no longer
+        // 400s: /auth/register now answers identically whether or not the address is
+        // taken (security audit finding #7), which is asserted below and in
+        // RegisterEnumerationTest. Only the duplicate-email case is swallowed, so an
+        // unrelated failure like this one is still the right probe for the handler.
+        mockMvc.perform(post("/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of(
+                                "email", "bad-ref-exc-test@student.curtin.edu.au",
+                                "password", "password123",
+                                "ref", "no-such-campaign-slug"))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error", is("Campaign not found. Check your referral link or promo code.")));
+    }
+
+    @Test
+    void duplicateRegistrationIsIndistinguishableFromANewOne() throws Exception {
         String password = "password123";
 
-        mockMvc.perform(post("/auth/register")
+        String freshBody = mockMvc.perform(post("/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(Map.of("email", email, "password", password))))
-                .andExpect(status().isOk());
+                        .content(objectMapper.writeValueAsString(Map.of(
+                                "email", "dup-enum-test@student.curtin.edu.au", "password", password))))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
 
-        // Second registration with the same email hits UserService's duplicate check
-        // (IllegalArgumentException), which must come back as a 400 with a fixed safe
-        // message - never a raw DB constraint error.
-        mockMvc.perform(post("/auth/register")
+        // Same address a second time. Security audit finding #7: the status and the
+        // body must match the first call exactly, or /auth/register is an oracle for
+        // which addresses have accounts. End-to-end counterpart to the unit-level
+        // assertions in RegisterEnumerationTest.
+        String duplicateBody = mockMvc.perform(post("/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(Map.of("email", email, "password", password))))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error", is("That email is already registered.")));
+                        .content(objectMapper.writeValueAsString(Map.of(
+                                "email", "dup-enum-test@student.curtin.edu.au", "password", password))))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+
+        org.assertj.core.api.Assertions.assertThat(duplicateBody).isEqualTo(freshBody);
+        // No error envelope in either case. (Not a substring check on the message text:
+        // the uniform message legitimately reads "if that email wasn't already
+        // registered", so searching for that phrase would fail on the correct output.)
+        org.assertj.core.api.Assertions.assertThat(duplicateBody).doesNotContain("\"error\"");
     }
 
     @Test

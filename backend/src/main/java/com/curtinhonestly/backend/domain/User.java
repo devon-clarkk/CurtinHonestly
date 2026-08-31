@@ -60,6 +60,19 @@ public class User {
     @Column(nullable = false, updatable = false, columnDefinition = "TIMESTAMPTZ DEFAULT NOW() NOT NULL")
     private Instant createdAt = Instant.now();
 
+    // Credential-change cut-off: JWTs issued before this instant are rejected by
+    // JwtAuthenticationFilter. Stamped on password reset and email change so those
+    // actions actually end existing sessions instead of leaving a stolen 7-day
+    // token alive (security audit finding #4).
+    //
+    // Nullable on purpose - NULL means "no cut-off yet", which is what every
+    // pre-existing account is. Always stamp it truncated to whole seconds: a JWT's
+    // `iat` has second precision, so a nanosecond-precision stamp would be strictly
+    // newer than a token minted in the same instant and would log the user straight
+    // back out. See V5__app_users_tokens_valid_after.sql.
+    @Column(name = "tokens_valid_after", columnDefinition = "TIMESTAMPTZ")
+    private Instant tokensValidAfter;
+
     // No REMOVE cascade: deleting a user must not delete their reviews (see
     // UserService.deleteAccount) — reviews are detached (anonymized) by default,
     // and the app deletes them explicitly only when the user opts into full removal.

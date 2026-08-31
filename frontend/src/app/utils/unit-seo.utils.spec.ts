@@ -6,6 +6,7 @@ import {
   buildUnitJsonLd,
   reviewAuthorName,
   safeHttpsUrl,
+  serializeJsonLd,
   unitPageTitle,
 } from './unit-seo.utils';
 
@@ -508,5 +509,44 @@ describe('buildUnitJsonLd — Phase 4 hasCourseInstance', () => {
     const instance = course['hasCourseInstance'] as Record<string, unknown>;
     expect(instance['courseMode']).toBeUndefined();
     expect(instance['courseWorkload']).toBe('PT3H');
+  });
+});
+
+// ─── Security: JSON-LD script-breakout (stored XSS) ──────────────────────────
+
+describe('serializeJsonLd', () => {
+  it('escapes <, > and & so a </script> payload cannot break out of the tag', () => {
+    const out = serializeJsonLd({ reviewBody: '</script><img src=x onerror=alert(1)>' });
+    // The literal closing tag / angle brackets must never survive into the string
+    // that gets written verbatim into a <script> element during SSR.
+    expect(out).not.toContain('</script>');
+    expect(out).not.toContain('<');
+    expect(out).not.toContain('>');
+    // Escaped form is present and still valid JSON that round-trips to the original.
+    expect(out).toContain('u003c');
+    expect(JSON.parse(out).reviewBody).toBe('</script><img src=x onerror=alert(1)>');
+  });
+
+  it('neutralises a malicious reviewText carried through buildUnitJsonLd', () => {
+    const payload = '</script><script>steal(document.cookie)</script>';
+    const unit = baseUnit({
+      numberOfReviews: 1,
+      averageRating: 5,
+      reviews: [
+        {
+          rating: 5,
+          reviewText: payload,
+          reviewerVerified: false,
+          createdAt: '2026-01-01T00:00:00Z',
+        } as unknown as UnitDetails['reviews'][number],
+      ],
+    });
+
+    const serialized = serializeJsonLd(buildUnitJsonLd(unit, SITE_URL));
+
+    expect(serialized).not.toContain('</script>');
+    expect(serialized).not.toContain('<script>');
+    // The review body is still recoverable by a conformant JSON-LD consumer.
+    expect(serialized).toContain('u003c/script');
   });
 });

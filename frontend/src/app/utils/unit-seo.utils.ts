@@ -3,6 +3,24 @@ import { Review, TuitionPattern, UnitDetails } from '../models/unit.model';
 const MAX_DESCRIPTION_LENGTH = 160;
 const MAX_JSON_LD_REVIEWS = 10;
 
+/**
+ * Serialize a JSON-LD object for embedding in a <script type="application/ld+json">.
+ *
+ * A <script> is a raw-text HTML element: server-side rendering serializes its text
+ * content verbatim, without entity-encoding (entities inside raw-text elements are
+ * not decoded by parsers). JSON.stringify does NOT escape `<`, `>` or `&`, so a
+ * review containing `</script>...` would break out of the tag in the prerendered
+ * HTML and inject arbitrary markup (stored XSS). Escaping these to their \u form
+ * keeps the JSON-LD semantically identical for consumers (a JSON parser decodes
+ * < back to `<`) while making it impossible to close the script element early.
+ */
+export function serializeJsonLd(data: unknown): string {
+  return JSON.stringify(data)
+    .replace(/</g, '\\u003c')
+    .replace(/>/g, '\\u003e')
+    .replace(/&/g, '\\u0026');
+}
+
 export function normalizeTakeAgainRatio(ratio: number): number {
   return ratio > 1 ? ratio / 100 : ratio;
 }

@@ -1,7 +1,7 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { PasswordFieldComponent } from '../password-field/password-field.component';
 import { SeoService } from '../../services/seo.service';
@@ -50,6 +50,7 @@ import { SeoService } from '../../services/seo.service';
 })
 export class ResetPasswordComponent implements OnInit {
   private route = inject(ActivatedRoute);
+  private router = inject(Router);
   private authService = inject(AuthService);
   private seoService = inject(SeoService);
 
@@ -64,6 +65,22 @@ export class ResetPasswordComponent implements OnInit {
   ngOnInit() {
     this.seoService.noIndex('Choose a new password | CurtinHonestly');
     this.token = this.route.snapshot.queryParamMap.get('token');
+
+    // Same reasoning as the student-verification confirm page (security audit
+    // finding #5): the token is held in this component from here on, so clear it
+    // out of the address bar and out of browser history. Router.navigate rather
+    // than history.replaceState, for the same reason given there.
+    //
+    // Accepted cost: reloading this page after the strip loses the token, so the
+    // user has to request a fresh link. Standard for reset pages, and cheaper than
+    // leaving a live credential in history and in the Referer of every later request.
+    if (this.token) {
+      this.router.navigate([], {
+        relativeTo: this.route,
+        queryParams: {},
+        replaceUrl: true
+      });
+    }
   }
 
   onSubmit() {

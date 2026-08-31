@@ -17,7 +17,9 @@ public record ReviewCreateRequest(
         @Size(max = 2000) String reviewText,
         AcademicTerm termType,
         @Min(2000) @Max(2100) Integer termYear,
-        String professor,
+        // Kept in step with ReviewUpdateRequest so create and edit accept the
+        // same range and an edit can never be rejected for length a create allowed.
+        @Size(max = 200) String professor,
         @Min(1) @Max(10) int workload,
         boolean hasExam,
         boolean wouldTakeAgain,

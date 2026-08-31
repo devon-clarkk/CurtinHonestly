@@ -14,6 +14,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -29,6 +31,7 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final ReviewRepo reviewRepo;
     private final UnitAggregateService unitAggregateService;
+    private final EmailService emailService;
 
     public User createUser(String email, String password) {
         return createUser(email, password, null, null);
@@ -38,8 +41,19 @@ public class UserService {
         String normalizedEmail = EmailNormalizer.normalize(email);
         log.info("Creating user: {}", normalizedEmail);
 
-        if (userRepo.findByEmail(normalizedEmail).isPresent()) {
-            throw new IllegalArgumentException("That email is already registered.");
+        var existing = userRepo.findByEmail(normalizedEmail);
+        if (existing.isPresent()) {
+            // Do the bcrypt work anyway before throwing. The caller (AuthController)
+            // returns an identical response for "created" and "already exists" so the
+            // endpoint can't be used to enumerate accounts (security audit finding #7),
+            // but a uniform body is defeated by a stopwatch if the create path spends
+            // ~100ms hashing and this path returns instantly. The result is discarded.
+            passwordEncoder.encode(password);
+            // Tell the actual owner instead of the caller. This is the standard
+            // companion to an enumeration-safe signup: the person who really owns the
+            // address learns about the attempt, and the person making it learns nothing.
+            notifyExistingAccount(normalizedEmail);
+            throw new EmailAlreadyRegisteredException("That email is already registered.");
         }
 
         User user = new User();
@@ -68,6 +82,24 @@ public class UserService {
         log.info("User created successfully with ID: {}, verifiedStudent={}, campaigns={}",
                 savedUser.getId(), savedUser.isVerifiedStudent(), enrolments.size());
         return savedUser;
+    }
+
+    // Best-effort: EmailService swallows its own failures, and this runs on a path
+    // that is about to roll back, so it must never be the reason a request errors.
+    private void notifyExistingAccount(String normalizedEmail) {
+        emailService.send(
+                normalizedEmail,
+                "Someone tried to sign up with your CurtinHonestly email",
+                """
+                        Someone just tried to create a CurtinHonestly account using this email
+                        address, but you already have one.
+
+                        If that was you, sign in instead, or use "Forgot password" if you can't
+                        remember your password. Your account and password have not changed.
+
+                        If it wasn't you, you can ignore this email. Nobody can see that this
+                        address has an account, and no changes were made to it.
+                        """);
     }
 
     public User createAdminUser(String email, String password) {
@@ -110,6 +142,12 @@ public class UserService {
         // Changing the login email drops verified status — it must be re-earned by
         // confirming a link sent to the new address (VerificationService).
         user.setVerifiedStudent(false);
+        // Same cut-off as a password reset: an email change is a credential change,
+        // so sessions issued before it are revoked (security audit finding #4).
+        // Truncated to whole seconds on purpose, because the caller mints a replacement
+        // token immediately, and a JWT's `iat` is whole seconds, so a nanosecond
+        // stamp would make that fresh token look stale and log the user straight out.
+        user.setTokensValidAfter(Instant.now().truncatedTo(ChronoUnit.SECONDS));
         User savedUser = userRepo.saveAndFlush(user);
         log.info("User {} updated email", savedUser.getId());
         return savedUser;

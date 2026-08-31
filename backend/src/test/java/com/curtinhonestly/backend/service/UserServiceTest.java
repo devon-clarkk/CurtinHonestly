@@ -29,11 +29,12 @@ class UserServiceTest {
     @Mock PasswordEncoder passwordEncoder;
     @Mock ReviewRepo reviewRepo;
     @Mock UnitAggregateService unitAggregateService;
+    @Mock EmailService emailService;
 
     @Captor ArgumentCaptor<List<Review>> reviewsCaptor;
 
     private UserService service() {
-        return new UserService(userRepo, passwordEncoder, reviewRepo, unitAggregateService);
+        return new UserService(userRepo, passwordEncoder, reviewRepo, unitAggregateService, emailService);
     }
 
     private User user() {
@@ -140,6 +141,96 @@ class UserServiceTest {
         assertThatThrownBy(() -> service().updateCompletedUnitCodes("alice@gmail.com", tooMany))
                 .isInstanceOf(IllegalArgumentException.class);
         verify(userRepo, never()).saveAndFlush(any());
+    }
+
+    // ---- registration enumeration (security audit finding #7) ----
+
+    @Test
+    void createUser_onDuplicateEmailThrowsTheDistinctTypeSoTheControllerCanAnswerUniformly() {
+        when(userRepo.findByEmail("alice@gmail.com")).thenReturn(java.util.Optional.of(user()));
+
+        assertThatThrownBy(() -> service().createUser("Alice@Gmail.com", "password123"))
+                // The distinct subtype is what lets AuthController.register recognise
+                // exactly this case and return the same 200 it returns for a new signup,
+                // without also swallowing unrelated IllegalArgumentExceptions (a bad
+                // promo code, an invalid campaign) that must still surface as errors.
+                .isInstanceOf(EmailAlreadyRegisteredException.class)
+                .isInstanceOf(IllegalArgumentException.class);
+
+        verify(userRepo, never()).saveAndFlush(any());
+    }
+
+    @Test
+    void createUser_onDuplicateEmailStillHashesThePasswordSoTimingDoesNotLeak() {
+        when(userRepo.findByEmail("alice@gmail.com")).thenReturn(java.util.Optional.of(user()));
+
+        assertThatThrownBy(() -> service().createUser("alice@gmail.com", "password123"))
+                .isInstanceOf(EmailAlreadyRegisteredException.class);
+
+        // A uniform response body is worthless if the duplicate branch returns in 1ms
+        // while the create branch spends ~100ms in bcrypt: the fork is then readable
+        // with a stopwatch. The hash is computed and discarded purely for that parity.
+        verify(passwordEncoder).encode("password123");
+    }
+
+    @Test
+    void createUser_onDuplicateEmailNotifiesTheRealOwnerAndNotTheCaller() {
+        when(userRepo.findByEmail("alice@gmail.com")).thenReturn(java.util.Optional.of(user()));
+
+        assertThatThrownBy(() -> service().createUser("Alice@Gmail.com", "password123"))
+                .isInstanceOf(EmailAlreadyRegisteredException.class);
+
+        // The person who owns the address is told; the person who made the request is
+        // told nothing. Sent to the normalized address, so case games don't dodge it.
+        verify(emailService).send(eq("alice@gmail.com"), anyString(), anyString());
+    }
+
+    @Test
+    void createUser_forANewEmailSendsNoSuchNotice() {
+        when(userRepo.findByEmail("newbie@gmail.com")).thenReturn(java.util.Optional.empty());
+        when(passwordEncoder.encode("password123")).thenReturn("hashed");
+        when(userRepo.saveAndFlush(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        User created = service().createUser("Newbie@Gmail.com", "password123");
+
+        assertThat(created.getEmail()).isEqualTo("newbie@gmail.com");
+        verifyNoInteractions(emailService);
+    }
+
+    // ---- session invalidation (security audit finding #4) ----
+
+    @Test
+    void updateEmail_stampsTheCredentialChangeCutOffTruncatedToWholeSeconds() {
+        User user = user();
+        when(userRepo.findByEmail("alice@gmail.com")).thenReturn(java.util.Optional.of(user));
+        when(userRepo.findByEmail("alice.new@gmail.com")).thenReturn(java.util.Optional.empty());
+        when(passwordEncoder.matches("correct", "hashed")).thenReturn(true);
+        when(userRepo.saveAndFlush(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        java.time.Instant before = java.time.Instant.now().truncatedTo(java.time.temporal.ChronoUnit.SECONDS);
+        service().updateEmail("alice@gmail.com", "Alice.New@Gmail.com", "correct");
+
+        assertThat(user.getTokensValidAfter()).isNotNull();
+        assertThat(user.getTokensValidAfter()).isBetween(before, java.time.Instant.now());
+        // Truncation is load-bearing, not tidiness. AuthController mints a replacement
+        // token immediately after this call and a JWT's `iat` is whole seconds, so a
+        // nanosecond-precision stamp would be strictly newer than that fresh token and
+        // the filter would reject it, logging the user out the instant they changed
+        // their email. See AppUserDetails.isTokenStale.
+        assertThat(user.getTokensValidAfter().getNano()).isZero();
+    }
+
+    @Test
+    void updateEmail_withAWrongPasswordChangesNothingIncludingTheCutOff() {
+        User user = user();
+        when(userRepo.findByEmail("alice@gmail.com")).thenReturn(java.util.Optional.of(user));
+        when(passwordEncoder.matches("wrong", "hashed")).thenReturn(false);
+
+        assertThatThrownBy(() -> service().updateEmail("alice@gmail.com", "new@gmail.com", "wrong"))
+                .isInstanceOf(IllegalArgumentException.class);
+
+        assertThat(user.getTokensValidAfter()).isNull();
+        assertThat(user.getEmail()).isEqualTo("alice@gmail.com");
     }
 
     @Test

@@ -2,6 +2,7 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { switchMap } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
 import { SeoService } from '../../services/seo.service';
 import { PasswordFieldComponent } from '../password-field/password-field.component';
@@ -67,18 +68,26 @@ export class RegisterComponent implements OnInit {
     this.isLoading.set(true);
     this.errorMessage.set(null);
 
+    // /auth/register answers identically for a new address and one that already
+    // has an account, so it cannot hand back a session (security audit finding #7).
+    // Signing in immediately afterwards with the credentials just entered keeps the
+    // one-submit UX: a genuinely new account logs straight in. If the address was
+    // already taken, this login is the step that fails, and the message below is
+    // the only place the user finds out.
     this.authService.register({
       email: this.email,
       password: this.password,
       ref: this.ref || undefined,
       promoCode: this.promoCode || undefined
-    }).subscribe({
-      next: (response) => {
+    }).pipe(
+      switchMap(() => this.authService.login({ email: this.email, password: this.password }))
+    ).subscribe({
+      next: (session) => {
         this.isLoading.set(false);
         localStorage.removeItem(CAMPAIGN_REF_KEY);
         localStorage.removeItem(CAMPAIGN_CODE_KEY);
 
-        const message = response.verifiedStudent
+        const message = session.verifiedStudent
           ? 'Registration successful! You are verified as a Curtin student.'
           : 'Registration successful! Verify your student email from your account to show the verified badge on reviews.';
         this.successMessage.set(message);
@@ -86,7 +95,14 @@ export class RegisterComponent implements OnInit {
       },
       error: (err) => {
         this.isLoading.set(false);
-        this.errorMessage.set(err.error?.error || 'Registration failed. Please try again.');
+        // A 401 here means the sign-in leg failed, which almost always means the
+        // address already has an account with a different password. Phrased as a
+        // hint rather than a confirmation: it is shown from the same signal the
+        // login form already gives anyone, so it adds no new way to probe.
+        this.errorMessage.set(
+          err.status === 401
+            ? 'We couldn\'t sign you in. If you already have an account with this email, log in instead or reset your password.'
+            : err.error?.error || 'Registration failed. Please try again.');
       }
     });
   }
