@@ -8,7 +8,7 @@ import { UnitService } from '../../services/unit.service';
 import { SeoService } from '../../services/seo.service';
 import { Faculty, UnitSummary } from '../../models/unit.model';
 import { environment } from '../../../environments/environment';
-import { FacultyHub, facultyHubBySlug } from '../../utils/faculty.util';
+import { FacultyHub, facultyHubBySlug, facultyPagePath } from '../../utils/faculty.util';
 import { groupUnitsByCodePrefix } from '../../utils/unit-seo.utils';
 
 /**
@@ -147,6 +147,19 @@ export class FacultyComponent implements OnInit, OnDestroy {
     this.unitCount.set(units.length);
     this.loading.set(false);
     this.seoService.updateFacultyPage(hub, units);
+  }
+
+  /**
+   * A jump-bar link has to carry this page's own path, not a bare fragment.
+   * index.html sets `<base href="/">`, against which `#ACTL` resolves to
+   * `/#ACTL`: the home page, with the fragment along for the ride. Spelling the
+   * path out keeps it a same-document fragment, which the browser scrolls to
+   * without a navigation, and keeps it a real link that works without
+   * JavaScript.
+   */
+  jumpTarget(prefix: string): string {
+    const hub = this.hub();
+    return hub ? `${facultyPagePath(hub.slug)}#${prefix}` : `#${prefix}`;
   }
 
   ratingLabel(unit: IndexUnit): string | null {
