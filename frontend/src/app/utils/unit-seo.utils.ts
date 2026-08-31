@@ -240,12 +240,17 @@ export function buildUnitJsonLd(unit: UnitDetails, siteUrl: string) {
     course['sameAs'] = handbookUrl;
   }
 
+  // schema.org types `about` as a Thing, not a string. A bare string validates
+  // loosely but gives a consumer nothing to resolve; a named Thing does.
   if (unit.area?.trim()) {
-    course['about'] = unit.area.trim();
+    course['about'] = { '@type': 'Thing', name: unit.area.trim() };
   }
 
+  // Credit points are a credit count, which is what numberOfCredits is for.
+  // educationalCredentialAwarded names a credential, a degree or certificate,
+  // so "25 credit points" was the wrong property rather than a wrong value.
   if (unit.credits > 0) {
-    course['educationalCredentialAwarded'] = `${unit.credits} credit points`;
+    course['numberOfCredits'] = unit.credits;
   }
 
   const courseMode = deriveCourseMode(unit.tuitionPatterns ?? []);

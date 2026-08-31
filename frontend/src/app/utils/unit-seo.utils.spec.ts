@@ -278,11 +278,13 @@ describe('buildUnitJsonLd — Phase 2 course metadata', () => {
     expect(course['sameAs']).toBeUndefined();
   });
 
-  it('includes about when area is set', () => {
+  // schema.org types `about` as a Thing. A bare string passes a loose validator
+  // but gives a consumer nothing to resolve.
+  it('includes about as a named Thing when area is set', () => {
     const course = getCourseNode(
       buildUnitJsonLd(baseUnit({ area: 'Business Information Systems' }), SITE_URL)
     );
-    expect(course['about']).toBe('Business Information Systems');
+    expect(course['about']).toEqual({ '@type': 'Thing', name: 'Business Information Systems' });
   });
 
   it('omits about when area is empty', () => {
@@ -290,14 +292,18 @@ describe('buildUnitJsonLd — Phase 2 course metadata', () => {
     expect(course['about']).toBeUndefined();
   });
 
-  it('includes educationalCredentialAwarded when credits > 0', () => {
+  // Credit points are a count, which is numberOfCredits.
+  // educationalCredentialAwarded names a credential, a degree or a certificate,
+  // so it was the wrong property rather than a wrong value.
+  it('includes numberOfCredits when credits > 0', () => {
     const course = getCourseNode(buildUnitJsonLd(baseUnit({ credits: 25 }), SITE_URL));
-    expect(course['educationalCredentialAwarded']).toBe('25 credit points');
+    expect(course['numberOfCredits']).toBe(25);
+    expect(course['educationalCredentialAwarded']).toBeUndefined();
   });
 
-  it('omits educationalCredentialAwarded when credits is 0', () => {
+  it('omits numberOfCredits when credits is 0', () => {
     const course = getCourseNode(buildUnitJsonLd(baseUnit({ credits: 0 }), SITE_URL));
-    expect(course['educationalCredentialAwarded']).toBeUndefined();
+    expect(course['numberOfCredits']).toBeUndefined();
   });
 
   it('uses full description without truncation in JSON-LD', () => {
