@@ -6,7 +6,12 @@
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Read honest student reviews for Curtin University units. Ratings, workload, grades, and would-take-again scores to help you choose your units.">
-  <meta name="robots" content="index, follow">
+  <!-- Deny by default. This shell is what Azure Static Web Apps serves for every
+       URL with no prerendered file behind it: the client-rendered routes, and any
+       address a crawler invents. The fallback returns 200, so without this the
+       shell offers an unbounded supply of indexable near-duplicates of the home
+       page. SeoService opts the two indexable route families back in explicitly. -->
+  <meta name="robots" content="noindex, nofollow">
   <!-- Never send the path or query of the current page to another origin. The
        verification and password-reset links land here with a token in the query
        string (security audit finding #5); this stops that token reaching any

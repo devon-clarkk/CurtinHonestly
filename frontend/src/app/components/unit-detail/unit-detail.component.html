@@ -3,6 +3,10 @@
   <nav class="breadcrumb" aria-label="Breadcrumb">
     <ol>
       <li><a routerLink="/">Home</a></li>
+      <li *ngIf="facultyHub(unit) as hub">
+        <app-icon name="chevron-right" class="breadcrumb-sep" />
+        <a [routerLink]="['/faculty', hub.slug]">{{ hub.name }}</a>
+      </li>
       <li aria-current="page">
         <app-icon name="chevron-right" class="breadcrumb-sep" />
         <span>{{ unit.code }}</span>
@@ -21,7 +25,10 @@
       <div class="header-left">
         <span class="detail-code">{{ unit.code }}</span>
         <h1 class="detail-name handbook-title">{{ unit.code }}: {{ unit.name }}</h1>
-        <p class="detail-faculty">{{ unit.faculty }}</p>
+        <p class="detail-faculty">
+          <a *ngIf="facultyHub(unit) as hub; else plainFaculty" [routerLink]="['/faculty', hub.slug]">{{ unit.faculty }}</a>
+          <ng-template #plainFaculty>{{ unit.faculty }}</ng-template>
+        </p>
         <p class="seo-intro">
           Student reviews for <strong>{{ unit.code }}</strong> at Curtin University.
           See ratings, workload, grades, and honest feedback from Curtin students.

@@ -1,0 +1,47 @@
+<div class="faculty-container" *ngIf="hub() as facultyHub; else unknownFaculty">
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <ol>
+      <li><a routerLink="/">Home</a></li>
+      <li aria-current="page">
+        <app-icon name="chevron-right" class="breadcrumb-sep" />
+        <span>{{ facultyHub.name }}</span>
+      </li>
+    </ol>
+  </nav>
+
+  <header class="faculty-header">
+    <h1 class="handbook-title">Curtin {{ facultyHub.name }} Units</h1>
+    <p class="faculty-intro" *ngIf="unitCount() > 0">
+      Every {{ facultyHub.name }} unit at Curtin University, grouped by subject code.
+      {{ unitCount() }} units, with student ratings and honest reviews from the people who took them.
+    </p>
+  </header>
+
+  <p class="faculty-status" *ngIf="loading()">Loading units…</p>
+  <p class="faculty-status faculty-error" *ngIf="error()">{{ error() }}</p>
+
+  <nav class="prefix-jump" aria-label="Jump to subject" *ngIf="groups().length > 1">
+    <a *ngFor="let group of groups()" [href]="'#' + group.prefix">{{ group.prefix }}</a>
+  </nav>
+
+  <section class="prefix-group" *ngFor="let group of groups()" [id]="group.prefix">
+    <h2 class="prefix-heading">{{ group.prefix }}</h2>
+    <ul class="unit-index">
+      <li *ngFor="let unit of group.units">
+        <a [routerLink]="['/units', unit.code]" class="unit-index-link">
+          <span class="unit-index-code">{{ unit.code }}</span>
+          <span class="unit-index-name">{{ unit.name }}</span>
+        </a>
+        <span class="unit-index-rating" *ngIf="ratingLabel(unit) as rating">{{ rating }}</span>
+      </li>
+    </ul>
+  </section>
+</div>
+
+<ng-template #unknownFaculty>
+  <div class="faculty-container faculty-missing">
+    <h1 class="handbook-title">Faculty not found</h1>
+    <p>That faculty doesn't exist. Browse the full catalogue instead.</p>
+    <a routerLink="/" class="btn btn-primary">Back to all units</a>
+  </div>
+</ng-template>

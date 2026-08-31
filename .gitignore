@@ -74,6 +74,7 @@ out/
 # Local generated SEO data (refreshed on each build)
 frontend/public/robots.txt
 frontend/public/sitemap.xml
+frontend/src/generated/unit-sitemap-meta.json
 
 .env.*
 !.env.example

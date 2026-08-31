@@ -1,4 +1,8 @@
-import { Review, TuitionPattern, UnitDetails } from '../models/unit.model';
+import { Review, TuitionPattern, UnitDetails, UnitSummary } from '../models/unit.model';
+
+/** The only fields a link on an index page needs. */
+export type UnitLink = Pick<UnitSummary, 'code' | 'name'>;
+import { FacultyHub, facultyHubByName, facultyPagePath } from './faculty.util';
 
 const MAX_DESCRIPTION_LENGTH = 160;
 const MAX_JSON_LD_REVIEWS = 10;
@@ -66,6 +70,53 @@ export function unitPageDescription(unit: UnitDetails): string {
 
 export function unitPagePath(code: string): string {
   return `/units/${encodeURIComponent(code)}`;
+}
+
+export function facultyPageTitle(facultyName: string): string {
+  return `Curtin ${facultyName} Units | CurtinHonestly`;
+}
+
+export function facultyPageDescription(facultyName: string, unitCount: number): string {
+  if (unitCount > 0) {
+    return truncateDescription(
+      `Browse all ${unitCount} ${facultyName} units at Curtin University. Student ratings, ` +
+        'workload, and honest reviews for every unit.'
+    );
+  }
+
+  return truncateDescription(
+    `Browse ${facultyName} units at Curtin University. Student ratings, workload, and honest ` +
+      'reviews from the people who took them.'
+  );
+}
+
+/**
+ * Groups a faculty's units under their four-letter code prefix.
+ *
+ * A flat list of several hundred links is hard to scan and says nothing about
+ * what is in it. The prefix is the subject: grouping under it turns one page
+ * into a set of labelled sections a reader can jump between, and puts the
+ * subject codes students actually search into the page as headings.
+ */
+export function groupUnitsByCodePrefix<T extends UnitLink>(units: T[]): { prefix: string; units: T[] }[] {
+  const groups = new Map<string, T[]>();
+
+  for (const unit of units) {
+    const prefix = unit.code.slice(0, 4).toUpperCase();
+    const group = groups.get(prefix);
+    if (group) {
+      group.push(unit);
+    } else {
+      groups.set(prefix, [unit]);
+    }
+  }
+
+  return [...groups.entries()]
+    .map(([prefix, grouped]) => ({
+      prefix,
+      units: [...grouped].sort((a, b) => a.code.localeCompare(b.code)),
+    }))
+    .sort((a, b) => a.prefix.localeCompare(b.prefix));
 }
 
 export function reviewAuthorName(reviewerVerified: boolean): string {
@@ -224,6 +275,72 @@ export function buildUnitJsonLd(unit: UnitDetails, siteUrl: string) {
       {
         '@type': 'BreadcrumbList',
         '@id': breadcrumbId,
+        itemListElement: buildUnitBreadcrumbTrail(unit, base, url),
+      },
+      course,
+    ],
+  };
+}
+
+/**
+ * Home, then the unit's faculty hub, then the unit.
+ *
+ * The hub rung is what makes the trail worth having: it is the page that links
+ * every unit in the faculty, so declaring it here matches the crawl path a
+ * reader and a crawler both take. A unit whose faculty does not resolve keeps
+ * the two-rung trail rather than losing its breadcrumb.
+ */
+function buildUnitBreadcrumbTrail(
+  unit: UnitDetails,
+  base: string,
+  url: string
+): Record<string, unknown>[] {
+  const trail: Record<string, unknown>[] = [
+    {
+      '@type': 'ListItem',
+      position: 1,
+      name: 'Curtin University Unit Reviews',
+      item: `${base}/`,
+    },
+  ];
+
+  const hub = facultyHubByName(unit.faculty);
+  if (hub) {
+    trail.push({
+      '@type': 'ListItem',
+      position: 2,
+      name: `${hub.name} Units`,
+      item: `${base}${facultyPagePath(hub.slug)}`,
+    });
+  }
+
+  trail.push({
+    '@type': 'ListItem',
+    position: trail.length + 1,
+    name: `${unit.code} ${unit.name}`,
+    item: url,
+  });
+
+  return trail;
+}
+
+/**
+ * A faculty hub is a list of links, and CollectionPage plus ItemList is how that
+ * is said in schema.org. The ItemList carries every unit on the page in render
+ * order, which is the same set the HTML links, so the markup describes the page
+ * rather than making a separate claim about it.
+ */
+export function buildFacultyJsonLd(hub: FacultyHub, units: UnitLink[], siteUrl: string) {
+  const base = siteUrl.replace(/\/$/, '');
+  const url = `${base}${facultyPagePath(hub.slug)}`;
+
+  return {
+    '@context': 'https://schema.org',
+    '@graph': [
+      ...buildSitewideJsonLd(siteUrl),
+      {
+        '@type': 'BreadcrumbList',
+        '@id': `${url}#breadcrumb`,
         itemListElement: [
           {
             '@type': 'ListItem',
@@ -234,12 +351,35 @@ export function buildUnitJsonLd(unit: UnitDetails, siteUrl: string) {
           {
             '@type': 'ListItem',
             position: 2,
-            name: `${unit.code} ${unit.name}`,
+            name: `${hub.name} Units`,
             item: url,
           },
         ],
       },
-      course,
+      {
+        '@type': 'CollectionPage',
+        '@id': `${url}#collection`,
+        url,
+        name: `Curtin ${hub.name} Units`,
+        description: facultyPageDescription(hub.name, units.length),
+        inLanguage: 'en-AU',
+        about: {
+          '@type': 'CollegeOrUniversity',
+          name: 'Curtin University',
+          sameAs: 'https://www.curtin.edu.au/',
+        },
+        mainEntity: {
+          '@type': 'ItemList',
+          '@id': `${url}#units`,
+          numberOfItems: units.length,
+          itemListElement: units.map((unit, index) => ({
+            '@type': 'ListItem',
+            position: index + 1,
+            name: `${unit.code}: ${unit.name}`,
+            url: `${base}${unitPagePath(unit.code)}`,
+          })),
+        },
+      },
     ],
   };
 }

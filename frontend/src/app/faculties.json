@@ -1,0 +1,27 @@
+[
+  {
+    "slug": "science-and-engineering",
+    "faculty": "SCIENCE_AND_ENGINEERING",
+    "name": "Science and Engineering"
+  },
+  {
+    "slug": "humanities",
+    "faculty": "HUMANITIES",
+    "name": "Humanities"
+  },
+  {
+    "slug": "health-sciences",
+    "faculty": "HEALTH_SCIENCES",
+    "name": "Health Sciences"
+  },
+  {
+    "slug": "business-and-law",
+    "faculty": "BUSINESS_AND_LAW",
+    "name": "Business and Law"
+  },
+  {
+    "slug": "aboriginal-studies",
+    "faculty": "ABORIGINAL_STUDIES",
+    "name": "Aboriginal Studies"
+  }
+]

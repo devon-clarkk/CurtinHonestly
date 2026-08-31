@@ -1,6 +1,7 @@
 import { Component, inject, PLATFORM_ID, signal } from '@angular/core';
 import { RouterOutlet, RouterLink, Router, ActivatedRoute, NavigationEnd } from '@angular/router';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { FACULTY_HUBS } from './utils/faculty.util';
 import { filter } from 'rxjs';
 import { AuthService } from './services/auth.service';
 import { ReferralTrackingService } from './services/referral-tracking.service';
@@ -13,6 +14,9 @@ import { ReferralTrackingService } from './services/referral-tracking.service';
   styleUrl: './app.css'
 })
 export class App {
+  /** Linked from the footer, so every prerendered page reaches the hubs. */
+  readonly facultyHubs = FACULTY_HUBS;
+
   protected readonly title = signal('Curtin Honestly');
   authService = inject(AuthService);
   private router = inject(Router);

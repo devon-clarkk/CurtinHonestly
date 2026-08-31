@@ -34,6 +34,13 @@ export const routes: Routes = [
     path: 'privacy',
     loadComponent: () => import('./components/legal/privacy.component').then(m => m.PrivacyComponent)
   },
+  // Lazy for the same reason as compare and the legal pages: the initial bundle
+  // is already over budget, and a hub page is entered from a link rather than
+  // being the first thing anyone loads. Prerendering works fine on a lazy route.
+  {
+    path: 'faculty/:slug',
+    loadComponent: () => import('./components/faculty/faculty.component').then(m => m.FacultyComponent)
+  },
   { path: 'units/:code', component: UnitDetailComponent },
   {
     path: '**',
