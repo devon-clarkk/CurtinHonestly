@@ -1,0 +1,181 @@
+.faculty-container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 24px 16px 64px;
+}
+
+.breadcrumb {
+  margin-bottom: 16px;
+}
+
+.breadcrumb ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.breadcrumb li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.breadcrumb-sep {
+  font-size: 0.8em;
+  opacity: 0.55;
+}
+
+.faculty-header {
+  margin-bottom: 28px;
+}
+
+.faculty-header h1 {
+  margin: 0 0 8px;
+}
+
+.faculty-intro {
+  margin: 0;
+  max-width: 62ch;
+  color: var(--text-secondary);
+}
+
+.faculty-status {
+  color: var(--text-secondary);
+}
+
+.faculty-error {
+  color: var(--primary-ink);
+}
+
+/* A jump bar rather than pagination: the whole faculty is on this page, so the
+   only thing a reader needs is a way down it. Every target is a real anchor, so
+   it costs no JavaScript and adds no crawlable URLs. */
+.prefix-jump {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 28px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.prefix-jump a {
+  padding: 3px 9px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  background: var(--surface-muted);
+  font-family: var(--alt-font);
+  font-size: 0.8125rem;
+  color: var(--text-primary);
+  text-decoration: none;
+}
+
+.prefix-jump a:hover {
+  border-color: var(--primary-color);
+  color: var(--primary-ink);
+}
+
+.prefix-group {
+  margin-bottom: 32px;
+  scroll-margin-top: 24px;
+}
+
+.prefix-heading {
+  margin: 0 0 12px;
+  font-family: var(--header-font);
+  font-size: 1.125rem;
+  letter-spacing: 0.04em;
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 6px;
+}
+
+.unit-index {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 2px 24px;
+}
+
+.unit-index li {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 5px 0;
+  min-width: 0;
+}
+
+.unit-index-link {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+  text-decoration: none;
+  color: var(--text-primary);
+}
+
+.unit-index-link:hover .unit-index-name {
+  color: var(--primary-ink);
+  text-decoration: underline;
+}
+
+.unit-index-code {
+  font-family: var(--alt-font);
+  font-weight: 700;
+  font-size: 0.8125rem;
+  color: var(--primary-ink);
+  flex-shrink: 0;
+}
+
+.unit-index-name {
+  font-size: 0.9375rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.unit-index-rating {
+  margin-left: auto;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.faculty-missing {
+  text-align: center;
+  padding-top: 64px;
+}
+
+/* One column on a phone, so there is room to read the name in full. Clipping is
+   a two-column compromise: on a single column it just hides the one thing that
+   tells two units apart. */
+@media (max-width: 768px) {
+  .unit-index li {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .unit-index-link {
+    align-items: baseline;
+  }
+
+  .unit-index-name {
+    white-space: normal;
+    overflow: visible;
+  }
+
+  .unit-index-rating {
+    flex-basis: 100%;
+    margin-left: 0;
+    padding-left: 0;
+  }
+}

@@ -47,6 +47,10 @@
 <footer class="main-footer">
   <div class="footer-container">
     <p>We created Curtin Honestly to give students a space for real feedback so you can make better choices about your studies.</p>
+    <nav class="footer-faculties" aria-label="Browse units by faculty">
+      <span class="footer-faculties-label">Browse units</span>
+      <a *ngFor="let hub of facultyHubs" [routerLink]="['/faculty', hub.slug]">{{ hub.name }}</a>
+    </nav>
     <nav class="footer-links" aria-label="Legal">
       <a routerLink="/terms">Terms and Conditions</a>
       <a routerLink="/privacy">Privacy Policy</a>
@@ -174,6 +178,38 @@
   font-size: 1.1rem;
   line-height: 1.6;
   margin-bottom: 15px;
+}
+
+/* The five faculty hubs. Every unit page carries the shell, so this is what
+   links the catalogue's index pages from all 1,761 of them. */
+.footer-faculties {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: baseline;
+  gap: 8px 18px;
+  margin-top: 20px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.footer-faculties-label {
+  font-family: var(--alt-font);
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--on-dark-muted);
+}
+
+.footer-faculties a {
+  color: #f0f0f0;
+  font-size: 0.9rem;
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+}
+
+.footer-faculties a:hover {
+  border-bottom-color: var(--primary-color);
 }
 
 .footer-links {

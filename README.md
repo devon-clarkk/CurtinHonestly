@@ -6,7 +6,7 @@ A website where university students in Australia can leave honest reviews for th
 
 | Environment | Frontend | Backend |
 |---|---|---|
-| **Production** | https://curtinhonestly.com | `https://be-curtinhonestly-prod.happyplant-9f34dec7.australiaeast.azurecontainerapps.io` |
+| **Production** | https://www.curtinhonestly.com | `https://be-curtinhonestly-prod.happyplant-9f34dec7.australiaeast.azurecontainerapps.io` |
 | **Dev** | https://nice-pebble-059fa6b00.7.azurestaticapps.net | `https://be-curtinhonestly-dev.happyplant-9f34dec7.australiaeast.azurecontainerapps.io` |
 
 ---

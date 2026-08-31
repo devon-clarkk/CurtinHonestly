@@ -2,10 +2,15 @@ import { DOCUMENT } from '@angular/common';
 import { Injectable, inject } from '@angular/core';
 import { Meta, Title } from '@angular/platform-browser';
 import { UnitDetails } from '../models/unit.model';
+import { FacultyHub, facultyPagePath } from '../utils/faculty.util';
 import { environment } from '../../environments/environment';
 import {
+  UnitLink,
+  buildFacultyJsonLd,
   buildHomeJsonLd,
   buildUnitJsonLd,
+  facultyPageDescription,
+  facultyPageTitle,
   homePageDescription,
   homePageTitle,
   serializeJsonLd,
@@ -35,6 +40,7 @@ export class SeoService {
     const url = `${this.siteUrl}/`;
 
     this.title.setTitle(title);
+    this.setIndexable();
     this.setDescription(description);
     this.setCanonical(url);
     this.setOpenGraph({
@@ -57,6 +63,7 @@ export class SeoService {
     const url = `${this.siteUrl}${unitPagePath(unit.code)}`;
 
     this.title.setTitle(title);
+    this.setIndexable();
     this.setDescription(description);
     this.setCanonical(url);
     this.setOpenGraph({
@@ -66,6 +73,29 @@ export class SeoService {
       type: 'article',
     });
     this.setJsonLd(buildUnitJsonLd(unit, this.siteUrl));
+  }
+
+  updateFacultyPage(hub: FacultyHub, units: UnitLink[]): void {
+    if (!this.seoEnabled) {
+      this.applyDevNoIndex(`${hub.name} units (Dev)`);
+      return;
+    }
+
+    const title = facultyPageTitle(hub.name);
+    const description = facultyPageDescription(hub.name, units.length);
+    const url = `${this.siteUrl}${facultyPagePath(hub.slug)}`;
+
+    this.title.setTitle(title);
+    this.setIndexable();
+    this.setDescription(description);
+    this.setCanonical(url);
+    this.setOpenGraph({
+      title,
+      description,
+      url,
+      type: 'website',
+    });
+    this.setJsonLd(buildFacultyJsonLd(hub, units, this.siteUrl));
   }
 
   /** Call from any route that must never be indexed (auth, account pages). */
@@ -78,6 +108,18 @@ export class SeoService {
 
   private applyDevNoIndex(pageTitle: string): void {
     this.noIndex(pageTitle);
+  }
+
+  /**
+   * index.html ships `noindex, nofollow` so the static shell is never indexable.
+   * That shell is what Azure Static Web Apps serves for every URL it has no
+   * prerendered file behind.
+   * The two route families that are genuinely worth indexing say so themselves,
+   * here, and both of them are prerendered, so the opt-in is in the HTML a
+   * crawler receives rather than something it has to run JavaScript to discover.
+   */
+  private setIndexable(): void {
+    this.meta.updateTag({ name: 'robots', content: 'index, follow' });
   }
 
   private setDescription(description: string): void {

@@ -8,6 +8,7 @@ import { ReviewService } from '../../services/review.service';
 import { TipService } from '../../services/tip.service';
 import { CompletedUnitsService } from '../../services/completed-units.service';
 import { SeoService } from '../../services/seo.service';
+import { FacultyHub, facultyHubByName } from '../../utils/faculty.util';
 import { reviewAuthorName } from '../../utils/unit-seo.utils';
 import { GradeBand, gradeDistribution, gradedReviewCount } from '../../utils/grade-distribution.util';
 import { formatTerm, termSortKey } from '../../utils/semester-options.util';
@@ -36,6 +37,15 @@ export class UnitDetailComponent implements OnInit {
   private tipService = inject(TipService);
   private completedUnitsService = inject(CompletedUnitsService);
   private seoService = inject(SeoService);
+
+  /**
+   * The hub that lists every unit in this unit's faculty, or undefined if the
+   * faculty string does not resolve. Links the unit back into the catalogue,
+   * so the graph runs both ways instead of only down from the hubs.
+   */
+  facultyHub(unit: { faculty: string }): FacultyHub | undefined {
+    return facultyHubByName(unit.faculty);
+  }
   authService = inject(AuthService);
   reviewAuthorName = reviewAuthorName;
 
