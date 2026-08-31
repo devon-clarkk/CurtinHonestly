@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { Faculty, FacultyDisplayNames, UnitDetails, UnitSummary } from '../models/unit.model';
-import { FACULTY_HUBS, facultyHubByName, facultyHubBySlug, facultyPagePath } from './faculty.util';
+import {
+  FACULTY_HUBS,
+  facultyHubByName,
+  facultyHubBySlug,
+  facultyPagePath,
+  unitCodeForUrl,
+} from './faculty.util';
 import {
   buildFacultyJsonLd,
   buildUnitJsonLd,
@@ -213,5 +219,43 @@ describe('buildUnitJsonLd breadcrumb', () => {
 
     expect(trail.map((i) => i['position'])).toEqual([1, 2]);
     expect(trail[1]['item']).toBe('https://www.curtinhonestly.com/units/COMP1000');
+  });
+});
+
+// Prerequisite options arrive from the handbook import carrying a version
+// suffix, and some are not unit codes at all. Both used to be linked straight
+// through, producing /units/COMP1002v1 and /units/1922: URLs with no page
+// behind them, which served the noindex shell to every reader and crawler that
+// followed a prerequisite.
+describe('unitCodeForUrl', () => {
+  it('strips the version suffix the import adds', () => {
+    expect(unitCodeForUrl('COMP1002v1')).toBe('COMP1002');
+    expect(unitCodeForUrl('COMP1000V2')).toBe('COMP1000');
+  });
+
+  it('passes a bare code through unchanged', () => {
+    expect(unitCodeForUrl('COMP1002')).toBe('COMP1002');
+  });
+
+  it('normalises case and surrounding space', () => {
+    expect(unitCodeForUrl('  comp1002v1  ')).toBe('COMP1002');
+  });
+
+  it('rejects legacy numeric course ids, which have no unit page', () => {
+    expect(unitCodeForUrl('1922')).toBeUndefined();
+  });
+
+  it('rejects empty and malformed input rather than building a dead URL', () => {
+    expect(unitCodeForUrl('')).toBeUndefined();
+    expect(unitCodeForUrl(undefined)).toBeUndefined();
+    expect(unitCodeForUrl('not a code')).toBeUndefined();
+    expect(unitCodeForUrl('COMP')).toBeUndefined();
+    expect(unitCodeForUrl('COMP10021')).toBeUndefined();
+  });
+
+  it('accepts the code shapes the live catalogue actually uses', () => {
+    for (const code of ['COMP1000', 'MATH1014', 'INDE1001', 'NPSC1003', 'ISYS2014', 'MXEN2003']) {
+      expect(unitCodeForUrl(code)).toBe(code);
+    }
   });
 });

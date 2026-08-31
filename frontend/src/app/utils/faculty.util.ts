@@ -36,3 +36,20 @@ export function facultyHubByName(name: string | undefined): FacultyHub | undefin
 export function facultyPagePath(slug: string): string {
   return `/faculty/${slug}`;
 }
+
+/**
+ * Unit codes as the prerequisite data carries them, versus as URLs use them.
+ *
+ * The catalogue keys units on a bare code (`COMP1002`) and serves them at
+ * `/units/COMP1002`. Prerequisite options arrive from the handbook import
+ * carrying a version suffix (`COMP1002v1`), and some are not unit codes at all
+ * but legacy numeric course identifiers (`1922`). Linking either straight
+ * through produced a URL with no page behind it.
+ */
+const UNIT_CODE_PATTERN = /^([A-Z]{2,5}\d{4})(?:V\d+)?$/;
+
+/** `COMP1002v1` to `COMP1002`. Returns undefined for anything that is not a unit code. */
+export function unitCodeForUrl(code: string | undefined): string | undefined {
+  const match = code?.trim().toUpperCase().match(UNIT_CODE_PATTERN);
+  return match ? match[1] : undefined;
+}
