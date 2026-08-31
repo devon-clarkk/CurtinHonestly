@@ -83,7 +83,10 @@
 
 .prefix-group {
   margin-bottom: 32px;
-  scroll-margin-top: 24px;
+  /* Clears the sticky site header so a jumped-to heading lands below it rather
+     than behind it. Measured at 94px on desktop and 81px narrow, the difference
+     being the logo and disclaimer wrapping; this covers both with room. */
+  scroll-margin-top: 106px;
 }
 
 .prefix-heading {

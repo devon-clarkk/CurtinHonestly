@@ -116,6 +116,33 @@ describe('FacultyComponent', () => {
     flush('ABORIGINAL_STUDIES', ['INDH1000']);
   });
 
+  // index.html sets `<base href="/">`. A bare `#ACTL` href resolves against it
+  // to `/#ACTL`, which is the home page, so the jump bar silently navigated off
+  // the hub instead of scrolling down it.
+  it('points jump-bar links at this page, not the site root', () => {
+    const fixture = createAt('humanities');
+    flush('HUMANITIES', ['HUMN1000', 'MEDI1000']);
+    fixture.detectChanges();
+
+    const hrefs = [...(fixture.nativeElement as HTMLElement).querySelectorAll('.prefix-jump a')].map(
+      (a) => a.getAttribute('href')
+    );
+    expect(hrefs).toEqual(['/faculty/humanities#HUMN', '/faculty/humanities#MEDI']);
+  });
+
+  it('gives every jump target a matching section to land on', () => {
+    const fixture = createAt('humanities');
+    flush('HUMANITIES', ['HUMN1000', 'MEDI1000']);
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const fragments = [...root.querySelectorAll('.prefix-jump a')].map(
+      (a) => a.getAttribute('href')!.split('#')[1]
+    );
+    const sectionIds = [...root.querySelectorAll('.prefix-group')].map((s) => s.id);
+    expect(fragments).toEqual(sectionIds);
+  });
+
   it('shows the not-found state for an unknown slug, and asks not to be indexed', () => {
     const fixture = createAt('not-a-real-faculty');
     fixture.detectChanges();

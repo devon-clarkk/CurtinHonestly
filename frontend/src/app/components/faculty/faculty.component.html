@@ -21,7 +21,7 @@
   <p class="faculty-status faculty-error" *ngIf="error()">{{ error() }}</p>
 
   <nav class="prefix-jump" aria-label="Jump to subject" *ngIf="groups().length > 1">
-    <a *ngFor="let group of groups()" [href]="'#' + group.prefix">{{ group.prefix }}</a>
+    <a *ngFor="let group of groups()" [href]="jumpTarget(group.prefix)">{{ group.prefix }}</a>
   </nav>
 
   <section class="prefix-group" *ngFor="let group of groups()" [id]="group.prefix">
