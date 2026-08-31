@@ -98,12 +98,12 @@
   <div class="content-grid">
     <!-- Left: Description -->
     <aside class="description-section">
-      <h3 class="section-heading">About this Unit</h3>
+      <h2 class="section-heading">About this Unit</h2>
       <p class="unit-desc">{{ unit.description }}</p>
 
       <!-- Tips: short, lightweight contributions distinct from full reviews -->
       <div class="info-block tips-block">
-        <h3>Quick Tips</h3>
+        <h2>Quick Tips</h2>
         <p class="tips-hint">One-line things worth knowing. No full review required.</p>
 
         <form *ngIf="authService.isLoggedIn()" (ngSubmit)="submitTip()" class="tip-form">
@@ -144,7 +144,7 @@
       <!-- Grade distribution histogram — gated to avoid de-anonymizing a
            single reviewer when very few grades have been reported -->
       <div class="info-block" *ngIf="gradedReviewCount(unit.reviews) >= MIN_GRADED_REVIEWS_FOR_HISTOGRAM">
-        <h3>Grade Distribution</h3>
+        <h2>Grade Distribution</h2>
         <p class="tips-hint">What {{ gradedReviewCount(unit.reviews) }} reviewers scored.</p>
         <div class="grade-histogram">
           <div class="grade-bar-row" *ngFor="let band of gradeDistribution(unit.reviews)">
@@ -159,7 +159,7 @@
 
       <!-- Unit Information -->
       <div class="info-block">
-        <h3>Unit Details</h3>
+        <h2>Unit Details</h2>
         <div class="info-grid">
           <div class="info-item" *ngIf="unit.credits">
             <span class="label">Credits</span>
@@ -192,7 +192,7 @@
 
       <!-- Tuition Pattern -->
       <div class="info-block" *ngIf="unit.tuitionPatterns && unit.tuitionPatterns.length > 0">
-        <h3>Tuition Pattern</h3>
+        <h2>Tuition Pattern</h2>
         <ul class="pattern-list">
           <li *ngFor="let pattern of unit.tuitionPatterns">
             <span class="pattern-type">{{ pattern.type }}</span>
@@ -203,7 +203,7 @@
 
       <!-- Prerequisites -->
       <div class="info-block" *ngIf="unit.prerequisiteGroups && unit.prerequisiteGroups.length > 0">
-        <h3>Prerequisites</h3>
+        <h2>Prerequisites</h2>
 
         <!-- Eligibility checking is parked: it depends on students recording every
              unit they have completed, which almost nobody does, so the banner read
@@ -246,7 +246,7 @@
     <!-- Right: Reviews List -->
     <section class="reviews-section">
       <div class="reviews-header-row">
-        <h3 class="section-heading">Student Reviews</h3>
+        <h2 class="section-heading">Student Reviews</h2>
 
         <!-- Button to show the add review form -->
         <button *ngIf="authService.isLoggedIn() && !showAddReviewForm()"

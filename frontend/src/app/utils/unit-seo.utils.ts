@@ -5,6 +5,8 @@ export type UnitLink = Pick<UnitSummary, 'code' | 'name'>;
 import { FacultyHub, facultyHubByName, facultyPagePath } from './faculty.util';
 
 const MAX_DESCRIPTION_LENGTH = 160;
+const MAX_TITLE_LENGTH = 60;
+const BRAND_SUFFIX = ' | CurtinHonestly';
 const MAX_JSON_LD_REVIEWS = 10;
 
 /**
@@ -37,6 +39,19 @@ export function truncateDescription(text: string, maxLength = MAX_DESCRIPTION_LE
   return `${cleaned.slice(0, maxLength - 1).trimEnd()}…`;
 }
 
+/**
+ * Appends the brand only where it still fits.
+ *
+ * Search results cut a title around 60 characters, and unit names run long:
+ * "INDH2008 Behavioural Science for Indigenous Mental Health Practitioners"
+ * is 71 before any suffix. Spending the last 17 on boilerplate pushes out the
+ * words that tell this page apart from the handbook's, and the brand is not
+ * lost by dropping it, because the result already shows the domain.
+ */
+function withBrand(title: string): string {
+  return title.length + BRAND_SUFFIX.length <= MAX_TITLE_LENGTH ? `${title}${BRAND_SUFFIX}` : title;
+}
+
 export function homePageTitle(): string {
   return 'Curtin University Unit Reviews | CurtinHonestly';
 }
@@ -46,10 +61,12 @@ export function homePageDescription(): string {
 }
 
 export function unitPageTitle(code: string, name: string, numberOfReviews = 0): string {
+  // The review count goes ahead of the brand: it is the part that says this
+  // page has something the official handbook entry does not.
   if (numberOfReviews > 0) {
-    return `${code} ${name} - ${numberOfReviews} Reviews | CurtinHonestly`;
+    return withBrand(`${code} ${name} - ${numberOfReviews} Reviews`);
   }
-  return `${code} ${name} | CurtinHonestly`;
+  return withBrand(`${code} ${name}`);
 }
 
 export function unitPageDescription(unit: UnitDetails): string {
@@ -73,7 +90,7 @@ export function unitPagePath(code: string): string {
 }
 
 export function facultyPageTitle(facultyName: string): string {
-  return `Curtin ${facultyName} Units | CurtinHonestly`;
+  return withBrand(`Curtin ${facultyName} Units`);
 }
 
 export function facultyPageDescription(facultyName: string, unitCount: number): string {

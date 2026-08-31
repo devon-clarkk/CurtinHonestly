@@ -1,4 +1,5 @@
 {
+  "trailingSlash": "never",
   "navigationFallback": {
     "rewrite": "/index.csr.html",
     "exclude": [

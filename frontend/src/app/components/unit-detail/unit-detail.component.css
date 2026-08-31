@@ -222,9 +222,9 @@
   gap: 40px;
 }
 
-.description-section h3,
-.reviews-section h3,
-.info-block h3 {
+.description-section h2,
+.reviews-section h2,
+.info-block h2 {
   margin-top: 0;
   border: none;
   padding: 0;
@@ -243,7 +243,7 @@
   flex-wrap: wrap;
 }
 
-.reviews-header-row h3 {
+.reviews-header-row h2 {
   margin-bottom: 0;
 }
 
@@ -569,7 +569,7 @@
     align-items: stretch;
   }
 
-  .reviews-header-row h3 {
+  .reviews-header-row h2 {
     margin-bottom: 0;
   }
 
@@ -612,7 +612,7 @@
   border: 1px solid var(--border-color);
 }
 
-.info-block h3 {
+.info-block h2 {
   font-size: 1.1rem;
   margin-top: 0;
   margin-bottom: 15px;
