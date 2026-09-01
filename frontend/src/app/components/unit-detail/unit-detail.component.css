@@ -218,15 +218,85 @@
 /* Main Content Layout. The reviews take the wide column and come first in the
    source, so reading order and visual order agree in both directions: left to
    right on a desktop, top to bottom once the grid collapses. The rail keeps the
-   350px it was built for, so every block inside it measures the same as before. */
+   350px it was built for, so every block inside it measures the same as before.
+
+   Placement is spelled out because the wide column is now two sections, the
+   reviews and the units this one unlocks, stacked while the rail runs beside
+   both. Auto-placement would put the second of them under the rail. */
 .content-grid {
   display: grid;
   grid-template-columns: 1fr 350px;
   gap: 40px;
+  align-items: start;
+}
+
+.reviews-section {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.required-for-section {
+  grid-column: 1;
+  grid-row: 2;
+}
+
+.description-section {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+}
+
+/* A unit with no reviews has nothing long enough to hold the wide column open,
+   and two columns then leave the rail running on beside a thousand pixels of
+   nothing. One column instead, and the handbook blocks tile across the width
+   the rail no longer takes, so the page fills rather than stretching. Their
+   minimum keeps each block near the 350px it was built for. Prose keeps a
+   readable measure: it is the one thing that gets worse wide. */
+.content-grid-single {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.content-grid-single .reviews-section,
+.content-grid-single .required-for-section,
+.content-grid-single .description-section {
+  grid-column: 1;
+  grid-row: auto;
+}
+
+.content-grid-single .description-section {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  align-items: start;
+  gap: 24px;
+}
+
+/* Spacing between the blocks is the grid gap now, so the margins that used to
+   provide it would double up on top of it. */
+.content-grid-single .description-section > .section-heading,
+.content-grid-single .description-section > .unit-desc {
+  grid-column: 1 / -1;
+}
+
+.content-grid-single .description-section > .section-heading {
+  margin-bottom: 0;
+}
+
+.content-grid-single .description-section > .unit-desc {
+  margin: 0;
+}
+
+.content-grid-single .info-block {
+  margin-top: 0;
+}
+
+.content-grid-single .unit-desc,
+.content-grid-single .no-reviews,
+.content-grid-single .required-for-lead {
+  max-width: 68ch;
 }
 
 .description-section h2,
 .reviews-section h2,
+.required-for-section h2,
 .info-block h2 {
   margin-top: 0;
   border: none;
@@ -255,6 +325,22 @@
   padding: 8px 16px;
 }
 
+/* How current the reviews are, read before any of them. Louder than the note
+   below it and quieter than the heading above: it is a fact a reader weighs,
+   not chrome. The gold rule is the same accent the stat cards carry. */
+.reviews-recency {
+  display: inline-block;
+  margin: -8px 0 14px;
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  background-color: var(--surface-muted);
+  border: 1px solid var(--border-color);
+  border-left: 3px solid var(--primary-color);
+  border-radius: var(--radius-none);
+}
+
 /* Same register as .tips-hint: a quiet line that says what the section answers
    and what the verified badge is based on, without competing with the heading. */
 .reviews-note {
@@ -263,6 +349,79 @@
   color: var(--text-secondary);
   margin: -8px 0 16px;
   max-width: 60ch;
+}
+
+/* The note's negative top margin lifts it under the header row. With the
+   recency chip in between there is nothing to lift it over. */
+.reviews-recency + .reviews-note {
+  margin-top: 0;
+}
+
+/* The state 1,729 of 1,761 unit pages are in, so it reads as a state of the
+   page rather than a hole in it. Dashed on muted, the same invitation an empty
+   tip list uses, so the two empty states speak with one voice. */
+.no-reviews {
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  padding: 16px;
+  background-color: var(--surface-muted);
+  border: 1px dashed color-mix(in srgb, var(--text-secondary) 30%, var(--border-color));
+}
+
+/* Gold as text needs --primary-ink to clear AA on this surface. */
+.no-reviews-link {
+  color: var(--primary-ink);
+  white-space: nowrap;
+}
+
+/* Which units this one unlocks. Codes as a wrapped row of chips rather than a
+   list: a reader scans them for one they recognise, and the top gateway units
+   carry 29 of them, which no vertical list wants to be. */
+.required-for-lead {
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  margin: 0 0 14px;
+  max-width: 65ch;
+}
+
+.required-for-none {
+  margin: 0;
+  padding: 16px;
+  background-color: var(--surface-muted);
+  border: 1px solid var(--border-color);
+}
+
+.required-for-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.required-for-link {
+  display: inline-block;
+  padding: 6px 12px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  /* --primary-ink, not the brand gold: gold as text on this surface is 2.6:1. */
+  color: var(--primary-ink);
+  text-decoration: none;
+  background-color: var(--card-background);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-none);
+  transition: border-color 0.15s ease, color 0.15s ease, background-color 0.15s ease;
+}
+
+.required-for-link:hover,
+.required-for-link:focus-visible {
+  border-color: var(--primary-color);
+  background-color: var(--surface-muted);
+  color: var(--secondary-color);
 }
 
 .lecturer-filter {
@@ -545,6 +704,15 @@
   .content-grid {
     grid-template-columns: 1fr;
     gap: 24px;
+  }
+
+  /* One column, so the desktop placement has to let go and the sections fall
+     back to source order: reviews, then what the unit unlocks, then the rail. */
+  .reviews-section,
+  .required-for-section,
+  .description-section {
+    grid-column: 1;
+    grid-row: auto;
   }
 
   .header-main {
@@ -959,8 +1127,10 @@
   background-color: var(--surface-muted);
 }
 
+/* --primary-ink, not the brand gold: gold as text on this surface is 2.6:1.
+   Same token the back link and the tip invitation use. */
 .prereq-link strong {
-  color: var(--primary-color);
+  color: var(--primary-ink);
   margin-right: 5px;
 }
 
@@ -1027,9 +1197,15 @@
   box-shadow: none;
 }
 
-/* A prerequisite with no page of its own: same shape as the link, no affordance. */
+/* A prerequisite with no page of its own: same shape as the link, no affordance.
+   The code goes muted with the rest of the row. Left in the link colour it read
+   as a link that had stopped working, next to two live ones in the same list. */
 .prereq-link-plain {
   cursor: default;
+  color: var(--text-secondary);
+}
+
+.prereq-link-plain strong {
   color: var(--text-secondary);
 }
 

@@ -18,10 +18,17 @@ const { resolveSeoBuildConfig } = require('./seo-build-config');
 const faculties = require('../src/app/faculties.json');
 
 const outputDir = path.resolve(__dirname, '../dist/frontend/browser');
+const requiredForPath = path.resolve(__dirname, '../src/generated/required-for.json');
 
 // The smallest faculty holds 79 units, so any hub below this lost its list
 // rather than simply being small.
 const MIN_HUB_UNIT_LINKS = 50;
+
+// The live catalogue yields 753 units that something depends on. A run that
+// lands far under that lost most of the detail fetch, and the failure is
+// silent in exactly the way the hub link count is: every page still renders,
+// and each one confidently tells a student the unit leads nowhere.
+const MIN_UNITS_WITH_DEPENDENTS = 400;
 const { seoEnabled } = resolveSeoBuildConfig();
 
 function read(relative) {
@@ -89,6 +96,23 @@ if (seoEnabled) {
   const sample = `units/${unitPages[0].name}/index.html`;
   assertIndexable(read(sample), `The prerendered unit page (${sample})`);
 
+  // The reverse prerequisite graph. It is the only content on the 1,729 units
+  // with no reviews, and fetch-unit-codes.js writes an empty map rather than
+  // failing the build when the detail fetch does not come back.
+  const requiredFor = fs.existsSync(requiredForPath)
+    ? JSON.parse(fs.readFileSync(requiredForPath, 'utf8'))
+    : {};
+  const unitsWithDependents = Object.keys(requiredFor).length;
+
+  if (unitsWithDependents < MIN_UNITS_WITH_DEPENDENTS) {
+    throw new Error(
+      `The reverse prerequisite graph holds ${unitsWithDependents} units that something depends on. ` +
+        `Fewer than ${MIN_UNITS_WITH_DEPENDENTS} means the per-unit prerequisite fetch mostly failed, ` +
+        'and every unit page would state that nothing requires it. Check that fetch-unit-codes.js ' +
+        'reached the API.'
+    );
+  }
+
   // The faculty hubs are the only pages that link the whole catalogue, and the
   // link count is the part that can fail quietly: a hub that rendered its
   // heading but lost its list looks like a normal page to every other check
@@ -113,7 +137,8 @@ if (seoEnabled) {
 
   console.log(
     `SEO output verified: fallback ${fallback} is noindex; home page, ${unitPages.length} unit pages ` +
-      `and ${faculties.length} faculty hubs indexable; hubs link ${hubLinks} units.`
+      `and ${faculties.length} faculty hubs indexable; hubs link ${hubLinks} units; ` +
+      `${unitsWithDependents} units name what depends on them.`
   );
 } else {
   console.log(`SEO output verified: fallback ${fallback} is noindex. SEO is off for this build.`);
