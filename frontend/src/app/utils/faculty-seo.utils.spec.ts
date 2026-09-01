@@ -9,6 +9,7 @@ import {
 } from './faculty.util';
 import {
   buildFacultyJsonLd,
+  buildHomeJsonLd,
   buildUnitJsonLd,
   facultyPageDescription,
   facultyPageTitle,
@@ -257,5 +258,35 @@ describe('unitCodeForUrl', () => {
     for (const code of ['COMP1000', 'MATH1014', 'INDE1001', 'NPSC1003', 'ISYS2014', 'MXEN2003']) {
       expect(unitCodeForUrl(code)).toBe(code);
     }
+  });
+});
+
+// A review platform is asked who stands behind it, by readers and by the answer
+// engines deciding whether to quote it. The about page answers that in prose;
+// this is the same answer in a form a machine reads, and it appears on every
+// page because the Organization node is sitewide.
+describe('Organization founder', () => {
+  const graph = buildHomeJsonLd(SITE_URL)['@graph'] as Record<string, unknown>[];
+  const org = graph.find((n) => n['@type'] === 'Organization')!;
+  const founder = org['founder'] as Record<string, unknown>;
+
+  it('names the person who runs the site', () => {
+    expect(founder['@type']).toBe('Person');
+    expect(founder['name']).toBe('Devon Clark');
+  });
+
+  it('points sameAs at profiles that can be checked independently', () => {
+    expect(founder['sameAs']).toEqual([
+      'https://www.linkedin.com/in/devon-clark-22b235212/',
+      'https://github.com/devon-clarkk',
+    ]);
+  });
+
+  it('carries the founder on unit pages too, not just the home page', () => {
+    const unitGraph = buildUnitJsonLd(unitDetails('Science and Engineering'), SITE_URL)[
+      '@graph'
+    ] as Record<string, unknown>[];
+    const unitOrg = unitGraph.find((n) => n['@type'] === 'Organization')!;
+    expect((unitOrg['founder'] as Record<string, unknown>)['name']).toBe('Devon Clark');
   });
 });
