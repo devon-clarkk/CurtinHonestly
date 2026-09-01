@@ -1,4 +1,14 @@
-import { Component, inject, OnDestroy, OnInit, PLATFORM_ID, TransferState, makeStateKey, signal } from '@angular/core';
+import {
+  Component,
+  computed,
+  inject,
+  OnDestroy,
+  OnInit,
+  PLATFORM_ID,
+  TransferState,
+  makeStateKey,
+  signal,
+} from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { EMPTY, Observable, Subject } from 'rxjs';
@@ -26,8 +36,51 @@ type IndexUnit = Pick<UnitSummary, 'code' | 'name' | 'numberOfReviews' | 'averag
  */
 const FACULTY_PAGE_SIZE = 2000;
 
+/**
+ * How the main listing is ordered. `code` is the default and the only order the
+ * prerender ever produces: it is the one that groups the catalogue under its
+ * subject headings, and the grouped list is what the hub is indexed for.
+ */
+export type UnitSort = 'code' | 'reviews' | 'rating';
+
+/**
+ * How many reviewed units the highlight module shows.
+ *
+ * Twelve fills three rows at desktop width, which is enough to read as a
+ * shortlist without pushing the catalogue off the screen. Anything past that is
+ * one click away: the module's own link switches the listing below to review
+ * order, where the rest sit at the top.
+ */
+const MAX_HIGHLIGHTS = 12;
+
+/** The id the highlight module's overflow link and the sort chips point at. */
+const LISTING_ID = 'units';
+
 function stateKeyFor(slug: string) {
   return makeStateKey<IndexUnit[]>(`faculty-units-${slug}`);
+}
+
+/**
+ * Review count first, rating second: a unit with three reviews has more to read
+ * than one with a single five, which is what "students are talking about" means.
+ * Code last, so equal units keep a stable order instead of one the API happened
+ * to return them in.
+ */
+function byReviewCount(a: IndexUnit, b: IndexUnit): number {
+  return (
+    b.numberOfReviews - a.numberOfReviews ||
+    b.averageRating - a.averageRating ||
+    a.code.localeCompare(b.code)
+  );
+}
+
+/** The same three keys, rating first. Unreviewed units rate 0 and fall to the end. */
+function byRating(a: IndexUnit, b: IndexUnit): number {
+  return (
+    b.averageRating - a.averageRating ||
+    b.numberOfReviews - a.numberOfReviews ||
+    a.code.localeCompare(b.code)
+  );
 }
 
 @Component({
@@ -50,6 +103,51 @@ export class FacultyComponent implements OnInit, OnDestroy {
   unitCount = signal(0);
   loading = signal(true);
   error = signal<string | null>(null);
+  sort = signal<UnitSort>('code');
+
+  /**
+   * The faculty flat, alongside the grouped copy the A-Z listing renders.
+   *
+   * Grouping is one of three orders now rather than the only one, so the list
+   * the API returned has to survive it. Both new views are derived from this
+   * rather than stored, which is what keeps them impossible to leave stale.
+   */
+  private units = signal<IndexUnit[]>([]);
+
+  /**
+   * The reason the site exists, in the order worth reading.
+   *
+   * 1,761 units carry 32 reviews between them. Listed alphabetically, the units
+   * that have something to say are scattered through several hundred that do
+   * not, so the ones with reviews are pulled out and put first.
+   */
+  readonly reviewedUnits = computed(() =>
+    this.units()
+      .filter((unit) => unit.numberOfReviews > 0)
+      .sort(byReviewCount)
+  );
+
+  readonly highlights = computed(() => this.reviewedUnits().slice(0, MAX_HIGHLIGHTS));
+
+  /**
+   * The main listing under a chosen order. Every unit is present in all three:
+   * the chips re-order the catalogue, they never filter it, so no unit loses
+   * its link on this page by being sorted.
+   */
+  readonly rankedUnits = computed(() => {
+    const units = [...this.units()];
+    return this.sort() === 'rating' ? units.sort(byRating) : units.sort(byReviewCount);
+  });
+
+  /**
+   * Four of the five faculties have no reviewed unit at all, so the empty case
+   * is the normal one and has to read as a state of the catalogue rather than a
+   * module that failed to fill. It replaces the highlights outright, and only
+   * once there is a loaded catalogue for it to describe.
+   */
+  readonly showNoReviewsNote = computed(
+    () => !this.loading() && !this.error() && this.unitCount() > 0 && this.reviewedUnits().length === 0
+  );
 
   /**
    * Driven by the route parameter, not read from it once.
@@ -84,7 +182,12 @@ export class FacultyComponent implements OnInit, OnDestroy {
 
     this.error.set(null);
     this.groups.set([]);
+    this.units.set([]);
     this.unitCount.set(0);
+    // A footer link is a hub-to-hub navigation on the same component, so a
+    // chosen order would otherwise carry into a faculty the reader has not seen
+    // yet, and land them on a ranked list with no subject headings.
+    this.sort.set('code');
 
     if (!hub) {
       this.hub.set(null);
@@ -143,9 +246,13 @@ export class FacultyComponent implements OnInit, OnDestroy {
   }
 
   private apply(hub: FacultyHub, units: IndexUnit[]): void {
+    this.units.set(units);
     this.groups.set(groupUnitsByCodePrefix(units));
     this.unitCount.set(units.length);
     this.loading.set(false);
+    // Once per faculty, from the list the API returned. The ItemList is a claim
+    // about which units this page links, and re-ordering the listing changes
+    // neither that set nor its size. The prerendered order is the A-Z one.
     this.seoService.updateFacultyPage(hub, units);
   }
 
@@ -160,6 +267,32 @@ export class FacultyComponent implements OnInit, OnDestroy {
   jumpTarget(prefix: string): string {
     const hub = this.hub();
     return hub ? `${facultyPagePath(hub.slug)}#${prefix}` : `#${prefix}`;
+  }
+
+  /** The listing itself, for the same reason and by the same rule. */
+  listingTarget(): string {
+    return this.jumpTarget(LISTING_ID);
+  }
+
+  setSort(sort: UnitSort): void {
+    this.sort.set(sort);
+  }
+
+  /**
+   * The highlight module shows twelve of them; this is where the rest are. The
+   * href stands on its own, so without JavaScript the link still lands the
+   * reader on the catalogue instead of doing nothing.
+   */
+  showAllReviewed(): void {
+    this.sort.set('reviews');
+  }
+
+  scoreLabel(unit: IndexUnit): string {
+    return unit.averageRating.toFixed(1);
+  }
+
+  reviewCountLabel(unit: IndexUnit): string {
+    return `${unit.numberOfReviews} ${unit.numberOfReviews === 1 ? 'review' : 'reviews'}`;
   }
 
   ratingLabel(unit: IndexUnit): string | null {

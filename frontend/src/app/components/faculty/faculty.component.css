@@ -53,9 +53,203 @@
   color: var(--primary-ink);
 }
 
+/* Units students are talking about.
+   The catalogue below is alphabetical, which puts a unit with three reviews in
+   the same visual weight as the several hundred with none. This module is the
+   one place on the hub where a unit is shown for what students said about it,
+   so it is the one place with a card: white against the page, its own border,
+   and the rating given the size the code has everywhere else. */
+.talked-about {
+  margin-bottom: 36px;
+  padding-bottom: 32px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.talked-about-heading {
+  margin: 0 0 6px;
+  font-size: 1.375rem;
+}
+
+.talked-about-lead {
+  margin: 0 0 18px;
+  max-width: 62ch;
+  color: var(--text-secondary);
+  font-size: 0.9375rem;
+}
+
+.talked-about-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 12px;
+}
+
+/* Grid stretches the item, the item stretches the card, so the rating rows line
+   up across a row whatever the unit names underneath them do. */
+.talked-about-grid li {
+  display: flex;
+}
+
+.talked-about-card {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px 10px;
+  background: var(--card-background);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  text-decoration: none;
+  transition: border-color 0.2s ease;
+}
+
+.talked-about-card:hover {
+  border-color: var(--primary-color);
+}
+
+.talked-about-card:hover .talked-about-name {
+  color: var(--primary-ink);
+  text-decoration: underline;
+}
+
+.talked-about-code {
+  font-family: var(--alt-font);
+  font-weight: 700;
+  font-size: 0.8125rem;
+  color: var(--primary-ink);
+}
+
+.talked-about-name {
+  font-size: 0.9375rem;
+  line-height: 1.35;
+}
+
+.talked-about-meta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-color);
+}
+
+.talked-about-score {
+  font-family: var(--header-font);
+  font-weight: 700;
+  font-size: 1.25rem;
+  line-height: 1;
+  color: var(--text-primary);
+}
+
+.talked-about-max {
+  margin-left: 1px;
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: var(--text-secondary);
+}
+
+.talked-about-count {
+  font-family: var(--alt-font);
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.talked-about-more {
+  margin: 16px 0 0;
+  font-size: 0.9375rem;
+}
+
+.talked-about-more a {
+  color: var(--primary-ink);
+  font-weight: 600;
+}
+
+/* Four of the five faculties are here, so this is the ordinary state of a hub
+   and is styled as one: the gold rule and muted fill the site uses for a note,
+   never the error colour. */
+.no-reviews-note {
+  margin: 0 0 32px;
+  padding: 14px 16px;
+  max-width: 68ch;
+  border-left: 3px solid var(--primary-color);
+  background: var(--surface-muted);
+  color: var(--text-secondary);
+  font-size: 0.9375rem;
+}
+
+/* Clears the sticky site header, same as .prefix-group: the highlight module
+   links here, and a reader who follows it should land on the heading. */
+.unit-listing {
+  scroll-margin-top: 106px;
+}
+
+.listing-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px 20px;
+  margin-bottom: 18px;
+}
+
+.listing-heading {
+  margin: 0;
+  font-size: 1.375rem;
+}
+
+.sort-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.sort-label {
+  margin-right: 2px;
+  font-family: var(--alt-font);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+/* Same chip as the jump bar, because it sits beside it and does the same kind
+   of job. The filled black active state is how the catalogue marks a chosen
+   filter everywhere else on the site. */
+.sort-chip {
+  padding: 4px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  background: var(--surface-muted);
+  font-family: var(--alt-font);
+  font-size: 0.8125rem;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: border-color 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+}
+
+.sort-chip:hover {
+  border-color: var(--primary-color);
+  color: var(--primary-ink);
+}
+
+.sort-chip.is-active,
+.sort-chip.is-active:hover {
+  background: var(--secondary-color);
+  border-color: var(--secondary-color);
+  color: #ffffff;
+}
+
 /* A jump bar rather than pagination: the whole faculty is on this page, so the
    only thing a reader needs is a way down it. Every target is a real anchor, so
-   it costs no JavaScript and adds no crawlable URLs. */
+   it costs no JavaScript and adds no crawlable URLs. Alphabetical order is what
+   makes the bar mean anything, so it goes with that order. */
 .prefix-jump {
   display: flex;
   flex-wrap: wrap;
@@ -106,6 +300,12 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 2px 24px;
+}
+
+/* No subject heading above it, so it takes the space the heading would have
+   held rather than starting hard against the controls. */
+.unit-index-ranked {
+  margin-top: 8px;
 }
 
 .unit-index li {
@@ -162,6 +362,18 @@
    a two-column compromise: on a single column it just hides the one thing that
    tells two units apart. */
 @media (max-width: 768px) {
+  .talked-about-heading,
+  .listing-heading {
+    font-size: 1.25rem;
+  }
+
+  /* The heading and the chips each get a full line: side by side they leave the
+     chips a strip too narrow to hold three of them. */
+  .listing-controls {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
   .unit-index li {
     align-items: flex-start;
     flex-wrap: wrap;

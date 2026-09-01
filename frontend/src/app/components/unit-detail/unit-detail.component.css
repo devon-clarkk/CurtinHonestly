@@ -215,10 +215,13 @@
   color: var(--secondary-color);
 }
 
-/* Main Content Layout */
+/* Main Content Layout. The reviews take the wide column and come first in the
+   source, so reading order and visual order agree in both directions: left to
+   right on a desktop, top to bottom once the grid collapses. The rail keeps the
+   350px it was built for, so every block inside it measures the same as before. */
 .content-grid {
   display: grid;
-  grid-template-columns: 350px 1fr;
+  grid-template-columns: 1fr 350px;
   gap: 40px;
 }
 
@@ -250,6 +253,16 @@
 .add-review-btn {
   font-size: 0.9rem;
   padding: 8px 16px;
+}
+
+/* Same register as .tips-hint: a quiet line that says what the section answers
+   and what the verified badge is based on, without competing with the heading. */
+.reviews-note {
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  margin: -8px 0 16px;
+  max-width: 60ch;
 }
 
 .lecturer-filter {
@@ -738,10 +751,23 @@
   margin-left: 6px;
 }
 
+/* An empty tip list is an invitation, not a notice. The dashed outline on the
+   muted surface reads as a slot waiting to be filled, and stays quieter than the
+   solid cards around it so it invites without announcing itself. */
 .tips-empty {
   font-size: 0.85rem;
+  line-height: 1.5;
   color: var(--text-secondary);
   margin: 0;
+  padding: 12px 14px;
+  background-color: var(--surface-muted);
+  border: 1px dashed color-mix(in srgb, var(--text-secondary) 30%, var(--border-color));
+}
+
+/* Gold as text needs --primary-ink to clear AA on this surface. */
+.tips-empty-link {
+  color: var(--primary-ink);
+  white-space: nowrap;
 }
 
 /* Grade Distribution */
@@ -999,4 +1025,14 @@
   color: #ffffff;
   transform: none;
   box-shadow: none;
+}
+
+/* A prerequisite with no page of its own: same shape as the link, no affordance. */
+.prereq-link-plain {
+  cursor: default;
+  color: var(--text-secondary);
+}
+
+.prereq-link-plain:hover {
+  background: inherit;
 }

@@ -8,7 +8,7 @@ import { ReviewService } from '../../services/review.service';
 import { TipService } from '../../services/tip.service';
 import { CompletedUnitsService } from '../../services/completed-units.service';
 import { SeoService } from '../../services/seo.service';
-import { FacultyHub, facultyHubByName } from '../../utils/faculty.util';
+import { FacultyHub, facultyHubByName, unitCodeForUrl } from '../../utils/faculty.util';
 import { reviewAuthorName } from '../../utils/unit-seo.utils';
 import { GradeBand, gradeDistribution, gradedReviewCount } from '../../utils/grade-distribution.util';
 import { formatTerm, termSortKey } from '../../utils/semester-options.util';
@@ -45,6 +45,15 @@ export class UnitDetailComponent implements OnInit {
    */
   facultyHub(unit: { faculty: string }): FacultyHub | undefined {
     return facultyHubByName(unit.faculty);
+  }
+
+  /**
+   * The code a prerequisite should link to, or undefined when it has no page.
+   * Prerequisite options arrive versioned (COMP1002v1) or as legacy numeric
+   * course ids (1922); linking either straight through gave a dead URL.
+   */
+  unitUrlCode(code: string): string | undefined {
+    return unitCodeForUrl(code);
   }
   authService = inject(AuthService);
   reviewAuthorName = reviewAuthorName;
@@ -391,6 +400,15 @@ export class UnitDetailComponent implements OnInit {
       return '';
     }
     return date.toLocaleDateString('en-AU', { month: 'short', year: 'numeric' });
+  }
+
+  // Whether any review on show carries the "Verified Curtin Student" badge.
+  // The badge asserted something the page never defined, so the note under the
+  // reviews heading explains it - but only where a badge is actually on screen,
+  // rather than defining a term the reader cannot see. Returns a primitive, so
+  // it needs none of the memoization the array-returning helpers below do.
+  hasVerifiedReviewer(reviews: Review[]): boolean {
+    return (reviews || []).some(review => review.reviewerVerified);
   }
 
   // Percentage of loaded reviews where the reviewer reported an exam. All of a
