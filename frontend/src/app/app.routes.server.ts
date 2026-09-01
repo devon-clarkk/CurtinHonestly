@@ -24,6 +24,14 @@ export const serverRoutes: ServerRoute[] = [
     },
     fallback: PrerenderFallback.Client,
   },
+  // Terms and Privacy are static copy, and they are what anyone assessing
+  // whether to trust this site goes looking for. Client rendering left them
+  // unreadable to any fetcher that does not run JavaScript, which is most
+  // automated readers: the shell they received carried 148 words of header and
+  // footer and none of the policy. Prerendering costs two pages and makes the
+  // answer available to whoever asks.
+  { path: 'terms', renderMode: RenderMode.Prerender },
+  { path: 'privacy', renderMode: RenderMode.Prerender },
   { path: '', renderMode: RenderMode.Prerender },
   { path: '**', renderMode: RenderMode.Client },
 ];
