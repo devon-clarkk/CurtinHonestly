@@ -8,11 +8,12 @@ import { ReviewService } from '../../services/review.service';
 import { TipService } from '../../services/tip.service';
 import { CompletedUnitsService } from '../../services/completed-units.service';
 import { SeoService } from '../../services/seo.service';
+import { PrerequisiteGraphService } from '../../services/prerequisite-graph.service';
 import { FacultyHub, facultyHubByName, unitCodeForUrl } from '../../utils/faculty.util';
 import { reviewAuthorName } from '../../utils/unit-seo.utils';
 import { GradeBand, gradeDistribution, gradedReviewCount } from '../../utils/grade-distribution.util';
 import { formatTerm, termSortKey } from '../../utils/semester-options.util';
-import { MyReview, PrerequisiteGroup, REVIEW_TAGS, Review, Tip, UnitDetails } from '../../models/unit.model';
+import { MyReview, PrerequisiteGroup, PrerequisiteOption, REVIEW_TAGS, Review, Tip, UnitDetails } from '../../models/unit.model';
 import { Observable, switchMap, map, of, tap, catchError } from 'rxjs';
 import { AddReviewComponent } from '../add-review/add-review.component';
 import { IconComponent } from '../icon/icon.component';
@@ -37,6 +38,7 @@ export class UnitDetailComponent implements OnInit {
   private tipService = inject(TipService);
   private completedUnitsService = inject(CompletedUnitsService);
   private seoService = inject(SeoService);
+  private prerequisiteGraph = inject(PrerequisiteGraphService);
 
   /**
    * The hub that lists every unit in this unit's faculty, or undefined if the
@@ -51,9 +53,19 @@ export class UnitDetailComponent implements OnInit {
    * The code a prerequisite should link to, or undefined when it has no page.
    * Prerequisite options arrive versioned (COMP1002v1) or as legacy numeric
    * course ids (1922); linking either straight through gave a dead URL.
+   *
+   * Shape alone still over-links: several hundred prerequisite codes are shaped
+   * like unit codes but name units the catalogue has retired. Where the build
+   * produced a graph, that graph knows which codes the catalogue serves and is
+   * asked as well. Where it did not, on a local build with no backend fetch,
+   * shape is all there is, which is the behaviour this page has always had.
    */
   unitUrlCode(code: string): string | undefined {
-    return unitCodeForUrl(code);
+    const resolved = unitCodeForUrl(code);
+    if (!resolved || !this.prerequisiteGraph.isAvailable()) {
+      return resolved;
+    }
+    return this.prerequisiteGraph.hasPage(resolved) ? resolved : undefined;
   }
   authService = inject(AuthService);
   reviewAuthorName = reviewAuthorName;
@@ -369,6 +381,103 @@ export class UnitDetailComponent implements OnInit {
 
   requirementLabel(requirement: string): string {
     return requirement === 'all' ? 'Complete All' : 'Select One';
+  }
+
+  /**
+   * The code to print on a prerequisite, which is not the code the data holds.
+   * The handbook import carries a version suffix the catalogue does not use, so
+   * the option a student is told to take reads COMP1005v1 while its own page,
+   * every search result for it, and their enrolment system all say COMP1005.
+   * Empty for a legacy numeric course id, which is not a code anyone can use.
+   */
+  prerequisiteCode(option: PrerequisiteOption): string {
+    return unitCodeForUrl(option.code) ?? '';
+  }
+
+  /**
+   * A prerequisite's title with its own identifier taken off the front.
+   * Legacy course rows arrive as `1920` titled `1920 - Object Oriented Program
+   * Design 110`, which printed the id twice in a row and read as a rendering
+   * fault. Only the option's own id is stripped, so a title that happens to
+   * start with a number keeps it.
+   */
+  prerequisiteTitle(option: PrerequisiteOption): string {
+    const title = option.title?.trim() ?? '';
+    const id = option.code?.trim() ?? '';
+    if (!id || !title.toUpperCase().startsWith(id.toUpperCase())) {
+      return title;
+    }
+    // A handbook title separates the id from it with a hyphen, a colon, or an
+    // en dash, so all three come off.
+    return title.slice(id.length).replace(/^\s*[-:\u2013]\s*/, '').trim() || title;
+  }
+
+  /**
+   * The units that list this one as a prerequisite.
+   *
+   * Memoized on the code for the same reason as the review helpers below: the
+   * template calls it during change detection, and a fresh array every pass
+   * never lets the view stabilize (NG0103).
+   */
+  private requiredForCache: { code: string; result: string[] } | null = null;
+
+  unitsRequiring(code: string): string[] {
+    if (this.requiredForCache?.code === code) {
+      return this.requiredForCache.result;
+    }
+    const result = this.prerequisiteGraph.unitsRequiring(code);
+    this.requiredForCache = { code, result };
+    return result;
+  }
+
+  /**
+   * Whether the build produced a reverse graph at all. "Nothing requires this
+   * unit" is a fact about the unit; "no graph was built" is a fact about the
+   * build, and the page must not print the second as if it were the first.
+   */
+  hasPrerequisiteGraph(): boolean {
+    return this.prerequisiteGraph.isAvailable();
+  }
+
+  /**
+   * Whether the page runs as one column instead of a main column and a rail.
+   *
+   * Reviews are the only thing on this page long enough to hold a wide column
+   * open. Measured on a unit with none: the main column came to 309px against
+   * a 1,406px rail, and what a reader saw was a heading and then a thousand
+   * pixels of nothing. The units this one unlocks do not close that on their
+   * own, since a unit that unlocks one names one code.
+   *
+   * So the trigger is the reviews, not the unlock list, and it covers the 1,729
+   * units that have no reviews. One column puts the same content in reading
+   * order at a width it can fill.
+   */
+  isSingleColumn(unit: UnitDetails): boolean {
+    return unit.reviews.length === 0;
+  }
+
+  /**
+   * The most recent teaching period any review describes, as a label.
+   *
+   * Measured on the term taken, not the date posted, which is the axis
+   * isReviewDataStale uses: the two claims sit within a screen of each other,
+   * and measuring them differently would let the page say a review is from a
+   * previous year directly above a line dating it to this one. Empty when no
+   * review carries a term, since there is then nothing to date.
+   */
+  latestReviewTerm(reviews: Review[]): string {
+    let newest: Review | null = null;
+    let newestKey = -Infinity;
+
+    for (const review of reviews || []) {
+      const key = termSortKey(review.termType, review.termYear);
+      if (key !== null && key > newestKey) {
+        newestKey = key;
+        newest = review;
+      }
+    }
+
+    return newest ? formatTerm(newest.termType, newest.termYear) : '';
   }
 
   private readonly tagLabels = new Map(REVIEW_TAGS.map(t => [t.value, t.label]));
