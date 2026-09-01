@@ -30,6 +30,11 @@ export const serverRoutes: ServerRoute[] = [
   // automated readers: the shell they received carried 148 words of header and
   // footer and none of the policy. Prerendering costs two pages and makes the
   // answer available to whoever asks.
+  // Who runs the site and how to reach them. Indexed, so unlike terms and
+  // privacy these have to arrive as finished HTML rather than merely be
+  // readable once fetched.
+  { path: 'about', renderMode: RenderMode.Prerender },
+  { path: 'contact', renderMode: RenderMode.Prerender },
   { path: 'terms', renderMode: RenderMode.Prerender },
   { path: 'privacy', renderMode: RenderMode.Prerender },
   { path: '', renderMode: RenderMode.Prerender },

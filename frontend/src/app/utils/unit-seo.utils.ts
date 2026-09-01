@@ -406,6 +406,43 @@ export function buildFacultyJsonLd(hub: FacultyHub, units: UnitLink[], siteUrl: 
   };
 }
 
+/**
+ * An ordinary content page: about, contact. Carries the sitewide nodes so the
+ * publisher is identified, plus a breadcrumb back to the home page.
+ */
+export function buildInfoPageJsonLd(
+  siteUrl: string,
+  page: { title: string; description: string; path: string }
+) {
+  const base = siteUrl.replace(/\/$/, '');
+  const url = `${base}${page.path}`;
+
+  return {
+    '@context': 'https://schema.org',
+    '@graph': [
+      ...buildSitewideJsonLd(siteUrl),
+      {
+        '@type': 'BreadcrumbList',
+        '@id': `${url}#breadcrumb`,
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Curtin University Unit Reviews', item: `${base}/` },
+          { '@type': 'ListItem', position: 2, name: page.title, item: url },
+        ],
+      },
+      {
+        '@type': 'WebPage',
+        '@id': `${url}#page`,
+        url,
+        name: page.title,
+        description: page.description,
+        inLanguage: 'en-AU',
+        isPartOf: { '@id': `${base}/#website` },
+        publisher: { '@id': `${base}/#org` },
+      },
+    ],
+  };
+}
+
 export function buildHomeJsonLd(siteUrl: string) {
   return {
     '@context': 'https://schema.org',

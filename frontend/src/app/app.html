@@ -51,7 +51,9 @@
       <span class="footer-faculties-label">Browse units</span>
       <a *ngFor="let hub of facultyHubs" [routerLink]="['/faculty', hub.slug]">{{ hub.name }}</a>
     </nav>
-    <nav class="footer-links" aria-label="Legal">
+    <nav class="footer-links" aria-label="About and legal">
+      <a routerLink="/about">About</a>
+      <a routerLink="/contact">Contact</a>
       <a routerLink="/terms">Terms and Conditions</a>
       <a routerLink="/privacy">Privacy Policy</a>
     </nav>
