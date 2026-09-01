@@ -1,6 +1,6 @@
 # CurtinHonestly — University Unit Review Platform
 
-A website where university students in Australia can leave honest reviews for their units (courses), helping future students make informed decisions.
+An independent student review platform for Curtin University units. Source public for inspection.
 
 ## Live versions
 
