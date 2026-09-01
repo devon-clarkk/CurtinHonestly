@@ -211,6 +211,19 @@ export function buildSitewideJsonLd(siteUrl: string): Record<string, unknown>[] 
       url: `${base}/`,
       logo: `${base}/assets/images/logo.png`,
       description: 'Independent student platform. Not affiliated with Curtin University.',
+      // The machine-readable half of the about page. A review platform is asked
+      // who stands behind it, by readers and by the answer engines that decide
+      // whether to quote it, and an unattributed one has no answer. sameAs
+      // points at profiles that can be checked independently.
+      founder: {
+        '@type': 'Person',
+        '@id': `${base}/#founder`,
+        name: 'Devon Clark',
+        sameAs: [
+          'https://www.linkedin.com/in/devon-clark-22b235212/',
+          'https://github.com/devon-clarkk',
+        ],
+      },
     },
   ];
 }
