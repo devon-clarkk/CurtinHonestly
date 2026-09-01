@@ -56,3 +56,15 @@ jobs:
           api_location: ''
           output_location: ''
           skip_app_build: true
+
+      # After the deploy, not before: IndexNow fetches the key file from the
+      # live host to verify ownership, so a submission from an unpublished
+      # build cannot be accepted. Never fails the run; a search engine
+      # declining a hint is not a reason to redden a good deploy.
+      - name: Tell IndexNow what changed (Bing, Yandex, Seznam, Naver)
+        working-directory: frontend
+        continue-on-error: true
+        env:
+          API_URL: ${{ secrets.API_URL }}
+          SITE_URL: https://www.curtinhonestly.com
+        run: node scripts/submit-indexnow.js
