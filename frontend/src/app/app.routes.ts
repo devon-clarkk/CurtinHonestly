@@ -27,6 +27,14 @@ export const routes: Routes = [
     loadComponent: () => import('./components/compare/compare.component').then(m => m.CompareComponent)
   },
   {
+    path: 'about',
+    loadComponent: () => import('./components/info/about.component').then(m => m.AboutComponent)
+  },
+  {
+    path: 'contact',
+    loadComponent: () => import('./components/info/contact.component').then(m => m.ContactComponent)
+  },
+  {
     path: 'terms',
     loadComponent: () => import('./components/legal/terms.component').then(m => m.TermsComponent)
   },

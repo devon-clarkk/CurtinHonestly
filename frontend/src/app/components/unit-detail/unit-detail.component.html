@@ -20,7 +20,7 @@
       <app-icon name="arrow-left" />
       <span>Back to all units</span>
     </a>
-    
+
     <div class="header-main">
       <div class="header-left">
         <span class="detail-code">{{ unit.code }}</span>
@@ -33,7 +33,7 @@
           Student reviews for <strong>{{ unit.code }}</strong> at Curtin University.
           See ratings, workload, grades, and honest feedback from Curtin students.
         </p>
-        
+
         <!-- The "Mark as completed" toggle is parked with the prerequisite
              eligibility checker below - recording completed units existed only to
              feed it. See the note on the parked members in the component. -->
@@ -43,7 +43,7 @@
           </a>
         </div>
       </div>
-      
+
       <div class="header-right" *ngIf="unit.numberOfReviews > 0">
         <div class="big-rating">
           <span class="big-num">{{ unit.averageRating | number:'1.1-1' }}</span>
@@ -94,159 +94,15 @@
     </span>
   </div>
 
-  <!-- Content Section -->
-  <div class="content-grid">
-    <!-- Left: Description -->
-    <aside class="description-section">
-      <h2 class="section-heading">About this Unit</h2>
-      <p class="unit-desc">{{ unit.description }}</p>
-
-      <!-- Tips: short, lightweight contributions distinct from full reviews -->
-      <div class="info-block tips-block">
-        <h2>Quick Tips</h2>
-        <p class="tips-hint">One-line things worth knowing. No full review required.</p>
-
-        <form *ngIf="authService.isLoggedIn()" (ngSubmit)="submitTip()" class="tip-form">
-          <input
-            type="text"
-            name="newTip"
-            [(ngModel)]="newTipText"
-            [maxlength]="maxTipLength"
-            placeholder="e.g. The mid-sem test is much harder than expected"
-            class="tip-input" />
-          <button type="submit" class="btn btn-secondary tip-submit"
-                  [disabled]="isSubmittingTip() || !newTipText.trim()">
-            {{ isSubmittingTip() ? 'Posting…' : 'Post' }}
-          </button>
-        </form>
-        <p class="tip-char-count" *ngIf="authService.isLoggedIn()">
-          {{ newTipText.length }}/{{ maxTipLength }}
-        </p>
-        <div *ngIf="tipError()" class="error-box">{{ tipError() }}</div>
-
-        <ul class="tip-list" *ngIf="tips().length > 0; else noTips">
-          <li *ngFor="let tip of tips()" class="tip-item">
-            <span class="tip-text">{{ tip.text }}</span>
-            <span class="tip-meta">
-              by {{ reviewAuthorName(tip.authorVerified) }}
-              <button *ngIf="tip.ownedByCurrentUser" type="button" class="tip-delete"
-                      (click)="deleteTip(tip)" aria-label="Delete this tip">
-                Delete
-              </button>
-            </span>
-          </li>
-        </ul>
-        <ng-template #noTips>
-          <p class="tips-empty">No tips yet. Be the first to share one.</p>
-        </ng-template>
-      </div>
-
-      <!-- Grade distribution histogram — gated to avoid de-anonymizing a
-           single reviewer when very few grades have been reported -->
-      <div class="info-block" *ngIf="gradedReviewCount(unit.reviews) >= MIN_GRADED_REVIEWS_FOR_HISTOGRAM">
-        <h2>Grade Distribution</h2>
-        <p class="tips-hint">What {{ gradedReviewCount(unit.reviews) }} reviewers scored.</p>
-        <div class="grade-histogram">
-          <div class="grade-bar-row" *ngFor="let band of gradeDistribution(unit.reviews)">
-            <span class="grade-bar-label">{{ band.label }}</span>
-            <div class="grade-bar-track">
-              <div class="grade-bar-fill" [style.width.%]="band.percent"></div>
-            </div>
-            <span class="grade-bar-value">{{ band.count }} ({{ band.percent }}%)</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Unit Information -->
-      <div class="info-block">
-        <h2>Unit Details</h2>
-        <div class="info-grid">
-          <div class="info-item" *ngIf="unit.credits">
-            <span class="label">Credits</span>
-            <span class="value">{{ unit.credits }}</span>
-          </div>
-          <div class="info-item" *ngIf="unit.contactHours">
-            <span class="label">Contact Hours</span>
-            <span class="value">{{ unit.contactHours }} Weekly</span>
-          </div>
-          <div class="info-item" *ngIf="unit.resultType">
-            <span class="label">Result Type</span>
-            <span class="value">{{ unit.resultType }}</span>
-          </div>
-          <div class="info-item full-width" *ngIf="unit.area">
-            <span class="label">Area</span>
-            <span class="value">{{ unit.area }}</span>
-          </div>
-          <div class="info-item full-width" *ngIf="unit.fieldOfEducation">
-            <span class="label">Field of Education</span>
-            <span class="value">{{ unit.fieldOfEducation }}</span>
-          </div>
-          <div class="info-item full-width" *ngIf="unit.unitLink">
-            <span class="label">Handbook</span>
-            <a [href]="unit.unitLink" target="_blank" rel="noopener noreferrer" class="handbook-link">
-              View Official Handbook Page &rarr;
-            </a>
-          </div>
-        </div>
-      </div>
-
-      <!-- Tuition Pattern -->
-      <div class="info-block" *ngIf="unit.tuitionPatterns && unit.tuitionPatterns.length > 0">
-        <h2>Tuition Pattern</h2>
-        <ul class="pattern-list">
-          <li *ngFor="let pattern of unit.tuitionPatterns">
-            <span class="pattern-type">{{ pattern.type }}</span>
-            <span class="pattern-duration">{{ pattern.duration }}</span>
-          </li>
-        </ul>
-      </div>
-
-      <!-- Prerequisites -->
-      <div class="info-block" *ngIf="unit.prerequisiteGroups && unit.prerequisiteGroups.length > 0">
-        <h2>Prerequisites</h2>
-
-        <!-- Eligibility checking is parked: it depends on students recording every
-             unit they have completed, which almost nobody does, so the banner read
-             "you don't meet the prerequisites" for nearly everyone. The backend
-             endpoints, entities, and DTOs are all still in place - restoring this
-             means putting the banner and the group-status badge back. -->
-
-        <div class="prereq-container">
-          <div *ngFor="let group of unit.prerequisiteGroups" class="prereq-group">
-            <div class="prereq-header">
-              <span class="group-name">{{ group.groupName }}</span>
-              <span class="prereq-header-badges">
-                <span class="group-req badge">{{ requirementLabel(group.requirement) }}</span>
-              </span>
-            </div>
-            <ul class="prereq-options" *ngIf="group.options.length">
-              <li *ngFor="let option of group.options">
-                <a [routerLink]="['/units', option.code]" class="prereq-link">
-                  <strong>{{ option.code }}</strong>
-                  <span>{{ option.title }}</span>
-                  <span *ngIf="option.concurrent" class="concurrent-badge">Concurrent</span>
-                </a>
-              </li>
-            </ul>
-            <ul class="prereq-options course-options" *ngIf="group.courseOptions.length">
-              <li *ngFor="let option of group.courseOptions" class="prereq-course-item">
-                <div class="prereq-course">
-                  <strong>{{ option.courseCode }}</strong>
-                  <span *ngIf="option.credits" class="credits-badge">{{ option.credits }} credits</span>
-                  <span>{{ option.title }}</span>
-                  <span *ngIf="option.concurrent" class="concurrent-badge">Concurrent</span>
-                </div>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </aside>
-
-    <!-- Right: Reviews List -->
+  <!-- Content Section. The reviews lead both columns: they are the only part of
+       this page that does not come from the handbook, so they read first in the
+       document and first on a phone, where the grid collapses to source order.
+       The handbook facts keep every block they had, in the rail beside them. -->
+  <div class="content-grid" [class.content-grid-single]="isSingleColumn(unit)">
+    <!-- Main column: Reviews List -->
     <section class="reviews-section">
       <div class="reviews-header-row">
-        <h2 class="section-heading">Student Reviews</h2>
+        <h2 class="section-heading">{{ unit.code }} student reviews</h2>
 
         <!-- Button to show the add review form -->
         <button *ngIf="authService.isLoggedIn() && !showAddReviewForm()"
@@ -255,6 +111,26 @@
           Add Review
         </button>
       </div>
+
+      <!-- How current the reviews are, said before any of them is read. Dated on
+           the term a reviewer took the unit, the same axis as the stale note
+           above, so the two lines cannot contradict each other. Absent when no
+           review carries a term, rather than substituting the date it was
+           posted, which dates the typing and not the experience. -->
+      <p class="reviews-recency" *ngIf="latestReviewTerm(unit.reviews) as term">
+        Most recent review covers {{ term }}
+      </p>
+
+      <!-- Says what the section answers, and explains the badge the cards carry:
+           "Verified Curtin Student" claimed something the page never defined
+           anywhere. Both halves are tied to there being something to describe. -->
+      <p class="reviews-note" *ngIf="unit.reviews.length > 0">
+        Workload, assessments, and whether students would take it again.
+        <ng-container *ngIf="hasVerifiedReviewer(unit.reviews)">
+          Verified Curtin Student means the reviewer confirmed a
+          &#64;student.curtin.edu.au email address.
+        </ng-container>
+      </p>
 
       <!-- Lecturer-aware filter (review-experience.md #5) -->
       <div class="lecturer-filter" *ngIf="lecturerSummary(unit.reviews) as lecturers" >
@@ -284,12 +160,17 @@
         <a routerLink="/my-reviews">Go to My Reviews</a> to update or delete it.
       </div>
 
-      <div *ngIf="!authService.isLoggedIn()" class="login-to-review">
+      <!-- Two invitations to write a review used to stack here on the 1,729
+           units that have none. The empty state carries its own way in, so this
+           one is for pages where there are reviews to sit above. -->
+      <div *ngIf="!authService.isLoggedIn() && unit.reviews.length > 0" class="login-to-review">
         <p>Want to share your experience? <a routerLink="/login">Log in</a> to leave a review!</p>
       </div>
 
       <div *ngIf="unit.reviews.length === 0" class="no-reviews">
-        No reviews yet. Be the first to write one!
+        No reviews of {{ unit.code }} yet. Be the first: the workload it really took,
+        how it was assessed, and whether you would take it again.
+        <a *ngIf="!authService.isLoggedIn()" routerLink="/login" class="no-reviews-link">Log in to write one</a>
       </div>
       <div *ngIf="unit.reviews.length > 0 && filteredReviews(unit.reviews).length === 0" class="no-reviews">
         No reviews from {{ selectedLecturer() }}. <button type="button" class="btn-text" (click)="selectedLecturer.set(null)">Show all reviews</button>
@@ -308,7 +189,9 @@
           <div class="user-info">
             <span class="user-name">
               {{ reviewAuthorName(review.reviewerVerified) }}
-              <span *ngIf="review.reviewerVerified" class="verified-badge" title="Verified Curtin student" aria-label="Verified Curtin student">
+              <span *ngIf="review.reviewerVerified" class="verified-badge"
+                    title="This reviewer confirmed a Curtin student email address"
+                    aria-label="Verified Curtin student">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
                   <path fill="currentColor" d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-1 14.59l-4.29-4.3 1.42-1.41L11 12.17l5.88-5.88 1.41 1.41L11 15.59z"/>
                 </svg>
@@ -324,11 +207,11 @@
             </ng-container>
           </div>
         </div>
-        
+
         <div class="review-body">
           <p>{{ review.reviewText }}</p>
         </div>
-        
+
         <div class="review-footer">
           <div class="review-meta">
             <span class="footer-tag" [class.positive]="review.wouldTakeAgain">
@@ -395,6 +278,208 @@
         <div class="error-box">{{ flagErrorMessage() }}</div>
       }
     </section>
+
+    <!-- Which units this one unlocks. No handbook page anywhere states this: a
+         handbook page lists what a unit needs, never what needs it, so the
+         answer exists only after the whole catalogue has been inverted, which
+         scripts/fetch-unit-codes.js does once per production build.
+         It sits in the main column rather than the handbook rail because it is
+         not a handbook fact, and because on the 1,729 units with no reviews it
+         is the only thing that column has to say.
+         Hidden entirely when no graph was built, so a local build says nothing
+         rather than telling every unit it leads nowhere. -->
+    <section class="required-for-section" *ngIf="hasPrerequisiteGraph()">
+      <h2 class="section-heading">Which units require {{ unit.code }}?</h2>
+
+      <ng-container *ngIf="unitsRequiring(unit.code) as dependents">
+        <ng-container *ngIf="dependents.length > 0; else unlocksNothing">
+          <p class="required-for-lead">
+            {{ unit.code }} is a prerequisite for
+            {{ dependents.length }} unit{{ dependents.length === 1 ? '' : 's' }}.
+          </p>
+          <ul class="required-for-list">
+            <li *ngFor="let dependent of dependents">
+              <a [routerLink]="['/units', dependent]" class="required-for-link">{{ dependent }}</a>
+            </li>
+          </ul>
+        </ng-container>
+        <ng-template #unlocksNothing>
+          <p class="required-for-lead required-for-none">
+            No other unit in the catalogue lists {{ unit.code }} as a prerequisite,
+            so it is not a gateway to anything further.
+          </p>
+        </ng-template>
+      </ng-container>
+    </section>
+
+    <!-- Rail: what the handbook says, plus the two blocks students fill in -->
+    <aside class="description-section">
+      <h2 class="section-heading">What is {{ unit.code }} about?</h2>
+      <p class="unit-desc">{{ unit.description }}</p>
+
+      <!-- Tips: short, lightweight contributions distinct from full reviews -->
+      <div class="info-block tips-block">
+        <h2>Quick tips</h2>
+        <p class="tips-hint">One-line things worth knowing. No full review required.</p>
+
+        <form *ngIf="authService.isLoggedIn()" (ngSubmit)="submitTip()" class="tip-form">
+          <input
+            type="text"
+            name="newTip"
+            [(ngModel)]="newTipText"
+            [maxlength]="maxTipLength"
+            placeholder="e.g. The mid-sem test is much harder than expected"
+            class="tip-input" />
+          <button type="submit" class="btn btn-secondary tip-submit"
+                  [disabled]="isSubmittingTip() || !newTipText.trim()">
+            {{ isSubmittingTip() ? 'Posting…' : 'Post' }}
+          </button>
+        </form>
+        <p class="tip-char-count" *ngIf="authService.isLoggedIn()">
+          {{ newTipText.length }}/{{ maxTipLength }}
+        </p>
+        <div *ngIf="tipError()" class="error-box">{{ tipError() }}</div>
+
+        <ul class="tip-list" *ngIf="tips().length > 0; else noTips">
+          <li *ngFor="let tip of tips()" class="tip-item">
+            <span class="tip-text">{{ tip.text }}</span>
+            <span class="tip-meta">
+              by {{ reviewAuthorName(tip.authorVerified) }}
+              <button *ngIf="tip.ownedByCurrentUser" type="button" class="tip-delete"
+                      (click)="deleteTip(tip)" aria-label="Delete this tip">
+                Delete
+              </button>
+            </span>
+          </li>
+        </ul>
+        <!-- Tips are the cheapest way to contribute here, so an empty list stays
+             an open invitation: it shows what a tip looks like, and gives a
+             logged-out reader the one link that lets them leave one. -->
+        <ng-template #noTips>
+          <p class="tips-empty">
+            Be the first. One line on the assessments, the pace, or what to start early.
+            <a *ngIf="!authService.isLoggedIn()" routerLink="/login" class="tips-empty-link">Log in to add one</a>
+          </p>
+        </ng-template>
+      </div>
+
+      <!-- Grade distribution histogram — gated to avoid de-anonymizing a
+           single reviewer when very few grades have been reported -->
+      <div class="info-block" *ngIf="gradedReviewCount(unit.reviews) >= MIN_GRADED_REVIEWS_FOR_HISTOGRAM">
+        <h2>What grades do students get?</h2>
+        <p class="tips-hint">What {{ gradedReviewCount(unit.reviews) }} reviewers scored.</p>
+        <div class="grade-histogram">
+          <div class="grade-bar-row" *ngFor="let band of gradeDistribution(unit.reviews)">
+            <span class="grade-bar-label">{{ band.label }}</span>
+            <div class="grade-bar-track">
+              <div class="grade-bar-fill" [style.width.%]="band.percent"></div>
+            </div>
+            <span class="grade-bar-value">{{ band.count }} ({{ band.percent }}%)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Unit Information -->
+      <div class="info-block">
+        <h2>Unit details</h2>
+        <div class="info-grid">
+          <div class="info-item" *ngIf="unit.credits">
+            <span class="label">Credits</span>
+            <span class="value">{{ unit.credits }}</span>
+          </div>
+          <div class="info-item" *ngIf="unit.contactHours">
+            <span class="label">Contact Hours</span>
+            <span class="value">{{ unit.contactHours }} Weekly</span>
+          </div>
+          <div class="info-item" *ngIf="unit.resultType">
+            <span class="label">Result Type</span>
+            <span class="value">{{ unit.resultType }}</span>
+          </div>
+          <div class="info-item full-width" *ngIf="unit.area">
+            <span class="label">Area</span>
+            <span class="value">{{ unit.area }}</span>
+          </div>
+          <div class="info-item full-width" *ngIf="unit.fieldOfEducation">
+            <span class="label">Field of Education</span>
+            <span class="value">{{ unit.fieldOfEducation }}</span>
+          </div>
+          <div class="info-item full-width" *ngIf="unit.unitLink">
+            <span class="label">Handbook</span>
+            <a [href]="unit.unitLink" target="_blank" rel="noopener noreferrer" class="handbook-link">
+              View Official Handbook Page &rarr;
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tuition pattern. Headed by what a student reads it for: the class
+           types and the time they take. The durations arrive as handbook
+           strings, so the heading claims no cadence of its own. -->
+      <div class="info-block" *ngIf="unit.tuitionPatterns && unit.tuitionPatterns.length > 0">
+        <h2>How this unit is taught</h2>
+        <ul class="pattern-list">
+          <li *ngFor="let pattern of unit.tuitionPatterns">
+            <span class="pattern-type">{{ pattern.type }}</span>
+            <span class="pattern-duration">{{ pattern.duration }}</span>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Prerequisites -->
+      <div class="info-block" *ngIf="unit.prerequisiteGroups && unit.prerequisiteGroups.length > 0">
+        <h2>Prerequisites</h2>
+
+        <!-- Eligibility checking is parked: it depends on students recording every
+             unit they have completed, which almost nobody does, so the banner read
+             "you don't meet the prerequisites" for nearly everyone. The backend
+             endpoints, entities, and DTOs are all still in place - restoring this
+             means putting the banner and the group-status badge back. -->
+
+        <div class="prereq-container">
+          <div *ngFor="let group of unit.prerequisiteGroups" class="prereq-group">
+            <div class="prereq-header">
+              <span class="group-name">{{ group.groupName }}</span>
+              <span class="prereq-header-badges">
+                <span class="group-req badge">{{ requirementLabel(group.requirement) }}</span>
+              </span>
+            </div>
+            <ul class="prereq-options" *ngIf="group.options.length">
+              <li *ngFor="let option of group.options">
+                <!-- Only link codes that resolve to a real unit page. The import
+                     carries version suffixes (COMP1002v1) and legacy numeric
+                     course ids (1922); both used to produce dead URLs.
+                     The label is the code the rest of the world uses, which is
+                     the code without the suffix, and a legacy row shows its
+                     title alone: its id was already repeated inside the title. -->
+                <a *ngIf="unitUrlCode(option.code) as target; else prereqPlain"
+                   [routerLink]="['/units', target]" class="prereq-link">
+                  <strong>{{ prerequisiteCode(option) }}</strong>
+                  <span>{{ prerequisiteTitle(option) }}</span>
+                  <span *ngIf="option.concurrent" class="concurrent-badge">Concurrent</span>
+                </a>
+                <ng-template #prereqPlain>
+                  <span class="prereq-link prereq-link-plain">
+                    <strong *ngIf="prerequisiteCode(option)">{{ prerequisiteCode(option) }}</strong>
+                    <span>{{ prerequisiteTitle(option) }}</span>
+                    <span *ngIf="option.concurrent" class="concurrent-badge">Concurrent</span>
+                  </span>
+                </ng-template>
+              </li>
+            </ul>
+            <ul class="prereq-options course-options" *ngIf="group.courseOptions.length">
+              <li *ngFor="let option of group.courseOptions" class="prereq-course-item">
+                <div class="prereq-course">
+                  <strong>{{ option.courseCode }}</strong>
+                  <span *ngIf="option.credits" class="credits-badge">{{ option.credits }} credits</span>
+                  <span>{{ option.title }}</span>
+                  <span *ngIf="option.concurrent" class="concurrent-badge">Concurrent</span>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </aside>
   </div>
 </div>
 

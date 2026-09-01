@@ -51,3 +51,19 @@
 .legal-callout p:last-child {
   margin-bottom: 0;
 }
+
+/* About and contact share this stylesheet. The lead sits between the h1 and the
+   first section, so it needs to read as a summary rather than as body copy. */
+.lead {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  color: var(--text-primary);
+  max-width: 62ch;
+  margin-bottom: 28px;
+}
+
+.contact-address {
+  font-family: var(--alt-font);
+  font-weight: 700;
+  white-space: nowrap;
+}

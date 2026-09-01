@@ -100,6 +100,17 @@ const urlEntries = [
     <priority>0.9</priority>
   </url>`
   ),
+  // Who runs the site and how to reach them. Ranked below the hubs because they
+  // carry no catalogue, and above unit pages because a reader deciding whether
+  // to trust the reviews looks for these first.
+  ...['/about', '/contact'].map(
+    (path) => `  <url>
+    <loc>${siteUrl}${path}</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>`
+  ),
   ...unitCodes.map((code) => {
     const lastmod = sitemapMetaByCode[code]?.lastmod || today;
     return `  <url>

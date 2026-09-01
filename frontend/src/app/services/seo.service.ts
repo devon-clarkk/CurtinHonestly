@@ -7,6 +7,7 @@ import { environment } from '../../environments/environment';
 import {
   UnitLink,
   buildFacultyJsonLd,
+  buildInfoPageJsonLd,
   buildHomeJsonLd,
   buildUnitJsonLd,
   facultyPageDescription,
@@ -96,6 +97,27 @@ export class SeoService {
       type: 'website',
     });
     this.setJsonLd(buildFacultyJsonLd(hub, units, this.siteUrl));
+  }
+
+  /**
+   * An ordinary indexable content page: about, contact. These carry no data of
+   * their own, so the caller supplies the copy and the path.
+   */
+  updateInfoPage(page: { title: string; description: string; path: string }): void {
+    if (!this.seoEnabled) {
+      this.applyDevNoIndex(`${page.title} (Dev)`);
+      return;
+    }
+
+    const title = `${page.title} | CurtinHonestly`;
+    const url = `${this.siteUrl}${page.path}`;
+
+    this.title.setTitle(title);
+    this.setIndexable();
+    this.setDescription(page.description);
+    this.setCanonical(url);
+    this.setOpenGraph({ title, description: page.description, url, type: 'website' });
+    this.setJsonLd(buildInfoPageJsonLd(this.siteUrl, page));
   }
 
   /** Call from any route that must never be indexed (auth, account pages). */

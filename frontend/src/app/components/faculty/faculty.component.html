@@ -20,23 +20,115 @@
   <p class="faculty-status" *ngIf="loading()">Loading units…</p>
   <p class="faculty-status faculty-error" *ngIf="error()">{{ error() }}</p>
 
-  <nav class="prefix-jump" aria-label="Jump to subject" *ngIf="groups().length > 1">
-    <a *ngFor="let group of groups()" [href]="jumpTarget(group.prefix)">{{ group.prefix }}</a>
-  </nav>
+  <!-- The units carrying reviews, ahead of the catalogue they are buried in.
+       Absent, not empty, where the faculty has none: see .no-reviews-note. -->
+  <section class="talked-about" *ngIf="highlights().length > 0" aria-labelledby="talked-about-heading">
+    <h2 class="talked-about-heading" id="talked-about-heading">Units students are talking about</h2>
+    <p class="talked-about-lead">
+      These {{ facultyHub.name }} units have reviews from students who took them, most reviewed first.
+    </p>
 
-  <section class="prefix-group" *ngFor="let group of groups()" [id]="group.prefix">
-    <h2 class="prefix-heading">{{ group.prefix }}</h2>
-    <ul class="unit-index">
-      <li *ngFor="let unit of group.units">
-        <a [routerLink]="['/units', unit.code]" class="unit-index-link">
-          <span class="unit-index-code">{{ unit.code }}</span>
-          <span class="unit-index-name">{{ unit.name }}</span>
+    <ol class="talked-about-grid">
+      <li *ngFor="let unit of highlights()">
+        <a [routerLink]="['/units', unit.code]" class="talked-about-card">
+          <span class="talked-about-code">{{ unit.code }}</span>
+          <span class="talked-about-name">{{ unit.name }}</span>
+          <span class="talked-about-meta">
+            <span class="talked-about-score">
+              {{ scoreLabel(unit) }}<span class="talked-about-max">/5</span>
+            </span>
+            <span class="talked-about-count">{{ reviewCountLabel(unit) }}</span>
+          </span>
         </a>
-        <span class="unit-index-rating" *ngIf="ratingLabel(unit) as rating">{{ rating }}</span>
       </li>
-    </ul>
+    </ol>
+
+    <p class="talked-about-more" *ngIf="reviewedUnits().length > highlights().length">
+      <a [href]="listingTarget()" (click)="showAllReviewed()">
+        See all {{ reviewedUnits().length }} reviewed units
+      </a>
+    </p>
+  </section>
+
+  <p class="no-reviews-note" *ngIf="showNoReviewsNote()">
+    No {{ facultyHub.name }} unit has a review yet. Pick one below and be the first to say what it
+    was actually like.
+  </p>
+
+  <section class="unit-listing" id="units">
+    <div class="listing-controls" *ngIf="unitCount() > 0">
+      <h2 class="listing-heading">All {{ unitCount() }} units</h2>
+
+      <div class="sort-bar" role="group" aria-labelledby="faculty-sort-label">
+        <span class="sort-label" id="faculty-sort-label">Sort</span>
+        <button
+          type="button"
+          class="sort-chip"
+          [class.is-active]="sort() === 'code'"
+          [attr.aria-pressed]="sort() === 'code'"
+          (click)="setSort('code')">
+          A to Z
+        </button>
+        <button
+          type="button"
+          class="sort-chip"
+          [class.is-active]="sort() === 'reviews'"
+          [attr.aria-pressed]="sort() === 'reviews'"
+          (click)="setSort('reviews')">
+          Most reviewed
+        </button>
+        <button
+          type="button"
+          class="sort-chip"
+          [class.is-active]="sort() === 'rating'"
+          [attr.aria-pressed]="sort() === 'rating'"
+          (click)="setSort('rating')">
+          Highest rated
+        </button>
+      </div>
+    </div>
+
+    <ng-container *ngIf="sort() === 'code'; else rankedListing">
+      <nav class="prefix-jump" aria-label="Jump to subject" *ngIf="groups().length > 1">
+        <a *ngFor="let group of groups()" [href]="jumpTarget(group.prefix)">{{ group.prefix }}</a>
+      </nav>
+
+      <section class="prefix-group" *ngFor="let group of groups()" [id]="group.prefix">
+        <h3 class="prefix-heading">{{ group.prefix }}</h3>
+        <ul class="unit-index">
+          <ng-container
+            *ngFor="let unit of group.units"
+            [ngTemplateOutlet]="unitRow"
+            [ngTemplateOutletContext]="{ $implicit: unit }"></ng-container>
+        </ul>
+      </section>
+    </ng-container>
+
+    <!-- Ranked, so an ordered list, and no subject headings to jump between.
+         Every unit is still here: the chips re-order the catalogue, never cut
+         it, which is what keeps this page one link from all of them. -->
+    <ng-template #rankedListing>
+      <ol class="unit-index unit-index-ranked">
+        <ng-container
+          *ngFor="let unit of rankedUnits()"
+          [ngTemplateOutlet]="unitRow"
+          [ngTemplateOutletContext]="{ $implicit: unit }"></ng-container>
+      </ol>
+    </ng-template>
   </section>
 </div>
+
+<!-- One row, rendered by both listings, so a sorted unit cannot come out
+     carrying anything different from the same unit listed alphabetically. -->
+<ng-template #unitRow let-unit>
+  <li>
+    <a [routerLink]="['/units', unit.code]" class="unit-index-link">
+      <span class="unit-index-code">{{ unit.code }}</span>
+      <span class="unit-index-name">{{ unit.name }}</span>
+    </a>
+    <span class="unit-index-rating" *ngIf="ratingLabel(unit) as rating">{{ rating }}</span>
+  </li>
+</ng-template>
 
 <ng-template #unknownFaculty>
   <div class="faculty-container faculty-missing">
