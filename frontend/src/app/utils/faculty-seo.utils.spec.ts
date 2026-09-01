@@ -290,3 +290,48 @@ describe('Organization founder', () => {
     expect((unitOrg['founder'] as Record<string, unknown>)['name']).toBe('Devon Clark');
   });
 });
+
+// The page renders the units that require this one, and nothing described that
+// list. It is the most quotable fact on a unit nobody has reviewed, because no
+// handbook page states it: a handbook entry lists what a unit needs, never what
+// needs it.
+describe('required-for ItemList', () => {
+  function requiredForNode(requiredFor: string[]) {
+    const graph = buildUnitJsonLd(
+      unitDetails('Science and Engineering'),
+      SITE_URL,
+      requiredFor
+    )['@graph'] as Record<string, unknown>[];
+    return graph.find(
+      (n) => n['@type'] === 'ItemList' && String(n['@id']).endsWith('#required-for')
+    );
+  }
+
+  it('lists the units that require this one, in order, with absolute URLs', () => {
+    const node = requiredForNode(['COMP2004', 'COMP3007'])!;
+
+    expect(node['numberOfItems']).toBe(2);
+    expect(node['name']).toBe('Units that require COMP1000');
+
+    const items = node['itemListElement'] as Record<string, unknown>[];
+    expect(items[0]).toMatchObject({
+      position: 1,
+      name: 'COMP2004',
+      url: 'https://www.curtinhonestly.com/units/COMP2004',
+    });
+    expect(items[1]['position']).toBe(2);
+  });
+
+  // A unit that unlocks nothing says so in prose. Emitting an empty ItemList
+  // would assert a list exists where there is none.
+  it('emits no node at all when nothing requires the unit', () => {
+    expect(requiredForNode([])).toBeUndefined();
+  });
+
+  it('defaults to absent when a caller does not pass the list', () => {
+    const graph = buildUnitJsonLd(unitDetails('Science and Engineering'), SITE_URL)[
+      '@graph'
+    ] as Record<string, unknown>[];
+    expect(graph.some((n) => String(n['@id'] ?? '').endsWith('#required-for'))).toBe(false);
+  });
+});

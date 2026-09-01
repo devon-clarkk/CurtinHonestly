@@ -53,7 +53,7 @@ export class SeoService {
     this.setJsonLd(buildHomeJsonLd(this.siteUrl));
   }
 
-  updateUnitPage(unit: UnitDetails): void {
+  updateUnitPage(unit: UnitDetails, requiredFor: string[] = []): void {
     if (!this.seoEnabled) {
       this.applyDevNoIndex(`${unit.code} (Dev)`);
       return;
@@ -73,7 +73,7 @@ export class SeoService {
       url,
       type: 'article',
     });
-    this.setJsonLd(buildUnitJsonLd(unit, this.siteUrl));
+    this.setJsonLd(buildUnitJsonLd(unit, this.siteUrl, requiredFor));
   }
 
   updateFacultyPage(hub: FacultyHub, units: UnitLink[]): void {
