@@ -1,23 +1,95 @@
-export interface AdminOverview {
-  totalUsers: number;
-  totalReviews: number;
-  totalUnits: number;
-  reviewsLast7Days: number;
-  usersLast7Days: number;
-  averageRating: number;
-}
-
 export interface TimeSeriesPoint {
   period: string;
   users: number;
   reviews: number;
 }
 
-export interface AdminAnalytics {
+export interface UnitLeader {
+  code: string;
+  name: string;
+  reviewCount: number;
+  averageRating: number;
+}
+
+export interface RequestedUnit {
+  code: string;
+  count: number;
+}
+
+export interface DistributionBucket {
+  label: string;
+  count: number;
+}
+
+export interface FacultyBreakdown {
+  faculty: string;
+  label: string;
+  units: number;
+  unitsWithReviews: number;
+  reviews: number;
+}
+
+export interface TermCount {
+  termType: string;
+  termYear: number | null;
+  count: number;
+}
+
+export interface LikedReview {
+  id: string;
+  unitCode: string;
+  likeCount: number;
+  excerpt: string;
+}
+
+export interface ActiveReviewer {
+  maskedEmail: string;
+  reviewCount: number;
+  likesReceived: number;
+}
+
+export interface AdminOverview {
+  totalUsers: number;
+  verifiedUsers: number;
+  bannedUsers: number;
+  totalReviews: number;
+  reviewsWithText: number;
+  unitsWithAtLeastOneReview: number;
+  totalUnits: number;
+  coverageRatio: number;
+  pendingUnitRequests: number;
+  openFlaggedReviews: number;
+  totalLikes: number;
+  usersLast7Days: number;
+  usersPrior7Days: number;
+  reviewsLast7Days: number;
+  reviewsPrior7Days: number;
+  unverifiedUsersLast7Days: number;
+  verificationRate: number;
   signupsAndReviewsOverTime: TimeSeriesPoint[];
-  reviewsByFaculty: Record<string, number>;
+  topUnits: UnitLeader[];
+  mostRequestedUnits: RequestedUnit[];
+}
+
+export interface AdminAnalytics {
+  periodDays: number;
+  signupsAndReviewsOverTime: TimeSeriesPoint[];
+  totalUsers: number;
+  totalReviews: number;
+  activeReviewers: number;
+  verificationRate: number;
+  activeReviewerShare: number;
+  reviewsPerActiveReviewer: number;
+  ratingDistribution: DistributionBucket[];
+  workloadDistribution: DistributionBucket[];
   averageWorkload: number;
   wouldTakeAgainRatio: number;
+  averageReviewTextLength: number;
+  gradeShare: number;
+  facultyBreakdown: FacultyBreakdown[];
+  reviewsByTerm: TermCount[];
+  mostLikedReviews: LikedReview[];
+  mostActiveReviewers: ActiveReviewer[];
 }
 
 export interface UserAdmin {
@@ -30,12 +102,27 @@ export interface UserAdmin {
   createdAt: string;
 }
 
+// The full stored review: the same fields the public unit page shows plus the
+// moderation context. The list and the detail endpoint share this shape.
 export interface AdminReview {
   id: string;
   unitCode: string;
+  unitName: string;
   authorEmail: string;
+  authorId: string | null;
+  authorVerified: boolean;
   rating: number;
-  reviewText: string;
+  finalGrade: number | null;
+  reviewText: string | null;
+  termType: string | null;
+  termYear: number | null;
+  professor: string | null;
+  workload: number;
+  hasExam: boolean;
+  wouldTakeAgain: boolean;
+  tags: string[];
+  likeCount: number;
+  flagCount: number;
   createdAt: string;
 }
 

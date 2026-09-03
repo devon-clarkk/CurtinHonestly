@@ -18,4 +18,14 @@ public interface UserRepo extends JpaRepository<User, String> {
     // slug the user arrived through, so tracking-only links (which don't enrol the
     // user in the campaign) can still count their signups.
     long countByRegisteredViaRefIgnoreCase(String ref);
+
+    // Admin dashboard aggregates (AdminService).
+    long countByVerifiedStudentTrue();
+    long countByBannedTrue();
+    long countByCreatedAtBetween(Instant start, Instant end);
+    long countByVerifiedStudentFalseAndCreatedAtAfter(Instant since);
+
+    // Only the timestamps, for bucketing into a daily series.
+    @org.springframework.data.jpa.repository.Query("select u.createdAt from User u where u.createdAt >= :since")
+    List<Instant> findCreatedAtSince(@org.springframework.data.repository.query.Param("since") Instant since);
 }

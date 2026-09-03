@@ -46,6 +46,15 @@ export class AdminService {
     return this.http.patch<UserAdmin>(`${this.apiUrl}/users/${id}/unban`, {});
   }
 
+  // Manual student verification, for when the verification email does not arrive.
+  verifyUser(id: string): Observable<UserAdmin> {
+    return this.http.patch<UserAdmin>(`${this.apiUrl}/users/${id}/verify`, {});
+  }
+
+  unverifyUser(id: string): Observable<UserAdmin> {
+    return this.http.patch<UserAdmin>(`${this.apiUrl}/users/${id}/unverify`, {});
+  }
+
   deleteUser(id: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/users/${id}`);
   }
@@ -54,6 +63,10 @@ export class AdminService {
     return this.http.get<PagedReviews>(`${this.apiUrl}/reviews`, {
       params: { page: String(page), size: String(size) }
     });
+  }
+
+  getReview(id: string): Observable<AdminReview> {
+    return this.http.get<AdminReview>(`${this.apiUrl}/reviews/${id}`);
   }
 
   deleteReview(id: string): Observable<void> {

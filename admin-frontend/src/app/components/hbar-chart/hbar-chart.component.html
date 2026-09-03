@@ -1,0 +1,36 @@
+@if (rows().length) {
+  <div class="hbar" role="img" [attr.aria-label]="labelHeader() + ' by ' + valueHeader()">
+    @for (row of rows(); track row.label) {
+      <div class="hbar-row" [title]="titleText(row)">
+        <div class="hbar-label">{{ row.label }}</div>
+        <div class="hbar-track" [class.meter]="mode() === 'meter'">
+          <div class="hbar-fill" [style.width.%]="widthPercent(row)"></div>
+        </div>
+        <div class="hbar-value">{{ valueText(row) }}</div>
+      </div>
+    }
+  </div>
+  <details class="table-twin">
+    <summary>Table view</summary>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>{{ labelHeader() }}</th>
+            <th class="num">{{ valueHeader() }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of rows(); track row.label) {
+            <tr>
+              <td>{{ row.label }}</td>
+              <td class="num">{{ valueText(row) }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </details>
+} @else {
+  <p class="empty">{{ emptyMessage() }}</p>
+}

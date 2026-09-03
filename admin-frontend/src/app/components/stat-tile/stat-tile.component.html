@@ -1,0 +1,17 @@
+<div class="tile card" [class.accent]="accent()">
+  <div class="tile-label">{{ label() }}</div>
+  <div class="tile-value">{{ value() }}</div>
+  @if (delta(); as d) {
+    <div class="tile-delta" [class.good]="deltaTone() === 'good'" [class.bad]="deltaTone() === 'bad'">
+      @if (d.diff > 0) {
+        <span class="arrow" aria-hidden="true">&#9650;</span>
+      } @else if (d.diff < 0) {
+        <span class="arrow" aria-hidden="true">&#9660;</span>
+      }
+      <span>{{ deltaText() }}</span>
+      <span class="delta-label">{{ deltaLabel() }}</span>
+    </div>
+  } @else if (hint()) {
+    <div class="tile-hint">{{ hint() }}</div>
+  }
+</div>
