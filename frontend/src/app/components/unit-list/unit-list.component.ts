@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, OnDestroy, ElementRef, ViewChild, PLATFORM_ID, TransferState, makeStateKey, signal } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, ElementRef, NgZone, ViewChild, PLATFORM_ID, TransferState, makeStateKey, signal } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -15,6 +15,8 @@ interface UnitListState {
   units: UnitSummary[];
   page: number;
   totalPages: number;
+  /** Total units matching the current query, for the "Showing X of Y" hint. */
+  totalElements: number;
   /** Nothing to show yet — the only state that gets a full-page spinner. */
   loading: boolean;
   /** Re-running the query with results already on screen (search, filter, sort). */
@@ -50,6 +52,7 @@ export class UnitListComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private transferState = inject(TransferState);
+  private ngZone = inject(NgZone);
 
   private destroy$ = new Subject<void>();
   private searchSubject = new Subject<void>();
@@ -57,6 +60,15 @@ export class UnitListComponent implements OnInit, OnDestroy {
   private observer?: IntersectionObserver;
 
   readonly PAGE_SIZE = 24;
+
+  /**
+   * How many pages scroll in on their own before the list hands over to the
+   * "Show more units" button. Three pages is 72 cards, enough that casual
+   * browsing never sees the button, while the footer stays reachable on a
+   * catalogue of about 1,760 units: once the button is in charge, nothing
+   * appends itself under the visitor as they approach the bottom of the page.
+   */
+  readonly AUTO_LOAD_PAGES = 3;
 
   searchQuery = '';
   selectedFaculties: Faculty[] = [];
@@ -85,6 +97,7 @@ export class UnitListComponent implements OnInit, OnDestroy {
     units: [],
     page: 0,
     totalPages: 0,
+    totalElements: 0,
     loading: true,
     refreshing: false,
     loadingMore: false,
@@ -94,7 +107,11 @@ export class UnitListComponent implements OnInit, OnDestroy {
 
   readonly state$ = this.stateSubject.asObservable();
 
-  // Reconnect IntersectionObserver whenever the sentinel appears/disappears
+  // Reconnect IntersectionObserver whenever the sentinel appears/disappears.
+  // The template only renders the sentinel while autoLoadActive() holds, so
+  // once the "Show more units" button takes over the observer is torn down
+  // here (el is undefined) and cannot fire again until a new query resets the
+  // list to page 0 and the sentinel comes back.
   @ViewChild('scrollSentinel', { static: false })
   set scrollSentinel(el: ElementRef<HTMLElement> | undefined) {
     // The sentinel now renders during prerender too, because the server draws a
@@ -118,6 +135,75 @@ export class UnitListComponent implements OnInit, OnDestroy {
     }
   }
 
+  /**
+   * True while the next page should scroll in on its own. Pages 0 to
+   * AUTO_LOAD_PAGES - 1 arrive this way; after that the visitor asks for more
+   * with the button, so the page has a real bottom and the footer is reachable.
+   */
+  autoLoadActive(state: UnitListState): boolean {
+    return state.page + 1 < this.AUTO_LOAD_PAGES;
+  }
+
+  /** Percentage of the current result set that is on screen, for the progress bar. */
+  loadedPercent(state: UnitListState): number {
+    if (state.totalElements <= 0) return 0;
+    return Math.min(100, Math.round((state.units.length / state.totalElements) * 100));
+  }
+
+  /**
+   * Polite live-region text for screen reader users after a manual "Show more".
+   * Auto-loaded pages stay silent: announcing every scroll-triggered page would
+   * be noise, and the button is the only load the visitor asked for by name.
+   */
+  loadAnnouncement = signal('');
+  private nextLoadIsManual = false;
+
+  /**
+   * When the button fetches the final page it disappears with it, which would
+   * drop keyboard focus to the top of the document. The end-of-catalogue
+   * message picks focus up instead, once it has rendered.
+   */
+  private focusEndWhenRendered = false;
+
+  @ViewChild('catalogEnd', { static: false })
+  set catalogEnd(el: ElementRef<HTMLElement> | undefined) {
+    if (!el || !this.focusEndWhenRendered) return;
+    this.focusEndWhenRendered = false;
+    el.nativeElement.focus({ preventScroll: true });
+  }
+
+  /** The "Show more units" button. */
+  loadMore(): void {
+    this.nextLoadIsManual = true;
+    this.loadNextPage();
+  }
+
+  // Floating "Back to top" control, shown once the visitor is about two
+  // screens down. Browser only: registered in ngOnInit after the platform
+  // check and removed in ngOnDestroy.
+  showBackToTop = signal(false);
+  private scrollListener?: () => void;
+
+  private watchScrollForBackToTop(): void {
+    const update = () => {
+      this.showBackToTop.set(window.scrollY > window.innerHeight * 2);
+    };
+    this.scrollListener = update;
+    // Scroll fires constantly; keep it off the change detection path. Setting a
+    // signal to the value it already holds is a no-op, so the component only
+    // re-renders on the two transitions that matter.
+    this.ngZone.runOutsideAngular(() => {
+      window.addEventListener('scroll', update, { passive: true });
+    });
+    update();
+  }
+
+  scrollToTop(): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    window.scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' });
+  }
+
   // Homepage nudge shown only in the ~2-week window after results release,
   // when students are actually motivated to write a review
   // (catalog-and-growth.md #4). Session-dismissible, not permanent.
@@ -135,6 +221,8 @@ export class UnitListComponent implements OnInit, OnDestroy {
     if (isResultsSeasonWindow() && sessionStorage.getItem(this.SEASONAL_BANNER_DISMISS_KEY) !== 'true') {
       this.showSeasonalBanner.set(true);
     }
+
+    this.watchScrollForBackToTop();
 
     // Search input is debounced; sort/faculty/level fire immediately
     this.searchSubject.pipe(debounceTime(300), takeUntil(this.destroy$)).subscribe(() => this.loadPage0());
@@ -183,6 +271,10 @@ export class UnitListComponent implements OnInit, OnDestroy {
     this.destroy$.next();
     this.destroy$.complete();
     this.observer?.disconnect();
+    if (this.scrollListener && isPlatformBrowser(this.platformId)) {
+      window.removeEventListener('scroll', this.scrollListener);
+      this.scrollListener = undefined;
+    }
   }
 
   /**
@@ -217,6 +309,7 @@ export class UnitListComponent implements OnInit, OnDestroy {
       units: this.normalizeRatios(page.content),
       page: 0,
       totalPages: page.totalPages,
+      totalElements: page.totalElements,
       loading: false,
       refreshing: false,
       loadingMore: false,
@@ -255,23 +348,38 @@ export class UnitListComponent implements OnInit, OnDestroy {
 
   private loadNextPage(): void {
     const state = this.stateSubject.value;
-    if (state.loading || state.loadingMore || !state.hasMore) return;
+    if (state.loading || state.loadingMore || !state.hasMore) {
+      this.nextLoadIsManual = false;
+      return;
+    }
 
+    const manual = this.nextLoadIsManual;
+    this.nextLoadIsManual = false;
     const nextPage = state.page + 1;
     this.stateSubject.next({ ...state, loadingMore: true });
 
     this.fetchPage(nextPage).pipe(takeUntil(this.fetchCancel$)).subscribe({
       next: page => {
+        const units = [...state.units, ...this.normalizeRatios(page.content)];
+        const hasMore = nextPage < page.totalPages - 1;
         this.stateSubject.next({
-          units: [...state.units, ...this.normalizeRatios(page.content)],
+          units,
           page: nextPage,
           totalPages: page.totalPages,
+          totalElements: page.totalElements,
           loading: false,
           refreshing: false,
           loadingMore: false,
           error: null,
-          hasMore: nextPage < page.totalPages - 1
+          hasMore
         });
+        if (manual) {
+          const added = page.content.length;
+          this.loadAnnouncement.set(
+            `Loaded ${added} more unit${added === 1 ? '' : 's'}. Showing ${units.length} of ${page.totalElements}.`
+          );
+          this.focusEndWhenRendered = !hasMore;
+        }
       },
       error: () => {
         this.stateSubject.next({ ...this.stateSubject.value, loadingMore: false, error: 'Failed to load more units.' });

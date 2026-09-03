@@ -520,18 +520,144 @@
   flex-shrink: 0;
 }
 
-/* Invisible sentinel that triggers infinite scroll */
+/* Invisible sentinel that triggers auto-load for the first few pages */
 .scroll-sentinel {
   height: 1px;
   pointer-events: none;
 }
 
+/* "Show more units": takes over from auto-load so the page has a bottom */
+.load-more {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin: 36px auto 8px;
+  max-width: 360px;
+  text-align: center;
+}
+
+.load-more-count {
+  margin: 0;
+  font-family: var(--alt-font);
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.load-more-progress {
+  width: 100%;
+  height: 4px;
+  background-color: var(--border-color);
+  overflow: hidden;
+}
+
+.load-more-progress-fill {
+  display: block;
+  height: 100%;
+  min-width: 2px;
+  background-color: var(--primary-color);
+  transition: width 0.3s ease;
+}
+
+.load-more-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-width: 220px;
+  min-height: 48px;
+  margin-top: 4px;
+  font-size: 1rem;
+}
+
+.load-more-btn:focus-visible {
+  outline: 2px solid var(--secondary-color);
+  outline-offset: 3px;
+}
+
+.load-more-btn.is-loading {
+  cursor: progress;
+}
+
+/* The button's own spinner sits on gold, so it borrows the label colour. */
+.load-more-spinner {
+  width: 18px;
+  height: 18px;
+  border-color: rgba(0, 0, 0, 0.2);
+  border-top-color: var(--secondary-color);
+}
+
 /* End-of-list message */
 .end-message {
   text-align: center;
-  padding: 24px 0 8px;
+  padding: 32px 0 8px;
   color: var(--text-secondary);
-  font-size: 0.85rem;
+  font-size: 0.9rem;
+}
+
+.end-message p {
+  margin: 0 0 8px;
+}
+
+.end-message:focus {
+  outline: none;
+}
+
+.end-message:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 4px;
+}
+
+.end-message-top {
+  text-decoration: underline;
+}
+
+/* Floating "Back to top", shown once the visitor is about two screens down.
+   Sits below the compare bar's z-index and lifts above it when both show. */
+.back-to-top {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 40;
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 2px solid var(--primary-color);
+  border-radius: var(--radius-none);
+  background-color: var(--secondary-color);
+  color: var(--primary-color);
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.2s ease, color 0.2s ease, bottom 0.2s ease;
+}
+
+.back-to-top:hover {
+  background-color: var(--primary-color);
+  color: var(--secondary-color);
+}
+
+.back-to-top:focus-visible {
+  outline: 2px solid var(--secondary-color);
+  outline-offset: 3px;
+}
+
+.back-to-top.raised {
+  bottom: 92px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .back-to-top,
+  .load-more-progress-fill {
+    transition: none;
+  }
 }
 
 @media (max-width: 1110px) {
@@ -616,6 +742,15 @@
 
   .empty-state {
     padding: 40px 20px;
+  }
+
+  .back-to-top {
+    right: 14px;
+    bottom: 14px;
+  }
+
+  .back-to-top.raised {
+    bottom: 84px;
   }
 }
 
