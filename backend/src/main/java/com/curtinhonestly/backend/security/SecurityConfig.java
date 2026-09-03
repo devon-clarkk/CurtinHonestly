@@ -98,6 +98,11 @@ public class SecurityConfig {
                         // is further gated by @PreAuthorize(IS_ADMIN_OR_OWNER) on the resource method.
                         .requestMatchers(HttpMethod.DELETE, "/reviews/*/likes").hasAnyAuthority(UserRole.ROLE_USER.name(), UserRole.ROLE_ADMIN.name())
 
+                        // Personalised recommendations (RecommendationResource). Per-user, so any
+                        // signed-in account; the public GET /units/{code}/similar endpoint is
+                        // already covered by the GET /units/** rule above.
+                        .requestMatchers("/recommendations/**").authenticated()
+
                         // Default
                         .anyRequest().authenticated()
                 )

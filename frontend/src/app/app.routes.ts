@@ -49,6 +49,13 @@ export const routes: Routes = [
     path: 'faculty/:slug',
     loadComponent: () => import('./components/faculty/faculty.component').then(m => m.FacultyComponent)
   },
+  // Personalised recommendations. Signed-in only and reached from the nav, so
+  // lazy: anonymous visitors never download it.
+  {
+    path: 'for-you',
+    loadComponent: () => import('./components/recommendations/recommendations.component').then(m => m.RecommendationsComponent),
+    canActivate: [authGuard]
+  },
   { path: 'units/:code', component: UnitDetailComponent },
   {
     path: '**',

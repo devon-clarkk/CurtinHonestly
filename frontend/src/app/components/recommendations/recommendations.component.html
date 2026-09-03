@@ -1,0 +1,131 @@
+<div class="page-container">
+  <div class="page-header">
+    <h1 class="handbook-title">For you</h1>
+    <p class="subtitle">
+      Units picked from your own reviews and from students whose ratings match yours.
+      Every review you add sharpens the picks.
+    </p>
+  </div>
+
+  @if (isLoading()) {
+    <div class="loading">
+      <div class="spinner" aria-hidden="true"></div>
+      <p class="loading-text">Building your recommendations</p>
+    </div>
+  } @else if (errorMessage()) {
+    <div class="error-box">
+      <span>{{ errorMessage() }}</span>
+      <button type="button" class="btn-text" (click)="load()">Try again</button>
+    </div>
+  } @else if (data(); as result) {
+
+    @if (result.coldStart) {
+      <section class="cold-start">
+        <h2>Getting started</h2>
+        <p>{{ result.message }}</p>
+        <div class="cold-start-actions">
+          <a routerLink="/" class="btn btn-primary">Find a unit to review</a>
+          <a routerLink="/my-reviews" class="btn-ghost">My Reviews</a>
+        </div>
+      </section>
+
+      @if (result.recommended.length > 0) {
+        <section class="rec-section">
+          <h2 class="section-title">Highly rated units</h2>
+          <div class="rec-grid">
+            @for (item of result.recommended; track item.unitCode) {
+              <ng-container *ngTemplateOutlet="cardTpl; context: { $implicit: item, avoid: false, cold: true }"></ng-container>
+            }
+          </div>
+        </section>
+      }
+    } @else {
+      <p class="basis">
+        Based on your {{ result.basedOnReviews }} {{ plural(result.basedOnReviews, 'review', 'reviews') }}
+        and {{ result.neighbourCount }} {{ plural(result.neighbourCount, 'student', 'students') }} with similar ratings.
+      </p>
+
+      <section class="rec-section">
+        <h2 class="section-title">Recommended for you</h2>
+        @if (result.recommended.length === 0) {
+          <div class="empty-state">
+            <p>No strong matches yet. Reviewing more units gives the similar students more to go on.</p>
+            <a routerLink="/my-reviews" class="btn btn-primary">Add a review</a>
+          </div>
+        } @else {
+          <div class="rec-grid">
+            @for (item of result.recommended; track item.unitCode) {
+              <ng-container *ngTemplateOutlet="cardTpl; context: { $implicit: item, avoid: false, cold: false }"></ng-container>
+            }
+          </div>
+        }
+      </section>
+
+      @if (result.avoid.length > 0) {
+        <section class="rec-section avoid-section">
+          <button
+            type="button"
+            class="avoid-toggle"
+            (click)="toggleAvoid()"
+            [attr.aria-expanded]="showAvoid()"
+            aria-controls="avoid-list"
+          >
+            <span class="avoid-toggle-title">Probably not for you</span>
+            <span class="avoid-toggle-count">{{ result.avoid.length }}</span>
+            <span class="chevron" [class.open]="showAvoid()" aria-hidden="true"></span>
+          </button>
+          <p class="avoid-hint">Units that students with ratings like yours rated poorly.</p>
+          @if (showAvoid()) {
+            <div id="avoid-list" class="rec-grid">
+              @for (item of result.avoid; track item.unitCode) {
+                <ng-container *ngTemplateOutlet="cardTpl; context: { $implicit: item, avoid: true, cold: false }"></ng-container>
+              }
+            </div>
+          }
+        </section>
+      }
+    }
+  }
+
+  <div class="page-footer">
+    <a routerLink="/my-reviews">My Reviews</a>
+    <span class="sep">·</span>
+    <a routerLink="/">Back to home</a>
+  </div>
+</div>
+
+<ng-template #cardTpl let-item let-avoid="avoid" let-cold="cold">
+  <article class="rec-card" [class.avoid]="avoid">
+    <div class="rec-card-top">
+      <div class="rec-card-title">
+        <a class="unit-code" [routerLink]="['/units', item.unitCode]">{{ item.unitCode }}</a>
+        <h3><a [routerLink]="['/units', item.unitCode]">{{ item.unitName }}</a></h3>
+        <span class="unit-meta">
+          {{ item.faculty }}@if (item.level) {<span class="meta-sep">·</span>{{ item.level }}}
+        </span>
+      </div>
+      <div
+        class="match-ring"
+        [style.--pct]="item.matchScore + '%'"
+        role="img"
+        [attr.aria-label]="'Match score ' + item.matchScore + ' out of 100'"
+      >
+        <span class="match-value">{{ item.matchScore }}</span>
+        <span class="match-label">match</span>
+      </div>
+    </div>
+
+    <div class="rec-card-stats">
+      <span class="confidence"><strong>{{ item.confidence }}%</strong> confidence</span>
+      <span class="support">{{ supportLabel(item, cold) }}</span>
+    </div>
+
+    @if (item.reasons.length > 0) {
+      <ul class="reason-chips">
+        @for (reason of item.reasons; track reason) {
+          <li>{{ reason }}</li>
+        }
+      </ul>
+    }
+  </article>
+</ng-template>
