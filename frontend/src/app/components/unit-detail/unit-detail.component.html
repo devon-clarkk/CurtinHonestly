@@ -196,6 +196,15 @@
                   <path fill="currentColor" d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-1 14.59l-4.29-4.3 1.42-1.41L11 12.17l5.88-5.88 1.41 1.41L11 15.59z"/>
                 </svg>
               </span>
+              @if (reviewerTierDisplay(review); as tier) {
+                <span class="tier-chip" [title]="tier.description">{{ tier.label }}</span>
+              }
+              @if (reviewerRecognitionDisplay(review); as recognition) {
+                <span class="tier-chip recognition" [title]="recognition.description">
+                  <app-icon name="thumb-up" [filled]="true" />
+                  {{ recognition.label }}
+                </span>
+              }
             </span>
             <span class="review-meta" *ngIf="reviewMetaLine(review) as meta">{{ meta }}</span>
           </div>

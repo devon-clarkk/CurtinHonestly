@@ -511,6 +511,36 @@
   font-weight: 600;
 }
 
+/* Reviewer standing, beside the verified badge. Same quiet weight as the
+   footer tags so it reads as context about the author, not a headline. The
+   recognition chip picks up the gold ink because it is earned from other
+   students' helpful marks, the same signal the like button uses. */
+.tier-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 8px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-none);
+  background: var(--surface-muted);
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+
+.tier-chip.recognition {
+  border-color: #ead9a8;
+  background: #fbf6e6;
+  color: var(--primary-ink);
+}
+
+.tier-chip app-icon {
+  display: inline-flex;
+  font-size: 0.75rem;
+}
+
 .review-meta {
   font-size: 0.85rem;
   color: var(--text-secondary);

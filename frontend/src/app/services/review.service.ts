@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 import { UnitCacheService } from './unit-cache.service';
 import { environment } from '../../environments/environment';
-import { MyReview } from '../models/unit.model';
+import { MyReview, ReviewerProfile } from '../models/unit.model';
 
 export interface CampaignProgress {
   qualifyingReviews: number;
@@ -41,6 +41,12 @@ export class ReviewService {
 
   getMyReviews(): Observable<MyReview[]> {
     return this.http.get<MyReview[]>(`${this.apiUrl}/me`);
+  }
+
+  // Authenticated. Lives outside /reviews because GET /reviews/** is admin-only
+  // on the backend, with /reviews/me as the one exact-path exception.
+  getMyReviewerProfile(): Observable<ReviewerProfile> {
+    return this.http.get<ReviewerProfile>(`${environment.apiUrl}/reviewer-rank/me`);
   }
 
   createReview(review: unknown): Observable<CreateReviewResponse> {

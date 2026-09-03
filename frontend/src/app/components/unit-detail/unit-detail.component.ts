@@ -13,6 +13,7 @@ import { FacultyHub, facultyHubByName, unitCodeForUrl } from '../../utils/facult
 import { reviewAuthorName } from '../../utils/unit-seo.utils';
 import { GradeBand, gradeDistribution, gradedReviewCount } from '../../utils/grade-distribution.util';
 import { formatTerm, termSortKey } from '../../utils/semester-options.util';
+import { reviewerRecognitionDisplay, reviewerTierDisplay } from '../../utils/reviewer-tier.util';
 import { MyReview, PrerequisiteGroup, PrerequisiteOption, REVIEW_TAGS, Review, Tip, UnitDetails } from '../../models/unit.model';
 import { Observable, switchMap, map, of, tap, catchError } from 'rxjs';
 import { AddReviewComponent } from '../add-review/add-review.component';
@@ -39,6 +40,11 @@ export class UnitDetailComponent implements OnInit {
   private completedUnitsService = inject(CompletedUnitsService);
   private seoService = inject(SeoService);
   private prerequisiteGraph = inject(PrerequisiteGraphService);
+
+  // Reviewer standing chips on each card. Null when there is nothing to show,
+  // which is the normal case for anonymised reviews and unliked authors.
+  reviewerTierDisplay = reviewerTierDisplay;
+  reviewerRecognitionDisplay = reviewerRecognitionDisplay;
 
   /**
    * The hub that lists every unit in this unit's faculty, or undefined if the
