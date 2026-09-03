@@ -36,6 +36,7 @@ class VerificationServiceTest {
 
     @Captor ArgumentCaptor<VerificationToken> tokenCaptor;
     @Captor ArgumentCaptor<String> bodyCaptor;
+    @Captor ArgumentCaptor<String> htmlCaptor;
 
     private VerificationService service() {
         return new VerificationService(tokenRepo, userRepo, emailService, passwordEncoder,
@@ -66,19 +67,29 @@ class VerificationServiceTest {
 
         verify(tokenRepo).invalidateOutstanding(any(User.class), eq(VerificationPurpose.STUDENT_VERIFICATION));
         verify(tokenRepo).save(tokenCaptor.capture());
-        verify(emailService).send(eq("bob@student.curtin.edu.au"), anyString(), bodyCaptor.capture());
+        verify(emailService).send(eq("bob@student.curtin.edu.au"), anyString(), bodyCaptor.capture(), htmlCaptor.capture());
 
         VerificationToken saved = tokenCaptor.getValue();
         assertThat(saved.getPurpose()).isEqualTo(VerificationPurpose.STUDENT_VERIFICATION);
         assertThat(saved.getTargetEmail()).isEqualTo("bob@student.curtin.edu.au");
         assertThat(saved.getExpiresAt()).isAfter(Instant.now().plus(23, ChronoUnit.HOURS));
 
-        // The raw token in the emailed link must hash to the stored hash — the raw value is never persisted.
+        // The raw token in the emailed link must hash to the stored hash: the raw value is never persisted.
         Matcher m = Pattern.compile("token=([^\\s]+)").matcher(bodyCaptor.getValue());
         assertThat(m.find()).isTrue();
         String rawToken = m.group(1);
         assertThat(saved.getTokenHash()).isEqualTo(sha256(rawToken));
         assertThat(saved.getTokenHash()).isNotEqualTo(rawToken);
+
+        // Lowercase hex only. A token ending in "-" or "_" is one a mail client's URL
+        // detection can trim as trailing punctuation, which leaves a link that looks
+        // right and cannot be validated.
+        assertThat(rawToken).matches("[0-9a-f]{64}");
+        // The HTML part carries the same link as a real anchor, plus the copyable URL.
+        String link = "https://curtinhonestly.com/verify-student/confirm?token=" + rawToken;
+        assertThat(htmlCaptor.getValue()).contains("href=\"" + link + "\"");
+        assertThat(htmlCaptor.getValue()).contains("copy this link");
+        assertThat(bodyCaptor.getValue()).contains(link);
     }
 
     @Test
@@ -158,14 +169,97 @@ class VerificationServiceTest {
     }
 
     @Test
-    void confirm_rejectsAlreadyUsedToken() throws Exception {
+    void confirm_rejectsAlreadyUsedTokenWhenTheAccountIsStillUnverified() throws Exception {
+        // Used, but the account did not end up verified (the token was superseded by a
+        // re-request, or the account was verified and later changed its email). There
+        // is nothing to be idempotent about, so it stays an error, and one that says
+        // "used" rather than "expired" so the person knows to request a fresh link.
         VerificationToken token = usableToken(unverifiedUser());
         token.setUsedAt(Instant.now().minus(5, ChronoUnit.MINUTES));
         when(tokenRepo.findByTokenHash(sha256("raw-token"))).thenReturn(Optional.of(token));
 
         assertThatThrownBy(() -> service().confirmStudentVerification("raw-token"))
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage(VerificationService.STUDENT_LINK_USED);
         verify(userRepo, never()).saveAndFlush(any());
+    }
+
+    private User verifiedUser(String email) {
+        User user = unverifiedUser();
+        user.setEmail(email);
+        user.setVerifiedStudent(true);
+        return user;
+    }
+
+    @Test
+    void confirm_treatsAReplayOfAUsedTokenAsSuccessWhenTheAccountAlreadyHoldsThatVerification() throws Exception {
+        // The scenario behind "this link has already been used" reports: a mailbox link
+        // scanner opened the emailed URL first. Whoever consumed the token, the account
+        // now holds exactly what this link grants, so the person's own click succeeds.
+        User user = verifiedUser("bob@student.curtin.edu.au");
+        VerificationToken token = usableToken(user);
+        token.setUsedAt(Instant.now().minus(5, ChronoUnit.MINUTES));
+        when(tokenRepo.findByTokenHash(sha256("raw-token"))).thenReturn(Optional.of(token));
+
+        User result = service().confirmStudentVerification("raw-token");
+
+        assertThat(result).isSameAs(user);
+        assertThat(result.isVerifiedStudent()).isTrue();
+        // Nothing is rewritten on a replay: the token keeps its original usedAt and the
+        // ownership re-check is not needed for an address the account already holds.
+        verify(userRepo, never()).saveAndFlush(any());
+        verify(tokenRepo, never()).save(any());
+        verify(userRepo, never()).findByEmail(anyString());
+    }
+
+    @Test
+    void confirm_replayMatchesTheTargetEmailCaseInsensitively() throws Exception {
+        User user = verifiedUser("Bob@Student.Curtin.Edu.Au");
+        VerificationToken token = usableToken(user);
+        token.setUsedAt(Instant.now().minus(5, ChronoUnit.MINUTES));
+        when(tokenRepo.findByTokenHash(sha256("raw-token"))).thenReturn(Optional.of(token));
+
+        assertThat(service().confirmStudentVerification("raw-token")).isSameAs(user);
+    }
+
+    @Test
+    void confirm_rejectsAReplayForAVerifiedAccountWhoseEmailIsNotTheTokensTarget() throws Exception {
+        // Verified under some other student address: this link did not grant the
+        // current state, so replaying it must not mint a session off it.
+        User user = verifiedUser("someone-else@student.curtin.edu.au");
+        VerificationToken token = usableToken(user);
+        token.setUsedAt(Instant.now().minus(5, ChronoUnit.MINUTES));
+        when(tokenRepo.findByTokenHash(sha256("raw-token"))).thenReturn(Optional.of(token));
+
+        assertThatThrownBy(() -> service().confirmStudentVerification("raw-token"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage(VerificationService.STUDENT_LINK_USED);
+    }
+
+    @Test
+    void confirm_rejectsAReplayOnceTheTokenHasExpiredEvenForAVerifiedAccount() throws Exception {
+        // The idempotent replay is bounded by the original expiry. Without this bound a
+        // spent verification email would be a standing login link for the account.
+        User user = verifiedUser("bob@student.curtin.edu.au");
+        VerificationToken token = usableToken(user);
+        token.setUsedAt(Instant.now().minus(2, ChronoUnit.DAYS));
+        token.setExpiresAt(Instant.now().minus(1, ChronoUnit.DAYS));
+        when(tokenRepo.findByTokenHash(sha256("raw-token"))).thenReturn(Optional.of(token));
+
+        assertThatThrownBy(() -> service().confirmStudentVerification("raw-token"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage(VerificationService.STUDENT_LINK_EXPIRED);
+    }
+
+    @Test
+    void confirm_expiredAndNeverUsedSaysExpiredNotUsed() throws Exception {
+        VerificationToken token = usableToken(unverifiedUser());
+        token.setExpiresAt(Instant.now().minus(1, ChronoUnit.MINUTES));
+        when(tokenRepo.findByTokenHash(sha256("raw-token"))).thenReturn(Optional.of(token));
+
+        assertThatThrownBy(() -> service().confirmStudentVerification("raw-token"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage(VerificationService.STUDENT_LINK_EXPIRED);
     }
 
     @Test
@@ -204,7 +298,7 @@ class VerificationServiceTest {
 
         verify(tokenRepo).invalidateOutstanding(user, VerificationPurpose.PASSWORD_RESET);
         verify(tokenRepo).save(tokenCaptor.capture());
-        verify(emailService).send(eq("alice@gmail.com"), anyString(), bodyCaptor.capture());
+        verify(emailService).send(eq("alice@gmail.com"), anyString(), bodyCaptor.capture(), htmlCaptor.capture());
 
         VerificationToken saved = tokenCaptor.getValue();
         assertThat(saved.getPurpose()).isEqualTo(VerificationPurpose.PASSWORD_RESET);
@@ -215,6 +309,7 @@ class VerificationServiceTest {
         assertThat(m.find()).isTrue();
         assertThat(saved.getTokenHash()).isEqualTo(sha256(m.group(1)));
         assertThat(bodyCaptor.getValue()).contains("/reset-password?token=");
+        assertThat(htmlCaptor.getValue()).contains("href=\"https://curtinhonestly.com/reset-password?token=" + m.group(1) + "\"");
     }
 
     @Test
