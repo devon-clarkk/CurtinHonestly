@@ -15,6 +15,7 @@ const { invertPrerequisiteGraph } = require('../src/app/utils/prerequisite-graph
 const outputPath = path.resolve(__dirname, '../src/generated/unit-codes.json');
 const sitemapMetaPath = path.resolve(__dirname, '../src/generated/unit-sitemap-meta.json');
 const requiredForPath = path.resolve(__dirname, '../src/generated/required-for.json');
+const shareMetaPath = path.resolve(__dirname, '../src/generated/unit-share-meta.json');
 const PAGE_SIZE = 500;
 const isCi = process.env.GITHUB_ACTIONS === 'true';
 
@@ -29,6 +30,7 @@ const DETAIL_CONCURRENCY = 16;
 async function fetchAllUnits(apiUrl) {
   const codes = [];
   const sitemapMeta = [];
+  const shareMeta = [];
   let page = 0;
   let totalPages = 1;
 
@@ -50,6 +52,16 @@ async function fetchAllUnits(apiUrl) {
           code: unit.code,
           lastmod: unit.latestReviewAt ? unit.latestReviewAt.slice(0, 10) : null,
         });
+        // Everything a share card draws, taken from the listing this loop
+        // already reads. The card needs no request of its own: the summary
+        // carries the name, the faculty and the review position already.
+        shareMeta.push({
+          code: unit.code,
+          name: unit.name ?? '',
+          faculty: unit.faculty ?? '',
+          rating: unit.averageRating ?? 0,
+          reviews: unit.numberOfReviews ?? 0,
+        });
       }
     }
 
@@ -58,7 +70,7 @@ async function fetchAllUnits(apiUrl) {
     console.log(`Fetched page ${page}/${totalPages} (${codes.length} codes so far)`);
   }
 
-  return { codes, sitemapMeta };
+  return { codes, sitemapMeta, shareMeta };
 }
 
 async function fetchPrerequisiteCodes(apiUrl, code) {
@@ -124,6 +136,7 @@ function writeEmptyOutputs(reason) {
   fs.mkdirSync(path.dirname(outputPath), { recursive: true });
   fs.writeFileSync(outputPath, '[]\n');
   fs.writeFileSync(sitemapMetaPath, '[]\n');
+  fs.writeFileSync(shareMetaPath, '[]\n');
   // The unit page imports this one, so it has to exist even when nothing was
   // fetched. Empty means "no graph was built", which the page reads as a reason
   // to say nothing rather than to claim every unit is a dead end.
@@ -141,17 +154,20 @@ async function main() {
   console.log(`SEO enabled — fetching unit codes from ${apiUrl} ...`);
 
   try {
-    const { codes, sitemapMeta } = await fetchAllUnits(apiUrl);
+    const { codes, sitemapMeta, shareMeta } = await fetchAllUnits(apiUrl);
     const requiredFor = await fetchPrerequisiteGraph(apiUrl, codes);
 
     fs.mkdirSync(path.dirname(outputPath), { recursive: true });
     fs.writeFileSync(outputPath, JSON.stringify(codes, null, 2));
     fs.writeFileSync(sitemapMetaPath, JSON.stringify(sitemapMeta, null, 2));
+    fs.writeFileSync(shareMetaPath, JSON.stringify(shareMeta, null, 2));
     fs.writeFileSync(requiredForPath, JSON.stringify(requiredFor, null, 2));
 
     const edges = Object.values(requiredFor).reduce((total, list) => total + list.length, 0);
+    const reviewed = shareMeta.filter((unit) => unit.reviews > 0).length;
     console.log(`Wrote ${codes.length} unit codes to ${outputPath}`);
     console.log(`Wrote sitemap metadata to ${sitemapMetaPath}`);
+    console.log(`Wrote share card data to ${shareMetaPath} (${reviewed} units carry a rating)`);
     console.log(
       `Wrote the reverse prerequisite graph to ${requiredForPath} ` +
         `(${Object.keys(requiredFor).length} units unlock something, ${edges} links)`

@@ -217,7 +217,9 @@ export class UnitDetailComponent implements OnInit {
       }),
       tap((unit) => {
         if (unit) {
-          this.seoService.updateUnitPage(unit);
+          // The same list the page renders, so the markup describes this page
+          // rather than making a separate claim about it.
+          this.seoService.updateUnitPage(unit, this.unitsRequiring(unit.code));
           this.currentUnitCode = unit.code;
           this.loadTips(unit.code);
           this.loadMyReviewForUnit(unit.code);
