@@ -26,6 +26,7 @@
     <nav id="main-nav" class="main-nav" [class.is-open]="mobileNavOpen()">
       <a routerLink="/" (click)="closeMobileNav()">Home</a>
       <a routerLink="/compare" (click)="closeMobileNav()">Compare</a>
+      <a routerLink="/boards" (click)="closeMobileNav()">Boards</a>
       <ng-container *ngIf="!authService.isLoggedIn()">
         <a routerLink="/login" (click)="closeMobileNav()">Login</a>
         <a routerLink="/register" class="register-link" (click)="closeMobileNav()">Register</a>

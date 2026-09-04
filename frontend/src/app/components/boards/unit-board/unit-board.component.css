@@ -1,0 +1,40 @@
+.unit-name {
+  display: block;
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.unit-counts {
+  display: inline-flex;
+  gap: 6px;
+  font-family: var(--alt-font);
+  font-size: 0.85rem;
+}
+
+.list-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.list-head h2 {
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.board-foot {
+  margin: 20px 0 0;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.board-foot a {
+  color: var(--primary-ink);
+  font-weight: 600;
+}

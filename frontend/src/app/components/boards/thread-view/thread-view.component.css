@@ -1,0 +1,198 @@
+.thread-page {
+  max-width: 900px;
+}
+
+.board-notice.success {
+  border-left-color: #2f855a;
+}
+
+/* Opening post */
+
+.op-card {
+  border-top: 4px solid var(--secondary-color);
+  margin-bottom: 24px;
+}
+
+.op-card.pinned {
+  border-top-color: var(--primary-color);
+}
+
+.op-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.op-chips .thread-unit {
+  font-family: var(--alt-font);
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.op-title {
+  margin: 0 0 10px;
+  font-size: 1.7rem;
+  line-height: 1.25;
+}
+
+.post-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+  margin-bottom: 12px;
+}
+
+.post-time {
+  font-family: var(--alt-font);
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.post-body {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  line-height: 1.6;
+  color: var(--text-primary);
+}
+
+.post-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 18px;
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-color);
+  font-size: 0.9rem;
+}
+
+.post-actions .reply-count {
+  margin-right: auto;
+  font-family: var(--alt-font);
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.post-actions .btn-text.report {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--text-secondary);
+}
+
+.post-actions .btn-text.report app-icon {
+  display: inline-flex;
+  font-size: 0.9rem;
+}
+
+.post-actions .btn-text.report:hover {
+  color: var(--secondary-color);
+}
+
+.reported {
+  font-family: var(--alt-font);
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+/* Replies */
+
+.replies-heading {
+  font-size: 1.1rem;
+  margin: 0 0 10px;
+}
+
+.post-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.post-card {
+  padding: 16px 20px;
+}
+
+.post-card.mine {
+  border-left: 3px solid var(--primary-color);
+}
+
+.post-card.removed {
+  background: var(--surface-muted);
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.removed-text {
+  margin: 0;
+  font-style: italic;
+  color: var(--text-secondary);
+}
+
+.post-card .post-actions {
+  margin-top: 10px;
+}
+
+/* Reply composer */
+
+.reply-card {
+  margin-top: 24px;
+  border-top: 4px solid var(--primary-color);
+}
+
+.reply-card .board-form textarea {
+  min-height: 110px;
+}
+
+.reply-hint {
+  font-family: var(--alt-font);
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+/* Report form (inline under the item) */
+
+.report-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid var(--border-color);
+  background: var(--surface-muted);
+}
+
+.report-form label {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.report-form input {
+  padding: 8px 10px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-none);
+  font: inherit;
+  font-size: 0.9rem;
+}
+
+.report-form .btn {
+  padding: 6px 14px;
+  font-size: 0.85rem;
+}
+
+@media (max-width: 600px) {
+  .op-title {
+    font-size: 1.35rem;
+  }
+
+  .post-card {
+    padding: 14px;
+  }
+}

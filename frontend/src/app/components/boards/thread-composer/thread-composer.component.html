@@ -1,0 +1,64 @@
+<section class="board-card composer" aria-labelledby="composer-heading">
+  <h2 id="composer-heading">{{ heading() }}</h2>
+
+  @if (!authService.isLoggedIn()) {
+    <p class="board-notice">
+      <a routerLink="/login">Log in</a> or <a routerLink="/register">create an account</a> to start a thread.
+      Posts are anonymous: other students see a pseudonym, never your email.
+    </p>
+    <div class="board-actions">
+      <button type="button" class="btn-text" (click)="cancel()">Close</button>
+    </div>
+  } @else {
+    <p class="composer-hint">
+      You post as a pseudonym that stays the same across your threads and replies. Keep it useful for other students.
+    </p>
+
+    <form class="board-form" (ngSubmit)="submit()" novalidate>
+      <div class="board-field">
+        <label for="composer-title">Title</label>
+        <input
+          id="composer-title"
+          type="text"
+          name="title"
+          [ngModel]="title()"
+          (ngModelChange)="title.set($event)"
+          [attr.maxlength]="titleMax"
+          placeholder="What do you want to ask or share?"
+          autocomplete="off"
+          required
+        />
+        <span class="board-counter" [class.over]="title().length > titleMax" aria-live="polite">
+          {{ title().length }} / {{ titleMax }}
+        </span>
+      </div>
+
+      <div class="board-field">
+        <label for="composer-body">Details</label>
+        <textarea
+          id="composer-body"
+          name="body"
+          [ngModel]="body()"
+          (ngModelChange)="body.set($event)"
+          [attr.maxlength]="bodyMax"
+          placeholder="Give enough context for someone to help: which semester, what you have tried, what you are weighing up."
+          required
+        ></textarea>
+        <span class="board-counter" [class.over]="body().length > bodyMax" aria-live="polite">
+          {{ body().length }} / {{ bodyMax }}
+        </span>
+      </div>
+
+      @if (errorMessage()) {
+        <p class="board-error" role="alert">{{ errorMessage() }}</p>
+      }
+
+      <div class="board-actions">
+        <button type="submit" class="btn btn-primary" [disabled]="!canSubmit()">
+          {{ submitting() ? 'Posting...' : 'Post thread' }}
+        </button>
+        <button type="button" class="btn-text" (click)="cancel()">Cancel</button>
+      </div>
+    </form>
+  }
+</section>

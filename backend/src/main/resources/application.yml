@@ -62,3 +62,8 @@ app:
     from: ${MAIL_FROM:no-reply@curtinhonestly.com}
     verification-token-ttl-hours: ${VERIFICATION_TOKEN_TTL_HOURS:24}
     reset-token-ttl-hours: ${RESET_TOKEN_TTL_HOURS:1}
+  boards:
+    # Key for the HMAC that turns a user id into a board pseudonym ("Quiet Quokka 42").
+    # Defaults to the JWT secret so no extra deployment secret is needed. Set
+    # BOARDS_PSEUDONYM_SECRET to rotate it independently; rotating renames every author.
+    pseudonym-secret: ${BOARDS_PSEUDONYM_SECRET:${jwt.secret}}

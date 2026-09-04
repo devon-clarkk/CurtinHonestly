@@ -56,6 +56,21 @@ export const routes: Routes = [
     loadComponent: () => import('./components/recommendations/recommendations.component').then(m => m.RecommendationsComponent),
     canActivate: [authGuard]
   },
+  // Community boards. Client-rendered and noindex for now, entered from the nav
+  // or a unit page, so lazy like the other secondary pages. The three routes
+  // share the components under components/boards.
+  {
+    path: 'boards',
+    loadComponent: () => import('./components/boards/boards-landing/boards-landing.component').then(m => m.BoardsLandingComponent)
+  },
+  {
+    path: 'boards/units/:code',
+    loadComponent: () => import('./components/boards/unit-board/unit-board.component').then(m => m.UnitBoardComponent)
+  },
+  {
+    path: 'boards/threads/:id',
+    loadComponent: () => import('./components/boards/thread-view/thread-view.component').then(m => m.ThreadViewComponent)
+  },
   { path: 'units/:code', component: UnitDetailComponent },
   {
     path: '**',

@@ -1,0 +1,114 @@
+/* Same shell as unit-detail's .info-block so the card sits in either column. */
+.preview-block {
+  margin-top: 30px;
+  background-color: var(--card-background);
+  padding: 20px;
+  border-radius: var(--radius-none);
+  border: 1px solid var(--border-color);
+}
+
+.preview-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.preview-head h2 {
+  font-size: 1.1rem;
+  margin: 0;
+  color: var(--secondary-color);
+}
+
+.preview-counts {
+  display: inline-flex;
+  gap: 6px;
+  font-family: var(--alt-font);
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.preview-hint {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin: -8px 0 14px;
+}
+
+.preview-loading,
+.preview-empty {
+  margin: 0 0 14px;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.preview-list {
+  list-style: none;
+  margin: 0 0 14px;
+  padding: 0;
+}
+
+.preview-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.preview-item:first-child {
+  padding-top: 0;
+}
+
+.preview-item:last-child {
+  border-bottom: none;
+}
+
+.preview-title {
+  font-weight: 600;
+  color: var(--secondary-color);
+  text-decoration: none;
+  line-height: 1.35;
+}
+
+.preview-title:hover {
+  color: var(--primary-ink);
+  text-decoration: underline;
+}
+
+.preview-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-family: var(--alt-font);
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+}
+
+.preview-author {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.preview-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.preview-start {
+  display: inline-block;
+  text-decoration: none;
+  font-size: 0.9rem;
+  padding: 8px 16px;
+}
+
+.preview-all {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--primary-ink);
+}

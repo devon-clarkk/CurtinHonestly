@@ -1,0 +1,100 @@
+<div class="board-page">
+  <header class="board-header">
+    <div>
+      <h1 class="handbook-title">Boards</h1>
+      <p class="board-lead">
+        Ask other Curtin students anything about units, electives and study plans.
+        Every post is anonymous: you appear as a pseudonym, never your email.
+      </p>
+    </div>
+    <button type="button" class="btn btn-primary" (click)="toggleComposer()" [attr.aria-expanded]="composing()">
+      {{ composing() ? 'Close' : 'Start a thread' }}
+    </button>
+  </header>
+
+  @if (composing()) {
+    <app-thread-composer scope="GENERAL" (created)="onCreated($event)" (cancelled)="composing.set(false)" />
+  }
+
+  <div class="board-columns">
+    <section class="board-card general" aria-labelledby="general-heading">
+      <div class="list-head">
+        <h2 id="general-heading">General discussion</h2>
+        <div class="board-sort" role="group" aria-label="Sort threads">
+          <button type="button" [attr.aria-pressed]="sort() === 'activity'" (click)="setSort('activity')">Active</button>
+          <button type="button" [attr.aria-pressed]="sort() === 'newest'" (click)="setSort('newest')">Newest</button>
+        </div>
+      </div>
+
+      @if (loading()) {
+        <p class="board-loading">Loading threads...</p>
+      } @else if (errorMessage()) {
+        <p class="board-error" role="alert">{{ errorMessage() }}</p>
+      } @else if (threads().length === 0) {
+        <p class="board-empty">No threads yet. Start the first one.</p>
+      } @else {
+        <ul class="thread-list">
+          @for (thread of threads(); track thread.id) {
+            <li class="thread-row" [class.pinned]="thread.pinned">
+              <a class="thread-title" [routerLink]="['/boards/threads', thread.id]">{{ thread.title }}</a>
+              <span class="thread-replies">
+                <strong>{{ thread.replyCount }}</strong>
+                {{ replyLabel(thread.replyCount) }}
+              </span>
+              <p class="thread-excerpt">{{ thread.excerpt }}</p>
+              <div class="thread-meta">
+                <app-board-author [author]="thread.author" />
+                @if (thread.pinned) {
+                  <span class="board-chip pinned">Pinned</span>
+                }
+                @if (thread.locked) {
+                  <span class="board-chip locked">Locked</span>
+                }
+                <span [title]="fullDate(thread.lastActivityAt)">Active {{ timeAgo(thread.lastActivityAt) }}</span>
+              </div>
+            </li>
+          }
+        </ul>
+
+        @if (totalPages() > 1) {
+          <nav class="board-pager" aria-label="Thread pages">
+            <button type="button" class="btn btn-accent" (click)="previousPage()" [disabled]="page() === 0">Previous</button>
+            <span>Page {{ page() + 1 }} of {{ totalPages() }}</span>
+            <button type="button" class="btn btn-accent" (click)="nextPage()" [disabled]="page() + 1 >= totalPages()">Next</button>
+          </nav>
+        }
+      }
+    </section>
+
+    <aside class="board-card recent" aria-labelledby="recent-heading">
+      <h2 id="recent-heading">Active unit boards</h2>
+      <p class="recent-hint">Every unit has its own board. These are the ones students are talking on right now.</p>
+
+      @if (recentLoading()) {
+        <p class="board-loading">Loading...</p>
+      } @else if (recent().length === 0) {
+        <p class="board-empty">
+          No unit discussions yet. Open any unit page and start one from its discussion card.
+        </p>
+      } @else {
+        <ul class="recent-list">
+          @for (thread of recent(); track thread.id) {
+            <li class="recent-item">
+              <a class="thread-unit" [routerLink]="['/boards/units', thread.unitCode]">{{ thread.unitCode }}</a>
+              <a class="recent-title" [routerLink]="['/boards/threads', thread.id]">{{ thread.title }}</a>
+              <span class="recent-meta">
+                {{ thread.replyCount }} {{ replyLabel(thread.replyCount) }}
+                <span aria-hidden="true">&middot;</span>
+                <span [title]="fullDate(thread.lastActivityAt)">{{ timeAgo(thread.lastActivityAt) }}</span>
+              </span>
+            </li>
+          }
+        </ul>
+      }
+
+      <p class="recent-foot">
+        Looking for a specific unit? <a routerLink="/">Find it in the catalogue</a> and open its board from the unit page.
+      </p>
+    </aside>
+  </div>
+</div>
