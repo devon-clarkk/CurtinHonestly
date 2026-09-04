@@ -1,0 +1,51 @@
+<div class="events-page">
+  <a routerLink="/clubs" class="events-crumb">All clubs</a>
+
+  @if (loading()) {
+    <p class="events-loading">Loading club...</p>
+  } @else if (notFound()) {
+    <section class="events-card">
+      <h1 class="club-title">Club not found</h1>
+      <p class="events-empty">
+        This club is not listed. <a routerLink="/clubs" class="events-link">See the clubs that are</a>.
+      </p>
+    </section>
+  } @else if (club(); as club) {
+    <header class="club-head">
+      @if (club.logoUrl) {
+        <img class="club-logo club-logo-large" [src]="club.logoUrl" alt="" />
+      } @else {
+        <span class="club-mark club-mark-large" aria-hidden="true">{{ initials(club.name) }}</span>
+      }
+      <div class="club-head-text">
+        <h1 class="club-title">{{ club.name }}</h1>
+        @if (club.description) {
+          <p class="club-description">{{ club.description }}</p>
+        }
+        <p class="club-links">
+          @if (club.websiteUrl) {
+            <a class="events-link" [href]="club.websiteUrl" target="_blank" rel="noopener noreferrer">{{ host(club.websiteUrl) }}</a>
+          }
+          @if (club.contactEmail) {
+            <a class="events-link" [href]="'mailto:' + club.contactEmail">{{ club.contactEmail }}</a>
+          }
+        </p>
+      </div>
+    </header>
+
+    <section class="events-card" aria-labelledby="club-events-heading">
+      <h2 id="club-events-heading">Upcoming sessions and events</h2>
+      @if (club.upcomingEvents.length === 0) {
+        <p class="events-empty">Nothing scheduled right now. Check back soon, or see <a routerLink="/events" class="events-link">all upcoming events</a>.</p>
+      } @else {
+        <ul class="events-grid">
+          @for (event of club.upcomingEvents; track event.id) {
+            <li>
+              <app-event-card [event]="event" [showClub]="false" />
+            </li>
+          }
+        </ul>
+      }
+    </section>
+  }
+</div>

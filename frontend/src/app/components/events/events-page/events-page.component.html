@@ -1,0 +1,82 @@
+<div class="events-page">
+  <header class="events-header">
+    <div>
+      <h1 class="handbook-title">Study sessions and events</h1>
+      <p class="events-lead">
+        Revision sessions, tutoring, workshops and socials run by Curtin student clubs and study services.
+        Times are Perth local. Each unit page also lists the sessions that apply to it.
+      </p>
+    </div>
+    <div class="events-header-actions">
+      <a routerLink="/clubs" class="btn btn-accent">Clubs</a>
+      @if (authService.isClubMember() || authService.isAdmin()) {
+        <a routerLink="/club" class="btn btn-primary">My club</a>
+      }
+    </div>
+  </header>
+
+  <div class="events-filters">
+    <label class="events-filter">
+      <span>Club</span>
+      <select [value]="clubSlug()" (change)="onClubChange($any($event.target).value)">
+        <option value="">All clubs</option>
+        @for (club of clubs(); track club.id) {
+          <option [value]="club.slug">{{ club.name }}</option>
+        }
+      </select>
+    </label>
+    <label class="events-filter">
+      <span>Kind</span>
+      <select [value]="kind()" (change)="onKindChange($any($event.target).value)">
+        <option value="">All kinds</option>
+        @for (k of kinds; track k) {
+          <option [value]="k">{{ kindLabels[k] }}</option>
+        }
+      </select>
+    </label>
+    @if (hasFilters()) {
+      <button type="button" class="btn-text" (click)="clearFilters()">Clear filters</button>
+    }
+    @if (!loading() && !errorMessage()) {
+      <span class="events-count">{{ total() }} upcoming {{ total() === 1 ? 'event' : 'events' }}</span>
+    }
+  </div>
+
+  @if (loading()) {
+    <p class="events-loading">Loading events...</p>
+  } @else if (errorMessage()) {
+    <p class="events-error" role="alert">{{ errorMessage() }}</p>
+  } @else if (events().length === 0) {
+    <section class="events-card">
+      @if (hasFilters()) {
+        <p class="events-empty">No upcoming events match these filters.</p>
+      } @else {
+        <p class="events-empty">
+          No upcoming events are listed yet. Run a club or study service?
+          <a routerLink="/clubs" class="events-link">See how clubs list their sessions</a>.
+        </p>
+      }
+    </section>
+  } @else {
+    @for (week of weeks(); track week.key) {
+      <section class="events-week" [attr.aria-label]="week.label">
+        <h2 class="events-week-title">{{ week.label }}</h2>
+        <ul class="events-grid">
+          @for (event of week.events; track event.id) {
+            <li>
+              <app-event-card [event]="event" />
+            </li>
+          }
+        </ul>
+      </section>
+    }
+
+    @if (totalPages() > 1) {
+      <nav class="events-pager" aria-label="Event pages">
+        <button type="button" class="btn btn-accent" (click)="previousPage()" [disabled]="page() === 0">Previous</button>
+        <span>Page {{ page() + 1 }} of {{ totalPages() }}</span>
+        <button type="button" class="btn btn-accent" (click)="nextPage()" [disabled]="page() + 1 >= totalPages()">Next</button>
+      </nav>
+    }
+  }
+</div>

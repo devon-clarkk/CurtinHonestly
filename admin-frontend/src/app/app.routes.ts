@@ -7,6 +7,7 @@ import { OperationsComponent } from './pages/operations/operations.component';
 import { CampaignsComponent } from './pages/campaigns/campaigns.component';
 import { BoardsComponent } from './pages/boards/boards.component';
 import { ResourcesComponent } from './pages/resources/resources.component';
+import { ClubsComponent } from './pages/clubs/clubs.component';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -16,5 +17,6 @@ export const routes: Routes = [
   { path: 'campaigns', component: CampaignsComponent, canActivate: [adminGuard] },
   { path: 'boards', component: BoardsComponent, canActivate: [adminGuard] },
   { path: 'resources', component: ResourcesComponent, canActivate: [adminGuard] },
+  { path: 'clubs', component: ClubsComponent, canActivate: [adminGuard] },
   { path: '**', redirectTo: '' }
 ];

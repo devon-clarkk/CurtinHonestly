@@ -67,7 +67,14 @@ public class RateLimitFilter extends OncePerRequestFilter {
             new Limit("POST", "/clicks", MatchType.SUFFIX, 30, Duration.ofMinutes(1)),
             // Unit resource suggestions: POST /units/{code}/resources/suggestions. Suffix match
             // because the unit code segment varies, same reasoning as tips above.
-            new Limit("POST", "/resources/suggestions", MatchType.SUFFIX, 10, Duration.ofMinutes(10))
+            new Limit("POST", "/resources/suggestions", MatchType.SUFFIX, 10, Duration.ofMinutes(10)),
+            // Club event view beacon: POST /events/{id}/views is public and unauthenticated,
+            // so cap per IP to stop one client inflating an event's count.
+            new Limit("POST", "/views", MatchType.SUFFIX, 30, Duration.ofMinutes(1)),
+            // Club portal writes (POST /club/{id}/events, publish, cancel ...): one bucket for
+            // everything a club account creates or transitions, so a compromised club login
+            // cannot flood the site or the admin approval queue.
+            new Limit("POST", "/club", MatchType.PREFIX, 30, Duration.ofMinutes(10))
     );
 
     private final RateLimiter rateLimiter;

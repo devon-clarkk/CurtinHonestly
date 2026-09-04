@@ -1,0 +1,62 @@
+<div class="events-page">
+  <header class="events-header">
+    <div>
+      <h1 class="handbook-title">Clubs and study services</h1>
+      <p class="events-lead">
+        The student clubs and study services that list their revision sessions, tutoring and events on CurtinHonestly.
+        Sessions appear on the home page and on the unit pages they apply to.
+      </p>
+    </div>
+    <div class="clubs-header-actions">
+      <a routerLink="/events" class="btn btn-accent">All events</a>
+      @if (authService.isClubMember() || authService.isAdmin()) {
+        <a routerLink="/club" class="btn btn-primary">My club</a>
+      }
+    </div>
+  </header>
+
+  @if (loading()) {
+    <p class="events-loading">Loading clubs...</p>
+  } @else if (errorMessage()) {
+    <p class="events-error" role="alert">{{ errorMessage() }}</p>
+  } @else if (clubs().length === 0) {
+    <section class="events-card">
+      <p class="events-empty">No clubs are listed yet.</p>
+    </section>
+  } @else {
+    <ul class="clubs-grid">
+      @for (club of clubs(); track club.id) {
+        <li class="club-tile">
+          <a class="club-tile-link" [routerLink]="['/clubs', club.slug]" [attr.aria-label]="club.name + ' profile'">
+            @if (club.logoUrl) {
+              <img class="club-logo" [src]="club.logoUrl" alt="" loading="lazy" />
+            } @else {
+              <span class="club-mark" aria-hidden="true">{{ initials(club.name) }}</span>
+            }
+            <span class="club-tile-text">
+              <span class="club-tile-name">{{ club.name }}</span>
+              <span class="club-tile-count">
+                {{ club.upcomingEventCount }} upcoming {{ club.upcomingEventCount === 1 ? 'event' : 'events' }}
+              </span>
+            </span>
+          </a>
+          @if (club.description) {
+            <p class="club-tile-description">{{ club.description }}</p>
+          }
+          @if (club.websiteUrl) {
+            <a class="events-link club-tile-site" [href]="club.websiteUrl" target="_blank" rel="noopener noreferrer">{{ host(club.websiteUrl) }}</a>
+          }
+        </li>
+      }
+    </ul>
+  }
+
+  <section class="events-card clubs-pitch">
+    <h2>Run a club or study service?</h2>
+    <p>
+      CurtinHonestly lists study sessions and events for free, on the home page and on every unit page they apply to.
+      Club accounts publish and manage their own listings.
+      <a routerLink="/contact" class="events-link">Get in touch</a> and we will set your club up.
+    </p>
+  </section>
+</div>

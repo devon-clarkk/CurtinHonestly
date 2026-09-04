@@ -1,0 +1,186 @@
+.editor {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px;
+  background-color: var(--card-background);
+  border: 1px solid var(--border-color);
+  border-left: 4px solid var(--primary-color);
+  border-radius: var(--radius-none);
+}
+
+.editor h2 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.editor-fieldset {
+  margin: 0;
+  padding: 10px 14px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-none);
+}
+
+.editor-fieldset legend {
+  padding: 0 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.editor-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  align-items: end;
+}
+
+.span-2 {
+  grid-column: span 2;
+}
+
+.span-3 {
+  grid-column: span 3;
+}
+
+.editor-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--secondary-color);
+}
+
+.editor-field em,
+.editor-field small {
+  font-style: normal;
+  font-weight: 400;
+  color: var(--text-secondary);
+}
+
+.editor-field small {
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
+.editor-field input,
+.editor-field select,
+.editor-field textarea {
+  width: 100%;
+  min-width: 0;
+  padding: 8px 10px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-none);
+  font-family: var(--main-font);
+  font-size: 0.9rem;
+  font-weight: 400;
+  color: var(--text-primary);
+  background-color: var(--card-background);
+}
+
+.editor-field textarea {
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.editor-field input:focus-visible,
+.editor-field select:focus-visible,
+.editor-field textarea:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 1px;
+}
+
+.editor-check,
+.editor-radio {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  padding-bottom: 8px;
+  cursor: pointer;
+}
+
+.editor-check input,
+.editor-radio input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--primary-color);
+}
+
+.editor-modes {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+
+.editor-hint {
+  margin: 8px 0 0;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.editor-preview {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+.editor-preview .btn {
+  padding: 6px 14px;
+  font-size: 0.85rem;
+}
+
+.editor-preview-result {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #067647;
+}
+
+.editor-preview-empty {
+  color: #b42318;
+}
+
+.editor-home {
+  margin-top: 10px;
+  padding-bottom: 0;
+}
+
+.editor-error {
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid #f5c2c7;
+  background: #fff5f5;
+  color: #a12622;
+  font-size: 0.9rem;
+}
+
+.editor-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.editor-actions .btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+@media (max-width: 720px) {
+  .editor-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .span-2,
+  .span-3 {
+    grid-column: span 1;
+  }
+}

@@ -22,6 +22,7 @@ import { AddReviewComponent } from '../add-review/add-review.component';
 import { IconComponent } from '../icon/icon.component';
 import { UnitBoardPreviewComponent } from '../boards/unit-board-preview/unit-board-preview.component';
 import { UnitResourcesComponent } from '../unit-resources/unit-resources.component';
+import { UnitEventsCardComponent } from '../events/unit-events-card/unit-events-card.component';
 
 const MAX_TIP_LENGTH = 200;
 
@@ -32,7 +33,7 @@ const MAX_TIP_LENGTH = 200;
 @Component({
   selector: 'app-unit-detail',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, AddReviewComponent, IconComponent, UnitBoardPreviewComponent, UnitResourcesComponent],
+  imports: [CommonModule, FormsModule, RouterLink, AddReviewComponent, IconComponent, UnitBoardPreviewComponent, UnitResourcesComponent, UnitEventsCardComponent],
   templateUrl: './unit-detail.component.html',
   styleUrl: './unit-detail.component.css'
 })

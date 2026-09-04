@@ -1,0 +1,152 @@
+<form class="editor" (ngSubmit)="save(false)" aria-labelledby="event-editor-heading">
+  <h2 id="event-editor-heading">{{ isNew() ? 'New event' : 'Edit event' }}</h2>
+
+  <fieldset class="editor-fieldset">
+    <legend>What</legend>
+    <div class="editor-grid">
+      <label class="editor-field span-2">
+        <span>Title</span>
+        <input type="text" name="title" [(ngModel)]="form.title" [maxlength]="limits.title" required
+               placeholder="COMP1000 exam revision" />
+      </label>
+      <label class="editor-field">
+        <span>Kind</span>
+        <select name="kind" [(ngModel)]="form.kind">
+          @for (kind of kinds; track kind) {
+            <option [value]="kind">{{ kindLabels[kind] }}</option>
+          }
+        </select>
+      </label>
+      <label class="editor-field span-3">
+        <span>Description <em>(optional)</em></span>
+        <textarea name="description" [(ngModel)]="form.description" [maxlength]="limits.description" rows="4"
+                  placeholder="What will be covered, who should come, what to bring."></textarea>
+      </label>
+    </div>
+  </fieldset>
+
+  <fieldset class="editor-fieldset">
+    <legend>When</legend>
+    <div class="editor-grid">
+      <label class="editor-field">
+        <span>Starts <em>(Perth time)</em></span>
+        <input type="datetime-local" name="startsAt" [(ngModel)]="form.startsAt" required />
+      </label>
+      <label class="editor-field">
+        <span>Ends <em>(optional)</em></span>
+        <input type="datetime-local" name="endsAt" [(ngModel)]="form.endsAt" />
+      </label>
+      <label class="editor-check">
+        <input type="checkbox" name="recurring" [(ngModel)]="form.recurring" />
+        <span>Repeats</span>
+      </label>
+      @if (form.recurring) {
+        <label class="editor-field span-3">
+          <span>How often</span>
+          <input type="text" name="recurrenceNote" [(ngModel)]="form.recurrenceNote" [maxlength]="limits.recurrenceNote"
+                 placeholder="Every Tuesday, weeks 2 to 12" />
+          <small>Enter the first session above. The listing shows the next weekly date and this note.</small>
+        </label>
+      }
+    </div>
+  </fieldset>
+
+  <fieldset class="editor-fieldset">
+    <legend>Where</legend>
+    <div class="editor-grid">
+      <label class="editor-field span-2">
+        <span>Location <em>(optional)</em></span>
+        <input type="text" name="location" [(ngModel)]="form.location" [maxlength]="limits.location"
+               placeholder="Building 314, room 218" />
+      </label>
+      <label class="editor-check">
+        <input type="checkbox" name="online" [(ngModel)]="form.online" />
+        <span>Online</span>
+      </label>
+      <label class="editor-field span-3">
+        <span>Link <em>(optional: registration, Teams, Discord)</em></span>
+        <input type="text" name="link" inputmode="url" [(ngModel)]="form.link" placeholder="https://" />
+      </label>
+    </div>
+  </fieldset>
+
+  <fieldset class="editor-fieldset">
+    <legend>Which unit pages</legend>
+    <div class="editor-modes" role="radiogroup" aria-label="Targeting">
+      <label class="editor-radio">
+        <input type="radio" name="targetMode" value="rule" [(ngModel)]="form.targetMode" />
+        <span>Rule (many units)</span>
+      </label>
+      <label class="editor-radio">
+        <input type="radio" name="targetMode" value="unit" [(ngModel)]="form.targetMode" />
+        <span>One unit</span>
+      </label>
+    </div>
+
+    @if (form.targetMode === 'unit') {
+      <div class="editor-grid">
+        <label class="editor-field">
+          <span>Unit code</span>
+          <input type="text" name="unitCode" [(ngModel)]="form.unitCode" placeholder="COMP1000" />
+        </label>
+      </div>
+    } @else {
+      <div class="editor-grid">
+        <label class="editor-field">
+          <span>Code prefixes</span>
+          <input type="text" name="codePrefixes" [(ngModel)]="form.codePrefixes" placeholder="COMP1, ISAD1" />
+          <small>Comma separated, matched against the start of the unit code. Blank skips this criterion.</small>
+        </label>
+        <label class="editor-field">
+          <span>Faculty</span>
+          <select name="faculty" [(ngModel)]="form.faculty">
+            <option value="">Any faculty</option>
+            @for (f of options?.faculties ?? []; track f.value) {
+              <option [value]="f.value">{{ f.label }}</option>
+            }
+          </select>
+        </label>
+        <label class="editor-field">
+          <span>Level</span>
+          <select name="level" [(ngModel)]="form.level">
+            <option value="">Any level</option>
+            @for (l of options?.levels ?? []; track l.value) {
+              <option [value]="l.value">{{ l.label }}</option>
+            }
+          </select>
+        </label>
+      </div>
+      <p class="editor-hint">A rule with nothing filled in shows the event on every unit page.</p>
+    }
+
+    <div class="editor-preview">
+      <button type="button" class="btn btn-accent" (click)="runPreview()" [disabled]="previewLoading()">
+        {{ previewLoading() ? 'Checking' : 'Preview matches' }}
+      </button>
+      @if (preview(); as p) {
+        <span class="editor-preview-result" [class.editor-preview-empty]="p.matchCount === 0" role="status">{{ previewSummary(p) }}</span>
+      }
+    </div>
+
+    <label class="editor-check editor-home">
+      <input type="checkbox" name="showOnHome" [(ngModel)]="form.showOnHome" />
+      <span>Also show on the home page</span>
+    </label>
+  </fieldset>
+
+  @if (errorMessage()) {
+    <p class="editor-error" role="alert">{{ errorMessage() }}</p>
+  }
+
+  <div class="editor-actions">
+    <button type="submit" class="btn btn-accent" [disabled]="saving()">
+      {{ saving() ? 'Saving' : (isNew() ? 'Save draft' : 'Save') }}
+    </button>
+    @if (canPublishAfterSave()) {
+      <button type="button" class="btn btn-primary" (click)="save(true)" [disabled]="saving()">
+        {{ trusted ? 'Save and publish' : 'Save and send for approval' }}
+      </button>
+    }
+    <button type="button" class="btn-text" (click)="cancel()">Cancel</button>
+  </div>
+</form>

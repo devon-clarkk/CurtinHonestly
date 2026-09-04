@@ -1,0 +1,69 @@
+/* Sits under the For you strip on the home page and shares its width: three
+   350px unit cards plus two 30px gaps, the same figure unit-list uses. */
+.events-strip {
+  max-width: calc(350px * 3 + 30px * 2);
+  margin: 0 auto 20px;
+  padding: 14px 18px 16px;
+  background-color: var(--card-background);
+  border: 1px solid var(--border-color);
+  border-left: 4px solid var(--secondary-color);
+  border-radius: var(--radius-none);
+}
+
+.events-strip-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.events-strip-title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--secondary-color);
+}
+
+.events-strip-link {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--primary-ink);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.events-strip-link:hover,
+.events-strip-link:focus-visible {
+  text-decoration: underline;
+}
+
+.events-strip-hint {
+  margin: 2px 0 10px;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.events-strip-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+@media (max-width: 900px) {
+  .events-strip-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 480px) {
+  .events-strip {
+    padding: 12px 14px;
+  }
+
+  .events-strip-list {
+    grid-template-columns: 1fr;
+  }
+}

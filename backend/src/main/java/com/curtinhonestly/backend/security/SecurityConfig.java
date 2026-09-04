@@ -117,6 +117,19 @@ public class SecurityConfig {
                         // already covered by the /admin/** rule above.
                         .requestMatchers(HttpMethod.GET, "/boards/**").permitAll()
 
+                        // Club events (ClubEventResource). Listings, event detail, the club
+                        // directory and club profiles are public; the view beacon is a public
+                        // POST, rate limited in RateLimitFilter. GET /units/{code}/events is
+                        // already covered by the GET /units/** rule above.
+                        .requestMatchers(HttpMethod.GET, "/events", "/events/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/events/*/views").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/clubs", "/clubs/**").permitAll()
+
+                        // Club portal (ClubPortalResource): club members and admins only.
+                        // Membership of the specific club is checked in ClubService, so a
+                        // member of one club cannot touch another club's events.
+                        .requestMatchers("/club/**").hasAnyAuthority(UserRole.ROLE_CLUB.name(), UserRole.ROLE_ADMIN.name())
+
                         // Default
                         .anyRequest().authenticated()
                 )

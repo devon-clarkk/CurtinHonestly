@@ -2,6 +2,8 @@ package com.curtinhonestly.backend.resource;
 
 import com.curtinhonestly.backend.dto.ErrorResponse;
 import com.curtinhonestly.backend.service.CampaignEntryTokenExhaustedException;
+import com.curtinhonestly.backend.service.ClubForbiddenException;
+import com.curtinhonestly.backend.service.ClubNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +20,18 @@ public class GlobalExceptionHandler {
     @ExceptionHandler({IllegalArgumentException.class, IllegalStateException.class})
     public ResponseEntity<ErrorResponse> handleBadRequest(RuntimeException ex) {
         return ResponseEntity.badRequest().body(new ErrorResponse(ex.getMessage()));
+    }
+
+    // Club and event lookups (ClubService, ClubEventService). Declared here rather than
+    // per controller because three controllers (public, portal, admin) share them.
+    @ExceptionHandler(ClubNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleClubNotFound(ClubNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(ex.getMessage()));
+    }
+
+    @ExceptionHandler(ClubForbiddenException.class)
+    public ResponseEntity<ErrorResponse> handleClubForbidden(ClubForbiddenException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ErrorResponse(ex.getMessage()));
     }
 
     @ExceptionHandler(CampaignEntryTokenExhaustedException.class)

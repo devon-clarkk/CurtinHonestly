@@ -540,6 +540,10 @@
     </aside>
   </div>
 
+  <!-- Club study sessions and events that apply to this unit. Browser-only
+       fetch; renders nothing when there are none. -->
+  <app-unit-events-card [unitCode]="unit.code" />
+
   <!-- Community and resources: the unit's discussion board preview and the
        curated links that apply to it. Both fetch in the browser only. -->
   <div class="community-row">

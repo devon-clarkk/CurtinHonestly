@@ -1,4 +1,4 @@
-import { Injectable, inject, signal } from '@angular/core';
+import { Injectable, computed, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 import { environment } from '../../environments/environment';
@@ -55,6 +55,8 @@ export interface CampaignMembership {
 export interface AccountStatus {
   email: string;
   verifiedStudent: boolean;
+  /** Current roles, e.g. ["ROLE_USER", "ROLE_CLUB"]. Fresher than the token's claim. */
+  roles: string[];
   // A user can be enrolled in several campaigns at once (multiple draws per link).
   campaigns: CampaignMembership[];
   campaignEntries: CampaignEntrySummary[];
@@ -77,6 +79,16 @@ export class AuthService {
   isLoggedIn = signal<boolean>(this.hasStoredToken());
   verifiedStudent = signal<boolean>(this.getStoredVerifiedStudent());
   email = signal<string | null>(this.getStoredEmail());
+
+  /**
+   * Roles of the signed-in account ("ROLE_USER", "ROLE_CLUB", "ROLE_ADMIN").
+   * Read from the JWT's roles claim at sign-in, then refreshed from /auth/me
+   * whenever the account status is reloaded, so a club grant made after
+   * sign-in shows up without a new session. Empty when signed out.
+   */
+  roles = signal<string[]>(this.getStoredRoles());
+  isClubMember = computed(() => this.roles().includes('ROLE_CLUB'));
+  isAdmin = computed(() => this.roles().includes('ROLE_ADMIN'));
 
   login(request: LoginRequest): Observable<JwtResponse> {
     return this.http.post<JwtResponse>(`${this.apiUrl}/login`, request).pipe(
@@ -146,6 +158,10 @@ export class AuthService {
         localStorage.setItem('user_email', status.email);
         this.verifiedStudent.set(status.verifiedStudent);
         this.email.set(status.email);
+        if (Array.isArray(status.roles)) {
+          localStorage.setItem('user_roles', JSON.stringify(status.roles));
+          this.roles.set(status.roles);
+        }
       })
     );
   }
@@ -154,20 +170,69 @@ export class AuthService {
     localStorage.removeItem('auth_token');
     localStorage.removeItem('verified_student');
     localStorage.removeItem('user_email');
+    localStorage.removeItem('user_roles');
     this.isLoggedIn.set(false);
     this.verifiedStudent.set(false);
     this.email.set(null);
+    this.roles.set([]);
   }
 
   private persistSession(token: string, verifiedStudent: boolean, email: string | null) {
     localStorage.setItem('auth_token', token);
     localStorage.setItem('verified_student', String(verifiedStudent));
+    // A fresh token carries the account's current roles; drop any older
+    // /auth/me snapshot so the two cannot disagree.
+    localStorage.removeItem('user_roles');
     this.isLoggedIn.set(true);
     this.verifiedStudent.set(verifiedStudent);
+    this.roles.set(AuthService.rolesFromToken(token));
     if (email) {
       localStorage.setItem('user_email', email);
       this.email.set(email);
     }
+  }
+
+  /**
+   * The roles claim of a JWT, decoded without a library: the payload is the
+   * middle base64url segment. The signature is not checked here; the API
+   * checks it on every request and reads roles from the database, so a
+   * tampered claim only changes what the nav shows, never what is allowed.
+   */
+  static rolesFromToken(token: string | null): string[] {
+    if (!token) {
+      return [];
+    }
+    try {
+      const segment = token.split('.')[1] ?? '';
+      const base64 = segment.replace(/-/g, '+').replace(/_/g, '/');
+      const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4);
+      // atob exists in every browser and in Node 16+, which covers SSR too.
+      if (typeof atob !== 'function') {
+        return [];
+      }
+      const payload = JSON.parse(atob(padded)) as { roles?: unknown };
+      return Array.isArray(payload.roles) ? payload.roles.filter((r): r is string => typeof r === 'string') : [];
+    } catch {
+      return [];
+    }
+  }
+
+  private getStoredRoles(): string[] {
+    if (typeof localStorage === 'undefined') {
+      return [];
+    }
+    const snapshot = localStorage.getItem('user_roles');
+    if (snapshot) {
+      try {
+        const parsed = JSON.parse(snapshot) as unknown;
+        if (Array.isArray(parsed)) {
+          return parsed.filter((r): r is string => typeof r === 'string');
+        }
+      } catch {
+        // Fall through to the token.
+      }
+    }
+    return AuthService.rolesFromToken(localStorage.getItem('auth_token'));
   }
 
   private hasStoredToken(): boolean {

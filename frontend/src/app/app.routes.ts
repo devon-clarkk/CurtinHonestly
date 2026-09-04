@@ -9,6 +9,7 @@ import { VerifyStudentConfirmComponent } from './components/verify-student-confi
 import { ForgotPasswordComponent } from './components/forgot-password/forgot-password.component';
 import { ResetPasswordComponent } from './components/reset-password/reset-password.component';
 import { authGuard } from './guards/auth.guard';
+import { clubGuard } from './guards/club.guard';
 
 export const routes: Routes = [
   { path: '', component: UnitListComponent },
@@ -70,6 +71,31 @@ export const routes: Routes = [
   {
     path: 'boards/threads/:id',
     loadComponent: () => import('./components/boards/thread-view/thread-view.component').then(m => m.ThreadViewComponent)
+  },
+  // Club study sessions and events. Client-rendered and noindex for now, like
+  // the boards, and lazy for the same reason: entered from the nav, a unit
+  // page or the home strip rather than being anyone's first page.
+  {
+    path: 'events',
+    loadComponent: () => import('./components/events/events-page/events-page.component').then(m => m.EventsPageComponent)
+  },
+  {
+    path: 'events/:id',
+    loadComponent: () => import('./components/events/event-detail/event-detail.component').then(m => m.EventDetailComponent)
+  },
+  {
+    path: 'clubs',
+    loadComponent: () => import('./components/clubs/clubs-directory/clubs-directory.component').then(m => m.ClubsDirectoryComponent)
+  },
+  {
+    path: 'clubs/:slug',
+    loadComponent: () => import('./components/clubs/club-profile/club-profile.component').then(m => m.ClubProfileComponent)
+  },
+  // The club portal: club member accounts (ROLE_CLUB) and admins only.
+  {
+    path: 'club',
+    loadComponent: () => import('./components/club-portal/club-portal.component').then(m => m.ClubPortalComponent),
+    canActivate: [clubGuard]
   },
   { path: 'units/:code', component: UnitDetailComponent },
   {

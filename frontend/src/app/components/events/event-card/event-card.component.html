@@ -1,0 +1,32 @@
+<article class="event-card" [class.event-card-recurring]="event.recurring">
+  <div class="event-card-head">
+    @if (showClub) {
+      <a class="event-card-club" [routerLink]="['/clubs', event.clubSlug]">{{ event.clubName }}</a>
+    }
+    <span class="event-card-kind">{{ event.kindLabel }}</span>
+  </div>
+
+  <h3 class="event-card-title">
+    <a [routerLink]="['/events', event.id]">{{ event.title }}</a>
+  </h3>
+
+  <p class="event-card-when">
+    @if (event.recurring && event.nextStartsAt !== event.startsAt) {
+      <span class="event-card-next">Next</span>
+    }
+    <time [attr.datetime]="event.nextStartsAt">{{ when() }}</time>
+  </p>
+
+  @if (event.recurring && event.recurrenceNote) {
+    <p class="event-card-recurrence">{{ event.recurrenceNote }}</p>
+  }
+
+  <p class="event-card-where">{{ where() }}</p>
+
+  @if (event.link) {
+    <a class="event-card-link" [href]="event.link" target="_blank" rel="noopener noreferrer">
+      {{ linkLabel() }}
+      <span class="visually-hidden">(opens in a new tab)</span>
+    </a>
+  }
+</article>
