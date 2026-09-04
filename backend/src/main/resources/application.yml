@@ -25,6 +25,13 @@ spring:
     baseline-on-migrate: true
     baseline-version: 1
     locations: classpath:db/migration
+    # The dev and prod databases received V6 and V7 before V5 existed, because V5
+    # arrived on a branch that merged later. Flyway's default validation refuses to
+    # boot when a lower version is pending behind an applied higher one, which left
+    # new revisions crash-looping while traffic stayed on an old one. Every migration
+    # here is written to be idempotent and independent (IF NOT EXISTS guards), so
+    # applying a pending lower version after a higher one is safe.
+    out-of-order: true
 
   jpa:
     hibernate:
