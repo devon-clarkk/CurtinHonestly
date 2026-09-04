@@ -1,0 +1,378 @@
+<h1 class="page-title">Resources</h1>
+<p class="page-subtitle">
+  Curated links shown on unit pages: Discord servers, clubs, notes, past papers, textbooks.
+  A resource targets one unit, or a rule (code prefixes, faculty, level) that covers many units at once.
+</p>
+
+@if (errorMessage()) {
+  <div class="error-banner">{{ errorMessage() }}</div>
+}
+@if (successMessage()) {
+  <div class="success-banner">{{ successMessage() }}</div>
+}
+
+<!-- Pending suggestions -->
+<section class="card section">
+  <div class="section-header">
+    <h2>Pending suggestions</h2>
+    <span class="count">{{ pending().length }}</span>
+  </div>
+
+  @if (pending().length === 0) {
+    <p class="subtle">No suggestions waiting. Students can suggest links from any unit page.</p>
+  } @else {
+    <ul class="queue">
+      @for (row of pending(); track row.id) {
+        <li class="queue-item">
+          <div class="queue-main">
+            <div class="queue-title-row">
+              <strong>{{ row.title }}</strong>
+              <span class="badge badge-kind">{{ row.kindLabel }}</span>
+              <span class="badge badge-scope">{{ row.targetUnitCode || row.scopeLabel }}</span>
+            </div>
+            <a class="queue-url" [href]="row.url" target="_blank" rel="noopener noreferrer">{{ row.url }}</a>
+            @if (row.description) {
+              <p class="queue-desc">{{ row.description }}</p>
+            }
+            <p class="queue-meta">
+              {{ submitterLabel(row) }}
+              @if (row.targetUnitName) {
+                <span> for {{ row.targetUnitCode }} {{ row.targetUnitName }}</span>
+              }
+              <span> on {{ row.createdAt | date: 'd MMM y, h:mm a' }}</span>
+            </p>
+            @if (row.submitterNote) {
+              <p class="queue-note">Note: {{ row.submitterNote }}</p>
+            }
+          </div>
+          <div class="queue-actions">
+            <button type="button" class="btn btn-primary" (click)="approve(row)">Approve</button>
+            <button type="button" class="btn" (click)="openEdit(row, true)">Edit and approve</button>
+            <button type="button" class="btn btn-danger" (click)="reject(row)">Reject</button>
+          </div>
+        </li>
+      }
+    </ul>
+  }
+</section>
+
+<!-- Create -->
+<section class="card section">
+  <h2>Add a resource</h2>
+  <p class="page-subtitle">
+    Target one unit by code, or write a rule. A rule with no criteria matches every unit.
+    Use Preview matches to check a rule before saving.
+  </p>
+
+  <fieldset class="form-fieldset">
+    <legend>Link</legend>
+    <div class="form-grid">
+      <label>
+        Title
+        <span class="field-hint">Shown as the link text, e.g. "ComSSA Discord".</span>
+        <input type="text" [(ngModel)]="createForm.title" name="createTitle" maxlength="120" placeholder="ComSSA Discord" />
+      </label>
+      <label>
+        Link
+        <span class="field-hint">http or https only. A missing scheme becomes https://.</span>
+        <input type="text" [(ngModel)]="createForm.url" name="createUrl" placeholder="https://discord.gg/..." />
+      </label>
+      <label>
+        Kind
+        <span class="field-hint">Groups the link on the unit page.</span>
+        <select [(ngModel)]="createForm.kind" name="createKind">
+          @for (kind of options().kinds; track kind.value) {
+            <option [value]="kind.value">{{ kind.label }}</option>
+          }
+        </select>
+      </label>
+      <label class="span-2">
+        Description
+        <span class="field-hint">Optional, one line. What it is and who it is for.</span>
+        <input type="text" [(ngModel)]="createForm.description" name="createDescription" maxlength="300" placeholder="The computing society's server, with a channel per unit." />
+      </label>
+      <label>
+        Sort order
+        <span class="field-hint">Lower shows first within its kind. 0 is the default.</span>
+        <input type="number" [(ngModel)]="createForm.sortOrder" name="createSortOrder" />
+      </label>
+    </div>
+  </fieldset>
+
+  <fieldset class="form-fieldset">
+    <legend>Where it shows</legend>
+    <div class="mode-row">
+      <label class="radio">
+        <input type="radio" name="createMode" value="rule" [(ngModel)]="createForm.targetMode" />
+        Rule (many units)
+      </label>
+      <label class="radio">
+        <input type="radio" name="createMode" value="unit" [(ngModel)]="createForm.targetMode" />
+        One unit
+      </label>
+    </div>
+
+    @if (createForm.targetMode === 'unit') {
+      <div class="form-grid">
+        <label>
+          Unit code
+          <span class="field-hint">Exactly one existing unit, e.g. COMP1000.</span>
+          <input type="text" [(ngModel)]="createForm.unitCode" name="createUnitCode" placeholder="COMP1000" />
+        </label>
+      </div>
+    } @else {
+      <div class="form-grid">
+        <label>
+          Code prefixes
+          <span class="field-hint">Comma separated, matched against the start of the unit code. Leave blank to skip this criterion.</span>
+          <input type="text" [(ngModel)]="createForm.codePrefixes" name="createPrefixes" placeholder="COMP, ISAD, ISEC, CNCO, CMPE" />
+        </label>
+        <label>
+          Faculty
+          <span class="field-hint">Optional.</span>
+          <select [(ngModel)]="createForm.faculty" name="createFaculty">
+            <option value="">Any faculty</option>
+            @for (f of options().faculties; track f.value) {
+              <option [value]="f.value">{{ f.label }}</option>
+            }
+          </select>
+        </label>
+        <label>
+          Level
+          <span class="field-hint">Optional.</span>
+          <select [(ngModel)]="createForm.level" name="createLevel">
+            <option value="">Any level</option>
+            @for (l of options().levels; track l.value) {
+              <option [value]="l.value">{{ l.label }}</option>
+            }
+          </select>
+        </label>
+      </div>
+    }
+
+    <div class="preview-row">
+      <button type="button" class="btn" (click)="previewCreate()" [disabled]="createPreviewLoading()">
+        {{ createPreviewLoading() ? 'Checking' : 'Preview matches' }}
+      </button>
+      @if (createPreview(); as preview) {
+        <span class="preview-result" [class.preview-empty]="preview.matchCount === 0">
+          {{ previewSummary(preview) }}
+          @if (preview.matchCount > 0) {
+            <span class="preview-scope">Shown as "{{ preview.scopeLabel }}"</span>
+          }
+        </span>
+      }
+    </div>
+  </fieldset>
+
+  <div class="actions">
+    <button type="button" class="btn btn-primary" (click)="create()" [disabled]="creating()">
+      {{ creating() ? 'Saving' : 'Add resource' }}
+    </button>
+    <button type="button" class="btn" (click)="resetCreate()">Clear</button>
+  </div>
+</section>
+
+<!-- All resources -->
+<section class="card section">
+  <div class="section-header">
+    <h2>All resources</h2>
+    <span class="count">{{ filteredRows().length }} of {{ rows().length }}</span>
+  </div>
+
+  <div class="form-row filters">
+    <input type="search" placeholder="Search title, link, scope or unit" [value]="search()" (input)="search.set($any($event.target).value)" />
+    <select [value]="statusFilter()" (change)="statusFilter.set($any($event.target).value)">
+      <option value="ALL">Any status</option>
+      <option value="APPROVED">Approved</option>
+      <option value="PENDING">Pending</option>
+      <option value="REJECTED">Rejected</option>
+    </select>
+    <select [value]="kindFilter()" (change)="kindFilter.set($any($event.target).value)">
+      <option value="ALL">Any kind</option>
+      @for (kind of options().kinds; track kind.value) {
+        <option [value]="kind.value">{{ kind.label }}</option>
+      }
+    </select>
+  </div>
+
+  @if (filteredRows().length === 0) {
+    <p class="subtle">No resources match these filters.</p>
+  } @else {
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Kind</th>
+            <th>Scope</th>
+            <th>Status</th>
+            <th class="num">Clicks</th>
+            <th class="num">Sort</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of filteredRows(); track row.id) {
+            <tr>
+              <td>
+                <div class="cell-title">{{ row.title }}</div>
+                <a class="cell-url" [href]="row.url" target="_blank" rel="noopener noreferrer">{{ row.url }}</a>
+              </td>
+              <td>{{ row.kindLabel }}</td>
+              <td>
+                <span class="badge badge-scope">{{ row.scopeLabel }}</span>
+                @if (row.targetUnitCode) {
+                  <div class="cell-sub">{{ row.targetUnitCode }} {{ row.targetUnitName }}</div>
+                } @else if (row.codePrefixes) {
+                  <div class="cell-sub">{{ row.codePrefixes }}</div>
+                }
+              </td>
+              <td><span [class]="statusClass(row.status)">{{ row.status | lowercase }}</span></td>
+              <td class="num">{{ row.clickCount }}</td>
+              <td class="num">
+                <div class="sort-cell">
+                  <button type="button" class="sort-btn" (click)="nudgeSort(row, -1)" aria-label="Move earlier">&#9650;</button>
+                  <span>{{ row.sortOrder }}</span>
+                  <button type="button" class="sort-btn" (click)="nudgeSort(row, 1)" aria-label="Move later">&#9660;</button>
+                </div>
+              </td>
+              <td class="row-actions">
+                <button type="button" class="btn" (click)="openEdit(row)">Edit</button>
+                @if (row.status !== 'APPROVED') {
+                  <button type="button" class="btn btn-primary" (click)="approve(row)">Approve</button>
+                }
+                @if (row.status === 'APPROVED') {
+                  <button type="button" class="btn" (click)="reject(row)">Unpublish</button>
+                }
+                <button type="button" class="btn btn-danger" (click)="delete(row)">Delete</button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>
+
+<!-- Edit dialog -->
+@if (editing(); as row) {
+  <div class="modal-backdrop" (click)="closeEdit()">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="resource-dialog-title" (click)="$event.stopPropagation()">
+      <header class="modal-head">
+        <div>
+          <h2 id="resource-dialog-title">Edit resource</h2>
+          <p class="modal-subtitle">
+            {{ submitterLabel(row) }}, {{ row.status | lowercase }}, {{ row.clickCount }} clicks
+          </p>
+        </div>
+        <button type="button" class="btn icon-btn" (click)="closeEdit()" aria-label="Close">&times;</button>
+      </header>
+
+      @if (row.submitterNote) {
+        <p class="queue-note">Submitter note: {{ row.submitterNote }}</p>
+      }
+
+      <fieldset class="form-fieldset">
+        <legend>Link</legend>
+        <div class="form-grid">
+          <label>
+            Title
+            <input type="text" [(ngModel)]="editForm.title" name="editTitle" maxlength="120" />
+          </label>
+          <label>
+            Link
+            <input type="text" [(ngModel)]="editForm.url" name="editUrl" />
+          </label>
+          <label>
+            Kind
+            <select [(ngModel)]="editForm.kind" name="editKind">
+              @for (kind of options().kinds; track kind.value) {
+                <option [value]="kind.value">{{ kind.label }}</option>
+              }
+            </select>
+          </label>
+          <label class="span-2">
+            Description
+            <input type="text" [(ngModel)]="editForm.description" name="editDescription" maxlength="300" />
+          </label>
+          <label>
+            Sort order
+            <input type="number" [(ngModel)]="editForm.sortOrder" name="editSortOrder" />
+          </label>
+        </div>
+      </fieldset>
+
+      <fieldset class="form-fieldset">
+        <legend>Where it shows</legend>
+        <div class="mode-row">
+          <label class="radio">
+            <input type="radio" name="editMode" value="rule" [(ngModel)]="editForm.targetMode" />
+            Rule (many units)
+          </label>
+          <label class="radio">
+            <input type="radio" name="editMode" value="unit" [(ngModel)]="editForm.targetMode" />
+            One unit
+          </label>
+        </div>
+
+        @if (editForm.targetMode === 'unit') {
+          <div class="form-grid">
+            <label>
+              Unit code
+              <input type="text" [(ngModel)]="editForm.unitCode" name="editUnitCode" placeholder="COMP1000" />
+            </label>
+          </div>
+        } @else {
+          <div class="form-grid">
+            <label>
+              Code prefixes
+              <input type="text" [(ngModel)]="editForm.codePrefixes" name="editPrefixes" placeholder="COMP, ISAD" />
+            </label>
+            <label>
+              Faculty
+              <select [(ngModel)]="editForm.faculty" name="editFaculty">
+                <option value="">Any faculty</option>
+                @for (f of options().faculties; track f.value) {
+                  <option [value]="f.value">{{ f.label }}</option>
+                }
+              </select>
+            </label>
+            <label>
+              Level
+              <select [(ngModel)]="editForm.level" name="editLevel">
+                <option value="">Any level</option>
+                @for (l of options().levels; track l.value) {
+                  <option [value]="l.value">{{ l.label }}</option>
+                }
+              </select>
+            </label>
+          </div>
+        }
+
+        <div class="preview-row">
+          <button type="button" class="btn" (click)="previewEdit()" [disabled]="editPreviewLoading()">
+            {{ editPreviewLoading() ? 'Checking' : 'Preview matches' }}
+          </button>
+          @if (editPreview(); as preview) {
+            <span class="preview-result" [class.preview-empty]="preview.matchCount === 0">
+              {{ previewSummary(preview) }}
+              @if (preview.matchCount > 0) {
+                <span class="preview-scope">Shown as "{{ preview.scopeLabel }}"</span>
+              }
+            </span>
+          }
+        </div>
+      </fieldset>
+
+      <footer class="modal-foot">
+        <button type="button" class="btn btn-primary" (click)="saveEdit()" [disabled]="saving()">
+          {{ saving() ? 'Saving' : (approveAfterSave() ? 'Save and approve' : 'Save') }}
+        </button>
+        <button type="button" class="btn" (click)="closeEdit()">Cancel</button>
+        <span class="spacer"></span>
+        <button type="button" class="btn btn-danger" (click)="delete(row); closeEdit()">Delete</button>
+      </footer>
+    </div>
+  </div>
+}

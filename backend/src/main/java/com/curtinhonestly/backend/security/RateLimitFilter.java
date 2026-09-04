@@ -55,8 +55,19 @@ public class RateLimitFilter extends OncePerRequestFilter {
             new Limit("POST", "/tips", MatchType.SUFFIX, 10, Duration.ofMinutes(10)),
             // Unit request spam defence — public/unauthenticated endpoint.
             new Limit("POST", "/unit-requests", MatchType.EXACT, 5, Duration.ofMinutes(10)),
+            // Board spam defence: one bucket for new threads, replies and board flags
+            // (all are POST /boards/...). MUST stay above the /flags suffix entry below,
+            // otherwise POST /boards/threads/{id}/flags would fall into the review-flag
+            // bucket instead of this one.
+            new Limit("POST", "/boards", MatchType.PREFIX, 10, Duration.ofMinutes(10)),
             // Flag spam defence — suffix match, same reasoning as tips above.
-            new Limit("POST", "/flags", MatchType.SUFFIX, 10, Duration.ofMinutes(10))
+            new Limit("POST", "/flags", MatchType.SUFFIX, 10, Duration.ofMinutes(10)),
+            // Unit resource click beacon: POST /units/{code}/resources/{id}/clicks is public and
+            // unauthenticated, so cap per IP to stop one client inflating a link's count.
+            new Limit("POST", "/clicks", MatchType.SUFFIX, 30, Duration.ofMinutes(1)),
+            // Unit resource suggestions: POST /units/{code}/resources/suggestions. Suffix match
+            // because the unit code segment varies, same reasoning as tips above.
+            new Limit("POST", "/resources/suggestions", MatchType.SUFFIX, 10, Duration.ofMinutes(10))
     );
 
     private final RateLimiter rateLimiter;
