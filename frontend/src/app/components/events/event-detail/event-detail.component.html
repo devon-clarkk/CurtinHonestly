@@ -1,0 +1,78 @@
+<div class="events-page event-detail">
+  <a routerLink="/events" class="events-crumb">All events</a>
+
+  @if (loading()) {
+    <p class="events-loading">Loading event...</p>
+  } @else if (notFound()) {
+    <section class="events-card">
+      <h1 class="event-detail-title">Event not found</h1>
+      <p class="events-empty">
+        This event is no longer listed. <a routerLink="/events" class="events-link">See what is coming up</a>.
+      </p>
+    </section>
+  } @else if (event(); as event) {
+    <article class="events-card event-detail-card">
+      <p class="event-detail-club">
+        <a [routerLink]="['/clubs', event.clubSlug]">{{ event.clubName }}</a>
+        <span class="events-chip">{{ event.kindLabel }}</span>
+        @if (event.recurring) {
+          <span class="events-chip gold">Recurring</span>
+        }
+      </p>
+      <h1 class="event-detail-title">{{ event.title }}</h1>
+
+      <dl class="event-detail-facts">
+        <div>
+          <dt>{{ event.recurring ? 'First session' : 'When' }}</dt>
+          <dd><time [attr.datetime]="event.startsAt">{{ firstWhen(event) }}</time> (Perth time)</dd>
+        </div>
+        @if (showsNext(event)) {
+          <div>
+            <dt>Next session</dt>
+            <dd><time [attr.datetime]="event.nextStartsAt">{{ nextWhen(event) }}</time></dd>
+          </div>
+        }
+        @if (event.recurring && event.recurrenceNote) {
+          <div>
+            <dt>Runs</dt>
+            <dd>{{ event.recurrenceNote }}</dd>
+          </div>
+        }
+        <div>
+          <dt>Where</dt>
+          <dd>{{ where(event) }}</dd>
+        </div>
+        <div>
+          <dt>Shown on</dt>
+          <dd>
+            @if (event.targetUnitCode) {
+              <a class="events-link" [routerLink]="['/units', event.targetUnitCode]">{{ event.targetUnitCode }}</a>
+              @if (event.targetUnitName) {
+                <span> {{ event.targetUnitName }}</span>
+              }
+            } @else {
+              {{ event.scopeLabel }}
+            }
+          </dd>
+        </div>
+      </dl>
+
+      @if (paragraphs(event).length > 0) {
+        <div class="event-detail-body">
+          @for (paragraph of paragraphs(event); track $index) {
+            <p>{{ paragraph }}</p>
+          }
+        </div>
+      }
+
+      <div class="event-detail-actions">
+        @if (event.link) {
+          <a class="btn btn-primary" [href]="event.link" target="_blank" rel="noopener noreferrer">
+            {{ event.online && !event.location ? 'Join online' : 'Details and registration' }}
+          </a>
+        }
+        <a class="btn btn-accent" [routerLink]="['/clubs', event.clubSlug]">More from {{ event.clubName }}</a>
+      </div>
+    </article>
+  }
+</div>

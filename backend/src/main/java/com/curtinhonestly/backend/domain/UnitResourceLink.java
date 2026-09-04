@@ -1,5 +1,6 @@
 package com.curtinhonestly.backend.domain;
 
+import com.curtinhonestly.backend.util.UnitTargetRule;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -9,7 +10,6 @@ import org.hibernate.annotations.OnDeleteAction;
 import org.hibernate.annotations.UuidGenerator;
 
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -113,14 +113,6 @@ public class UnitResourceLink {
 
     /** Splits and normalises a raw prefix string: trimmed, upper-cased, blanks dropped, duplicates removed. */
     public static List<String> splitPrefixes(String raw) {
-        if (raw == null || raw.isBlank()) {
-            return List.of();
-        }
-        return Arrays.stream(raw.split("[,;\\s]+"))
-                .map(String::trim)
-                .filter(s -> !s.isEmpty())
-                .map(String::toUpperCase)
-                .distinct()
-                .toList();
+        return UnitTargetRule.splitPrefixes(raw);
     }
 }

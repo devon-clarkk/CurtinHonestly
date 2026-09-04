@@ -1,0 +1,49 @@
+.club-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+  margin-bottom: 20px;
+}
+
+.club-logo-large,
+.club-mark-large {
+  width: 72px;
+  height: 72px;
+  font-size: 1.5rem;
+}
+
+.club-head-text {
+  min-width: 0;
+}
+
+.club-title {
+  margin: 0 0 6px;
+  font-size: 1.9rem;
+  line-height: 1.15;
+}
+
+.club-description {
+  margin: 0 0 8px;
+  max-width: 70ch;
+  line-height: 1.6;
+}
+
+.club-links {
+  margin: 0;
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 600px) {
+  .club-head {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .club-title {
+    font-size: 1.5rem;
+  }
+}

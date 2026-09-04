@@ -11,6 +11,7 @@ import { isResultsSeasonWindow } from '../../utils/results-season.util';
 import { Page, UnitSummary, Faculty, UnitLevel } from '../../models/unit.model';
 import { Recommendations } from '../../models/recommendation.model';
 import { environment } from '../../../environments/environment';
+import { HomeEventsStripComponent } from '../events/home-events-strip/home-events-strip.component';
 import { BehaviorSubject, Subject } from 'rxjs';
 import { debounceTime, takeUntil } from 'rxjs/operators';
 
@@ -43,7 +44,7 @@ const UNIT_LIST_PAGE0 = makeStateKey<Page<UnitSummary>>('unit-list-page0');
 @Component({
   selector: 'app-unit-list',
   standalone: true,
-  imports: [CommonModule, RouterLink, FormsModule],
+  imports: [CommonModule, RouterLink, FormsModule, HomeEventsStripComponent],
   templateUrl: './unit-list.component.html',
   styleUrl: './unit-list.component.css'
 })

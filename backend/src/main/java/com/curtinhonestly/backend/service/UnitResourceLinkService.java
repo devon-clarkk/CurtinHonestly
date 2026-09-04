@@ -20,6 +20,7 @@ import com.curtinhonestly.backend.repo.UnitRepo;
 import com.curtinhonestly.backend.repo.UnitResourceLinkRepo;
 import com.curtinhonestly.backend.repo.UserRepo;
 import com.curtinhonestly.backend.util.SafeUrl;
+import com.curtinhonestly.backend.util.UnitTargetRule;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -313,76 +314,22 @@ public class UnitResourceLinkService {
                 .toList();
     }
 
+    // Matching and scope labels live in UnitTargetRule so club events share them;
+    // these wrappers keep the resource call sites and tests unchanged.
     public static boolean matches(Rule rule, String unitId, String code, Faculty faculty, UnitLevel level) {
-        if (rule.targetUnitId() != null) {
-            return rule.targetUnitId().equals(unitId);
-        }
-        return matchesCriteria(rule.prefixes(), rule.faculty(), rule.level(), code, faculty, level);
+        return new UnitTargetRule(rule.targetUnitId(), rule.prefixes(), rule.faculty(), rule.level())
+                .matches(unitId, code, faculty, level);
     }
 
     /** Every non-empty criterion must hold. No criteria at all matches everything. */
     public static boolean matchesCriteria(List<String> prefixes, Faculty ruleFaculty, UnitLevel ruleLevel,
                                           String code, Faculty unitFaculty, UnitLevel unitLevel) {
-        if (!prefixes.isEmpty()) {
-            String upper = code == null ? "" : code.toUpperCase(Locale.ROOT);
-            boolean any = false;
-            for (String p : prefixes) {
-                if (upper.startsWith(p)) {
-                    any = true;
-                    break;
-                }
-            }
-            if (!any) {
-                return false;
-            }
-        }
-        if (ruleFaculty != null && ruleFaculty != unitFaculty) {
-            return false;
-        }
-        return ruleLevel == null || ruleLevel == unitLevel;
+        return UnitTargetRule.matchesCriteria(prefixes, ruleFaculty, ruleLevel, code, unitFaculty, unitLevel);
     }
 
     /** Human-readable reason the link is on a page, shown as a chip next to it. */
     public static String scopeLabel(boolean unitSpecific, List<String> prefixes, Faculty faculty, UnitLevel level) {
-        if (unitSpecific) {
-            return "This unit";
-        }
-        boolean hasPrefixes = prefixes != null && !prefixes.isEmpty();
-        if (!hasPrefixes && faculty == null && level == null) {
-            return "All units";
-        }
-        if (hasPrefixes) {
-            StringBuilder sb = new StringBuilder("All ");
-            if (level != null) {
-                sb.append(level.getDisplayName().toLowerCase(Locale.ROOT)).append(' ');
-            }
-            sb.append(joinPrefixes(prefixes)).append(" units");
-            if (faculty != null) {
-                sb.append(" in ").append(faculty.getDisplayName());
-            }
-            return sb.toString();
-        }
-        if (faculty != null && level != null) {
-            return level.getDisplayName() + " " + faculty.getDisplayName();
-        }
-        if (faculty != null) {
-            return faculty.getDisplayName();
-        }
-        return level.getDisplayName() + " units";
-    }
-
-    private static String joinPrefixes(List<String> prefixes) {
-        int n = prefixes.size();
-        if (n == 1) {
-            return prefixes.get(0);
-        }
-        if (n == 2) {
-            return prefixes.get(0) + " and " + prefixes.get(1);
-        }
-        if (n <= 4) {
-            return String.join(", ", prefixes.subList(0, n - 1)) + " and " + prefixes.get(n - 1);
-        }
-        return String.join(", ", prefixes.subList(0, 3)) + " and " + (n - 3) + " more";
+        return UnitTargetRule.scopeLabel(unitSpecific, prefixes, faculty, level);
     }
 
     public static UnitResourceLinkDTO toPublicDTO(Rule r) {

@@ -50,6 +50,11 @@
     </section>
   }
 
+  <!-- Study sessions and events from clubs, for everyone. The component fetches
+       in the browser only and renders nothing until it has events, so the
+       prerendered markup and the TransferState handoff below are unchanged. -->
+  <app-home-events-strip />
+
   <div class="catalog">
   <!-- Filter Bar -->
   <div class="filter-bar">

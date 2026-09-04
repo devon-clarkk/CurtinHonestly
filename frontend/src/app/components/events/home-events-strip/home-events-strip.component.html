@@ -1,0 +1,16 @@
+@if (events().length > 0) {
+  <section class="events-strip" aria-labelledby="home-events-heading">
+    <div class="events-strip-head">
+      <h2 id="home-events-heading" class="events-strip-title">Study sessions and events</h2>
+      <a routerLink="/events" class="events-strip-link">See all events</a>
+    </div>
+    <p class="events-strip-hint">Run by student clubs and study services. Times are Perth local.</p>
+    <ul class="events-strip-list">
+      @for (event of events(); track event.id) {
+        <li>
+          <app-event-card [event]="event" />
+        </li>
+      }
+    </ul>
+  </section>
+}

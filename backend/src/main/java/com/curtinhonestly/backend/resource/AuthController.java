@@ -121,6 +121,7 @@ public class AuthController {
         return new AccountDTO(
                 user.getEmail(),
                 user.isVerifiedStudent(),
+                user.getRoles().stream().map(Enum::name).toList(),
                 campaignService.getCampaignProgress(user),
                 campaignService.getEntriesForUser(user)
         );

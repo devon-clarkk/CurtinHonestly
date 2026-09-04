@@ -1,0 +1,16 @@
+@if (events().length > 0) {
+  <section class="unit-events" aria-labelledby="unit-events-heading">
+    <h2 id="unit-events-heading">Study sessions and events for {{ unitCode }}</h2>
+    <p class="unit-events-hint">Run by student clubs and study services. Times are Perth local.</p>
+    <ul class="unit-events-list">
+      @for (event of events(); track event.id) {
+        <li>
+          <app-event-card [event]="event" />
+        </li>
+      }
+    </ul>
+    <p class="unit-events-foot">
+      <a routerLink="/events">All upcoming events</a>
+    </p>
+  </section>
+}

@@ -1,0 +1,10 @@
+.events-header-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.events-header-actions .btn {
+  text-decoration: none;
+  display: inline-block;
+}
