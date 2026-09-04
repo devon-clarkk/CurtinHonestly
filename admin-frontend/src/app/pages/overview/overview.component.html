@@ -1,37 +1,170 @@
 <h1 class="page-title">Overview</h1>
-<p class="page-subtitle">At-a-glance traction and platform health.</p>
+<p class="page-subtitle">Traction, catalogue coverage and what needs attention.</p>
 
 @if (errorMessage()) {
   <div class="error-banner">{{ errorMessage() }}</div>
 }
 
 @if (isLoading()) {
-  <p>Loading metrics…</p>
+  <p>Loading metrics...</p>
 } @else if (overview(); as data) {
-  <div class="stat-grid">
-    <div class="card">
-      <div class="stat-value">{{ data.totalUsers }}</div>
-      <div class="stat-label">Total users</div>
+  <div class="kpi-grid">
+    <app-stat-tile
+      label="Users"
+      [value]="compact(data.totalUsers)"
+      [current]="data.usersLast7Days"
+      [prior]="data.usersPrior7Days"
+      [accent]="true"
+    />
+    <app-stat-tile
+      label="Reviews"
+      [value]="compact(data.totalReviews)"
+      [current]="data.reviewsLast7Days"
+      [prior]="data.reviewsPrior7Days"
+      [accent]="true"
+    />
+    <app-stat-tile
+      label="Verified students"
+      [value]="percent(data.verificationRate)"
+      [hint]="compact(data.verifiedUsers) + ' of ' + compact(data.totalUsers) + ' users'"
+    />
+    <app-stat-tile
+      label="Catalogue coverage"
+      [value]="percent(data.coverageRatio, 1)"
+      [hint]="compact(data.unitsWithAtLeastOneReview) + ' of ' + compact(data.totalUnits) + ' units have a review'"
+    />
+  </div>
+
+  <div class="kpi-grid secondary">
+    <app-stat-tile label="Likes given" [value]="compact(data.totalLikes)" hint="Across all reviews" />
+    <app-stat-tile
+      label="Reviews with text"
+      [value]="compact(data.reviewsWithText)"
+      [hint]="percent(data.totalReviews ? data.reviewsWithText / data.totalReviews : 0) + ' of reviews'"
+    />
+    <app-stat-tile label="Banned users" [value]="compact(data.bannedUsers)" [hint]="'Of ' + compact(data.totalUsers)" />
+    <app-stat-tile label="Units in catalogue" [value]="compact(data.totalUnits)" hint="Importable via unit requests" />
+  </div>
+
+  <!-- Recommendation model: who gets personalised picks and how much the
+       reviews overlap. Arrives separately from the overview; absent until then. -->
+  @if (recommendationStats(); as rec) {
+    <div class="kpi-grid secondary">
+      <app-stat-tile
+        label="Students with matches"
+        [value]="compact(rec.usersWithNeighbours)"
+        [hint]="recommendationShare(rec, rec.usersWithNeighbours) + ' of ' + compact(rec.userCount) + ' reviewers, ' + rec.meanNeighboursPerUser + ' similar students each'"
+      />
+      <app-stat-tile
+        label="Cold-start students"
+        [value]="compact(rec.coldStartUsers)"
+        hint="Under two reviews, or no similar student yet"
+      />
+      <app-stat-tile
+        label="Co-reviewed unit pairs"
+        [value]="compact(rec.itemPairsWithCoReviews)"
+        [hint]="'Across ' + compact(rec.unitCount) + ' reviewed units'"
+      />
+      <app-stat-tile
+        label="Recommendation model"
+        [value]="compact(rec.reviewCount) + ' reviews'"
+        [hint]="modelBuiltLabel(rec)"
+      />
     </div>
-    <div class="card">
-      <div class="stat-value">{{ data.totalReviews }}</div>
-      <div class="stat-label">Total reviews</div>
-    </div>
-    <div class="card">
-      <div class="stat-value">{{ data.totalUnits }}</div>
-      <div class="stat-label">Units in catalogue</div>
-    </div>
-    <div class="card">
-      <div class="stat-value">{{ data.averageRating }}</div>
-      <div class="stat-label">Average rating</div>
-    </div>
-    <div class="card highlight">
-      <div class="stat-value">+{{ data.usersLast7Days }}</div>
-      <div class="stat-label">New users (7 days)</div>
-    </div>
-    <div class="card highlight">
-      <div class="stat-value">+{{ data.reviewsLast7Days }}</div>
-      <div class="stat-label">New reviews (7 days)</div>
-    </div>
+  }
+
+  <div class="grid">
+    <section class="card span-2">
+      <h2>Last 30 days</h2>
+      <p class="card-hint">New reviews and new users per day (UTC).</p>
+      <app-series-chart [points]="data.signupsAndReviewsOverTime" />
+    </section>
+
+    <section class="card attention" [class.quiet]="attentionTotal(data) === 0">
+      <h2>Needs attention</h2>
+      <ul class="attention-list">
+        <li>
+          <span class="count" [class.hot]="data.openFlaggedReviews > 0">{{ data.openFlaggedReviews }}</span>
+          <span>
+            <strong>Flagged reviews</strong>
+            <small>Reported by students, awaiting a decision</small>
+          </span>
+        </li>
+        <li>
+          <span class="count" [class.hot]="data.pendingUnitRequests > 0">{{ data.pendingUnitRequests }}</span>
+          <span>
+            <strong>Pending unit requests</strong>
+            <small>Units students searched for and could not find</small>
+          </span>
+        </li>
+        <li>
+          <span class="count" [class.hot]="data.unverifiedUsersLast7Days > 0">{{ data.unverifiedUsersLast7Days }}</span>
+          <span>
+            <strong>Unverified signups (7 days)</strong>
+            <small>May need a manual verify if the email did not arrive</small>
+          </span>
+        </li>
+      </ul>
+      <a routerLink="/operations" class="btn btn-primary">Open operations</a>
+    </section>
+  </div>
+
+  <div class="grid tables">
+    <section class="card">
+      <h2>Top units by reviews</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Unit</th>
+              <th>Name</th>
+              <th class="num">Reviews</th>
+              <th class="num">Avg rating</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (unit of data.topUnits; track unit.code) {
+              <tr>
+                <td><a [href]="unitUrl(unit.code)" target="_blank" rel="noopener">{{ unit.code }}</a></td>
+                <td class="truncate">{{ unit.name }}</td>
+                <td class="num">{{ unit.reviewCount }}</td>
+                <td class="num">{{ unit.averageRating }}</td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="4">No reviews yet.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Most requested units</h2>
+      <p class="card-hint">What to import next, ranked by how many students asked.</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Code</th>
+              <th class="num">Requests</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (request of data.mostRequestedUnits; track request.code) {
+              <tr>
+                <td>{{ request.code }}</td>
+                <td class="num">{{ request.count }}</td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="2">No unit requests yet.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
   </div>
 }

@@ -8,6 +8,7 @@ import com.curtinhonestly.backend.dto.ReviewUpdateRequest;
 import com.curtinhonestly.backend.repo.ReviewRepo;
 import com.curtinhonestly.backend.repo.UnitRepo;
 import com.curtinhonestly.backend.repo.UserRepo;
+import com.curtinhonestly.backend.service.recommendation.RecommendationService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -30,10 +31,11 @@ class ReviewServiceUpdateTest {
     @Mock ProfanityFilterService profanityFilterService;
     @Mock UnitAggregateService unitAggregateService;
     @Mock CampaignService campaignService;
+    @Mock RecommendationService recommendationService;
 
     private ReviewService service() {
         return new ReviewService(reviewRepo, unitService, userRepo, unitRepo,
-                profanityFilterService, unitAggregateService, campaignService);
+                profanityFilterService, unitAggregateService, campaignService, recommendationService);
     }
 
     private Review existingReview() {

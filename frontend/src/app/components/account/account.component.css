@@ -68,6 +68,42 @@
   color: var(--text-secondary);
 }
 
+/* Reviewer rank row: the tier chip links to My Reviews, where the progress
+   bars live. Recognition uses the gold ink shared with the unit page chips. */
+.status-badge.rank {
+  background: var(--surface-muted);
+  color: var(--text-primary);
+  text-decoration: none;
+}
+
+.status-badge.rank:hover {
+  text-decoration: underline;
+}
+
+.status-badge.rank-recognition {
+  background: #fbf6e6;
+  color: var(--primary-ink);
+  margin-left: 6px;
+}
+
+.rank-hint {
+  display: block;
+  margin-top: 6px;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.rank-hint a {
+  color: var(--primary-ink);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.rank-hint a:hover {
+  text-decoration: underline;
+}
+
 .stacked-form .form-group {
   margin-bottom: 16px;
 }

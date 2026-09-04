@@ -87,6 +87,13 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/units/*/tips").hasAnyAuthority(UserRole.ROLE_USER.name(), UserRole.ROLE_ADMIN.name())
                         .requestMatchers(HttpMethod.DELETE, "/units/*/tips/*").hasAnyAuthority(UserRole.ROLE_USER.name(), UserRole.ROLE_ADMIN.name())
 
+                        // Unit resources (UnitResourceLinkResource): reads are public via GET /units/**
+                        // above. The click beacon is public (rate limited in RateLimitFilter) and
+                        // suggestions need a signed-in account. Both are POSTs under /units/**, so they
+                        // must sit above the admin-only POST /units/** rule below (first match wins).
+                        .requestMatchers(HttpMethod.POST, "/units/*/resources/*/clicks").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/units/*/resources/suggestions").hasAnyAuthority(UserRole.ROLE_USER.name(), UserRole.ROLE_ADMIN.name())
+
                         // Admin only endpoints - Use name() to get "ROLE_ADMIN"
                         .requestMatchers(HttpMethod.DELETE, "/units/**").hasAuthority(UserRole.ROLE_ADMIN.name())
                         .requestMatchers(HttpMethod.POST, "/units", "/units/**").hasAuthority(UserRole.ROLE_ADMIN.name())
@@ -97,6 +104,18 @@ public class SecurityConfig {
                         // Unlike is DELETE /reviews/{id}/likes (owner of the like). Review delete itself
                         // is further gated by @PreAuthorize(IS_ADMIN_OR_OWNER) on the resource method.
                         .requestMatchers(HttpMethod.DELETE, "/reviews/*/likes").hasAnyAuthority(UserRole.ROLE_USER.name(), UserRole.ROLE_ADMIN.name())
+
+                        // Personalised recommendations (RecommendationResource). Per-user, so any
+                        // signed-in account; the public GET /units/{code}/similar endpoint is
+                        // already covered by the GET /units/** rule above.
+                        .requestMatchers("/recommendations/**").authenticated()
+
+                        // Community boards (BoardResource). Reading threads is public; every
+                        // write (POST/PUT/DELETE) falls through to the authenticated default
+                        // below and is further gated by @PreAuthorize on the resource methods
+                        // (owner-or-admin via BoardSecurityService). /admin/boards/** is
+                        // already covered by the /admin/** rule above.
+                        .requestMatchers(HttpMethod.GET, "/boards/**").permitAll()
 
                         // Default
                         .anyRequest().authenticated()

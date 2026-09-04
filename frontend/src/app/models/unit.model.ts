@@ -77,7 +77,40 @@ export interface Review {
   likeCount?: number;
   likedByCurrentUser?: boolean;
   reviewerVerified: boolean;
+  // Reviewer standing, absent on anonymised reviews. Labels come from the
+  // backend; REVIEWER_TIERS in utils/reviewer-tier.util.ts has the same text
+  // plus descriptions for the client.
+  reviewerTier?: ReviewerTier | null;
+  reviewerTierLabel?: string | null;
+  reviewerRecognition?: RecognitionTier | null;
+  reviewerRecognitionLabel?: string | null;
   createdAt?: string;
+}
+
+/** Activity tier by number of reviews written. Mirrors the backend enum. */
+export type ReviewerTier = 'LURKER' | 'NEWCOMER' | 'CONTRIBUTOR' | 'REGULAR' | 'TOP_REVIEWER' | 'LEGEND';
+
+/** Recognition tier by helpful marks received across all reviews. Mirrors the backend enum. */
+export type RecognitionTier = 'APPRECIATED' | 'VALUED_REVIEWER' | 'COMMUNITY_FAVOURITE';
+
+/**
+ * The signed-in student's own reviewer standing (GET /reviewer-rank/me).
+ * recognitionTier is null until the first threshold; the next* fields are
+ * null or 0 at the top of each ladder.
+ */
+export interface ReviewerProfile {
+  activityTier: ReviewerTier;
+  activityTierLabel: string;
+  recognitionTier: RecognitionTier | null;
+  recognitionTierLabel: string | null;
+  reviewCount: number;
+  likesReceived: number;
+  reviewsToNextTier: number;
+  nextTierLabel: string | null;
+  nextTierThreshold: number;
+  likesToNextRecognition: number;
+  nextRecognitionLabel: string | null;
+  nextRecognitionThreshold: number;
 }
 
 export interface Tip {

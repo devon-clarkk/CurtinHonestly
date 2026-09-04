@@ -12,6 +12,44 @@
     </div>
   }
 
+  <!-- "For you" teaser for a signed-in student: top picks, or the nudge when
+       the model has nothing personal yet. Browser only (see loadForYou): the
+       signal is null during prerender and hydration, so the static HTML and
+       the TransferState handoff below are unchanged. -->
+  @if (forYou(); as picks) {
+    <section class="for-you" aria-labelledby="for-you-heading">
+      <div class="for-you-head">
+        <h2 id="for-you-heading" class="for-you-title">For you</h2>
+        <a routerLink="/for-you" class="for-you-link">See all picks</a>
+      </div>
+      @if (picks.coldStart) {
+        <p class="for-you-nudge">
+          Review a couple more units to unlock picks from students whose ratings match yours.
+          <a routerLink="/my-reviews">My reviews</a>
+        </p>
+      } @else if (forYouTop().length > 0) {
+        <ul class="for-you-strip">
+          @for (item of forYouTop(); track item.unitCode) {
+            <li>
+              <a class="for-you-card" [routerLink]="['/units', item.unitCode]">
+                <span class="for-you-score">{{ item.matchScore }}%</span>
+                <span class="for-you-text">
+                  <span class="for-you-code">{{ item.unitCode }}</span>
+                  <span class="for-you-name">{{ item.unitName }}</span>
+                </span>
+              </a>
+            </li>
+          }
+        </ul>
+      } @else {
+        <p class="for-you-nudge">
+          No strong matches yet. Each review you add gives similar students more to go on.
+          <a routerLink="/my-reviews">My reviews</a>
+        </p>
+      }
+    </section>
+  }
+
   <div class="catalog">
   <!-- Filter Bar -->
   <div class="filter-bar">
@@ -235,21 +273,74 @@
         }
       </div>
 
-      @if (state.loadingMore) {
-        <div class="loading-more">
-          <div class="spinner-sm"></div>
-          <span>Loading more units…</span>
+      <!-- The first few pages scroll in on their own. After that the list
+           hands over to a button, so the page has a real bottom and the footer
+           is reachable. The sentinel only exists while auto-load is active,
+           which is what tears the IntersectionObserver down (see the ViewChild
+           setter); a new query resets to page 0 and brings it back. -->
+      @if (state.hasMore) {
+        @if (autoLoadActive(state)) {
+          @if (state.loadingMore) {
+            <div class="loading-more">
+              <div class="spinner-sm"></div>
+              <span>Loading more units…</span>
+            </div>
+          }
+          <div #scrollSentinel class="scroll-sentinel" aria-hidden="true"></div>
+        } @else {
+          <div class="load-more">
+            <p class="load-more-count" id="loadMoreCount">
+              Showing {{ state.units.length | number }} of {{ state.totalElements | number }} units
+            </p>
+            <div
+              class="load-more-progress"
+              role="progressbar"
+              aria-labelledby="loadMoreCount"
+              aria-valuemin="0"
+              [attr.aria-valuemax]="state.totalElements"
+              [attr.aria-valuenow]="state.units.length">
+              <span class="load-more-progress-fill" [style.width.%]="loadedPercent(state)"></span>
+            </div>
+            <button
+              type="button"
+              class="btn btn-primary load-more-btn"
+              [class.is-loading]="state.loadingMore"
+              [attr.aria-busy]="state.loadingMore"
+              (click)="loadMore()">
+              @if (state.loadingMore) {
+                <span class="spinner-sm load-more-spinner" aria-hidden="true"></span>
+                <span>Loading units…</span>
+              } @else {
+                <span>Show more units</span>
+              }
+            </button>
+          </div>
+        }
+      } @else if (state.totalPages > 1) {
+        <div #catalogEnd class="end-message" tabindex="-1">
+          <p>You have reached the end of the catalogue. All {{ state.units.length | number }} units are shown.</p>
+          <button type="button" class="btn-text end-message-top" (click)="scrollToTop()">Back to top</button>
         </div>
+      } @else {
+        <p class="end-message">All {{ state.units.length | number }} units shown</p>
       }
 
-      @if (state.hasMore) {
-        <div #scrollSentinel class="scroll-sentinel" aria-hidden="true"></div>
-      } @else {
-        <p class="end-message">All {{ state.units.length }} units loaded</p>
-      }
+      <div class="visually-hidden" aria-live="polite" aria-atomic="true">{{ loadAnnouncement() }}</div>
     }
   }
   </div>
+
+  @if (showBackToTop()) {
+    <button
+      type="button"
+      class="back-to-top"
+      [class.raised]="selectedForCompare().length > 0"
+      (click)="scrollToTop()"
+      aria-label="Back to top"
+      title="Back to top">
+      <span aria-hidden="true">&uarr;</span>
+    </button>
+  }
 
   @if (selectedForCompare().length > 0) {
     <div class="compare-bar">

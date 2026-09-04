@@ -67,6 +67,17 @@ public class AdminResource {
         return ResponseEntity.ok(adminService.setBanned(id, false));
     }
 
+    // Manual verification for when the verification email does not arrive.
+    @PatchMapping("/users/{id}/verify")
+    public ResponseEntity<UserAdminDTO> verifyUser(@PathVariable String id) {
+        return ResponseEntity.ok(adminService.setVerifiedStudent(id, true));
+    }
+
+    @PatchMapping("/users/{id}/unverify")
+    public ResponseEntity<UserAdminDTO> unverifyUser(@PathVariable String id) {
+        return ResponseEntity.ok(adminService.setVerifiedStudent(id, false));
+    }
+
     @DeleteMapping("/users/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable String id) {
         adminService.deleteUser(id);
@@ -78,6 +89,14 @@ public class AdminResource {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
         return ResponseEntity.ok(adminService.listReviews(page, size));
+    }
+
+    // The full stored review for the admin detail panel.
+    @GetMapping("/reviews/{id}")
+    public ResponseEntity<AdminReviewDTO> getReview(@PathVariable String id) {
+        return adminService.getReview(id)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/reviews/{id}")

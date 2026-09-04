@@ -6,14 +6,22 @@ import { BehaviorSubject, debounceTime, distinctUntilChanged, map, Observable, s
 import { ReviewService } from '../../services/review.service';
 import { UnitService } from '../../services/unit.service';
 import { SeoService } from '../../services/seo.service';
-import { MyReview, UnitSummary } from '../../models/unit.model';
+import { MyReview, RecognitionTier, ReviewerProfile, ReviewerTier, UnitSummary } from '../../models/unit.model';
 import { formatTerm } from '../../utils/semester-options.util';
+import {
+  RECOGNITION_TIERS,
+  REVIEWER_TIERS,
+  nextRecognitionNudge,
+  nextTierNudge,
+  progressPercent,
+} from '../../utils/reviewer-tier.util';
 import { AddReviewComponent } from '../add-review/add-review.component';
+import { IconComponent } from '../icon/icon.component';
 
 @Component({
   selector: 'app-my-reviews',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, AddReviewComponent],
+  imports: [CommonModule, FormsModule, RouterLink, AddReviewComponent, IconComponent],
   templateUrl: './my-reviews.component.html',
   styleUrl: './my-reviews.component.css'
 })
@@ -26,10 +34,20 @@ export class MyReviewsComponent implements OnInit {
   // Labels are built client-side from the stored (termType, termYear) pair.
   formatTerm = formatTerm;
 
+  // Rank panel helpers. Copy lives in reviewer-tier.util so the unit page,
+  // the account page and this panel all say the same thing.
+  nextTierNudge = nextTierNudge;
+  nextRecognitionNudge = nextRecognitionNudge;
+  progressPercent = progressPercent;
+
   reviews = signal<MyReview[]>([]);
   isLoading = signal(true);
   errorMessage = signal<string | null>(null);
   successMessage = signal<string | null>(null);
+
+  // Null until loaded, and stays null if the request fails: the panel simply
+  // does not render, and the reviews list is never held up by it.
+  profile = signal<ReviewerProfile | null>(null);
 
   showAddFlow = signal(false);
   selectedUnitCode = signal<string | null>(null);
@@ -45,6 +63,7 @@ export class MyReviewsComponent implements OnInit {
   ngOnInit() {
     this.seoService.noIndex('My Reviews | CurtinHonestly');
     this.loadReviews();
+    this.loadProfile();
 
     this.searchResults$ = this.searchSubject.pipe(
       debounceTime(300),
@@ -70,6 +89,26 @@ export class MyReviewsComponent implements OnInit {
         this.isLoading.set(false);
       }
     });
+  }
+
+  // Quiet on purpose: a rank that fails to load is not worth an error banner.
+  loadProfile() {
+    this.reviewService.getMyReviewerProfile().subscribe({
+      next: (profile) => this.profile.set(profile),
+      error: () => this.profile.set(null)
+    });
+  }
+
+  tierGlyph(tier: ReviewerTier): string {
+    return REVIEWER_TIERS[tier]?.glyph ?? '';
+  }
+
+  tierDescription(tier: ReviewerTier): string {
+    return REVIEWER_TIERS[tier]?.description ?? '';
+  }
+
+  recognitionDescription(tier: RecognitionTier | null): string {
+    return tier ? RECOGNITION_TIERS[tier]?.description ?? '' : '';
   }
 
   startAddReview() {
@@ -105,6 +144,7 @@ export class MyReviewsComponent implements OnInit {
     this.successMessage.set('Review submitted successfully.');
     this.cancelAddReview();
     this.loadReviews();
+    this.loadProfile();
   }
 
   startEditReview(review: MyReview) {
@@ -131,6 +171,7 @@ export class MyReviewsComponent implements OnInit {
       next: () => {
         this.successMessage.set('Review deleted.');
         this.loadReviews();
+        this.loadProfile();
       },
       error: () => this.errorMessage.set('Failed to delete review.')
     });

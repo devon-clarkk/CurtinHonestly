@@ -4,6 +4,9 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService, AccountStatus, CampaignProgress } from '../../services/auth.service';
 import { SeoService } from '../../services/seo.service';
+import { ReviewService } from '../../services/review.service';
+import { ReviewerProfile } from '../../models/unit.model';
+import { nextTierNudge } from '../../utils/reviewer-tier.util';
 
 @Component({
   selector: 'app-account',
@@ -16,8 +19,13 @@ export class AccountComponent implements OnInit {
   protected authService = inject(AuthService);
   private router = inject(Router);
   private seoService = inject(SeoService);
+  private reviewService = inject(ReviewService);
 
   account = signal<AccountStatus | null>(null);
+  // Reviewer standing for the details list. Null while loading or if the
+  // request fails, in which case the row is simply not shown.
+  reviewerProfile = signal<ReviewerProfile | null>(null);
+  nextTierNudge = nextTierNudge;
 
   newEmail = '';
   emailPassword = '';
@@ -51,6 +59,11 @@ export class AccountComponent implements OnInit {
     this.authService.refreshAccountStatus().subscribe({
       next: (status) => this.account.set(status),
       error: () => this.authService.logout()
+    });
+
+    this.reviewService.getMyReviewerProfile().subscribe({
+      next: (profile) => this.reviewerProfile.set(profile),
+      error: () => this.reviewerProfile.set(null)
     });
   }
 

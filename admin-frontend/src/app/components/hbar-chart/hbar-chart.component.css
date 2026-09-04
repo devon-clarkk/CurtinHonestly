@@ -1,0 +1,80 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.hbar {
+  display: grid;
+  gap: 10px;
+}
+
+.hbar-row {
+  display: grid;
+  grid-template-columns: minmax(72px, 160px) 1fr auto;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.85rem;
+}
+
+.hbar-label {
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hbar-track {
+  height: 14px;
+  border-radius: 0;
+  position: relative;
+}
+
+.hbar-track.meter {
+  background: #efe3bd;
+  border-radius: 4px;
+}
+
+.hbar-fill {
+  height: 100%;
+  background: var(--primary-color);
+  border-radius: 0 4px 4px 0;
+  min-width: 0;
+  transition: width 200ms ease-out;
+}
+
+.hbar-track.meter .hbar-fill {
+  border-radius: 4px 0 0 4px;
+}
+
+.hbar-value {
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  min-width: 2.5em;
+  text-align: right;
+}
+
+.table-twin {
+  margin-top: 12px;
+  font-size: 0.85rem;
+}
+
+.table-twin summary {
+  cursor: pointer;
+  color: var(--text-secondary);
+}
+
+.table-wrap {
+  overflow-x: auto;
+  margin-top: 8px;
+}
+
+.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.empty {
+  color: var(--text-secondary);
+  margin: 0;
+}

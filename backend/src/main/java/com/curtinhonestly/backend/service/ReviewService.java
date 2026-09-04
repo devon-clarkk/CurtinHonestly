@@ -11,6 +11,7 @@ import com.curtinhonestly.backend.dto.ReviewUpdateRequest;
 import com.curtinhonestly.backend.repo.ReviewRepo;
 import com.curtinhonestly.backend.repo.UnitRepo;
 import com.curtinhonestly.backend.repo.UserRepo;
+import com.curtinhonestly.backend.service.recommendation.RecommendationService;
 import com.curtinhonestly.backend.util.ReviewRanking;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -40,6 +41,9 @@ public class ReviewService {
     private final ProfanityFilterService profanityFilterService;
     private final UnitAggregateService unitAggregateService;
     private final CampaignService campaignService;
+    // Recommendations are served from an in-memory snapshot of the reviews;
+    // every write here drops it once the transaction commits.
+    private final RecommendationService recommendationService;
 
     public List<Review> getReviewsByUnitCode(String unitCode) {
         Unit unit = unitService.getUnitByCode(unitCode);
@@ -100,6 +104,7 @@ public class ReviewService {
 
         Review saved = reviewRepo.save(review);
         unitAggregateService.recalculateForUnit(unit.getId());
+        recommendationService.invalidateAfterCommit();
         return saved;
     }
 
@@ -145,6 +150,7 @@ public class ReviewService {
 
         Review saved = reviewRepo.save(review);
         unitAggregateService.recalculateForUnit(saved.getUnit().getId());
+        recommendationService.invalidateAfterCommit();
         log.info("Review {} updated", id);
         return saved;
     }
@@ -167,6 +173,7 @@ public class ReviewService {
         log.info("Review deleted");
         reviewRepo.delete(review);
         unitAggregateService.recalculateForUnit(unitId);
+        recommendationService.invalidateAfterCommit();
     }
 
     public void deleteReviewById(String id) {

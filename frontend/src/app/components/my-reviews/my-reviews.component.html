@@ -11,6 +11,58 @@
     </div>
   </div>
 
+  @if (profile(); as rank) {
+    <section class="rank-panel card" aria-labelledby="rank-heading">
+      <div class="rank-header">
+        <div>
+          <p class="rank-eyebrow" id="rank-heading">Your reviewer rank</p>
+          <h2 class="rank-title" [title]="tierDescription(rank.activityTier)">
+            <span class="rank-glyph" aria-hidden="true">{{ tierGlyph(rank.activityTier) }}</span>
+            {{ rank.activityTierLabel }}
+          </h2>
+        </div>
+        @if (rank.recognitionTierLabel) {
+          <span class="rank-recognition" [title]="recognitionDescription(rank.recognitionTier)">
+            <app-icon name="thumb-up" [filled]="true" />
+            {{ rank.recognitionTierLabel }}
+          </span>
+        }
+      </div>
+
+      <div class="rank-tracks">
+        <div class="rank-track">
+          <div class="rank-track-label">
+            <span>Reviews written</span>
+            <span class="rank-count">
+              {{ rank.reviewCount }}@if (rank.nextTierThreshold > 0) {<span class="rank-of"> / {{ rank.nextTierThreshold }}</span>}
+            </span>
+          </div>
+          <div class="rank-bar" role="progressbar" aria-label="Progress to the next reviewer tier"
+               [attr.aria-valuenow]="rank.reviewCount" aria-valuemin="0"
+               [attr.aria-valuemax]="rank.nextTierThreshold || rank.reviewCount">
+            <div class="rank-bar-fill" [style.width.%]="progressPercent(rank.reviewCount, rank.nextTierThreshold)"></div>
+          </div>
+          <p class="rank-nudge">{{ nextTierNudge(rank) }}</p>
+        </div>
+
+        <div class="rank-track">
+          <div class="rank-track-label">
+            <span>Helpful marks received</span>
+            <span class="rank-count">
+              {{ rank.likesReceived }}@if (rank.nextRecognitionThreshold > 0) {<span class="rank-of"> / {{ rank.nextRecognitionThreshold }}</span>}
+            </span>
+          </div>
+          <div class="rank-bar" role="progressbar" aria-label="Progress to the next recognition"
+               [attr.aria-valuenow]="rank.likesReceived" aria-valuemin="0"
+               [attr.aria-valuemax]="rank.nextRecognitionThreshold || rank.likesReceived">
+            <div class="rank-bar-fill recognition" [style.width.%]="progressPercent(rank.likesReceived, rank.nextRecognitionThreshold)"></div>
+          </div>
+          <p class="rank-nudge">{{ nextRecognitionNudge(rank) }}</p>
+        </div>
+      </div>
+    </section>
+  }
+
   @if (errorMessage()) {
     <div class="error-box">{{ errorMessage() }}</div>
   }

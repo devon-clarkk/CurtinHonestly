@@ -228,7 +228,39 @@ export function buildSitewideJsonLd(siteUrl: string): Record<string, unknown>[] 
   ];
 }
 
-export function buildUnitJsonLd(unit: UnitDetails, siteUrl: string) {
+/**
+ * The units that name this one as a prerequisite, as an ItemList.
+ *
+ * The page renders this list and nothing describes it. The fact is one no
+ * Curtin handbook page states, because a handbook entry lists what a unit needs
+ * and never what needs it, so it is the most quotable thing on a unit nobody
+ * has reviewed. Saying so in markup costs a few hundred bytes and gives a
+ * consumer the relationship rather than a row of links to infer it from.
+ */
+function buildRequiredForJsonLd(
+  unitCode: string,
+  requiredFor: string[],
+  base: string
+): Record<string, unknown> | undefined {
+  if (requiredFor.length === 0) {
+    return undefined;
+  }
+
+  return {
+    '@type': 'ItemList',
+    '@id': `${base}${unitPagePath(unitCode)}#required-for`,
+    name: `Units that require ${unitCode}`,
+    numberOfItems: requiredFor.length,
+    itemListElement: requiredFor.map((code, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      name: code,
+      url: `${base}${unitPagePath(code)}`,
+    })),
+  };
+}
+
+export function buildUnitJsonLd(unit: UnitDetails, siteUrl: string, requiredFor: string[] = []) {
   const base = siteUrl.replace(/\/$/, '');
   const url = `${base}${unitPagePath(unit.code)}`;
   const courseId = `${url}#course`;
@@ -303,6 +335,8 @@ export function buildUnitJsonLd(unit: UnitDetails, siteUrl: string) {
     }
   }
 
+  const requiredForList = buildRequiredForJsonLd(unit.code, requiredFor, base);
+
   return {
     '@context': 'https://schema.org',
     '@graph': [
@@ -313,6 +347,7 @@ export function buildUnitJsonLd(unit: UnitDetails, siteUrl: string) {
         itemListElement: buildUnitBreadcrumbTrail(unit, base, url),
       },
       course,
+      ...(requiredForList ? [requiredForList] : []),
     ],
   };
 }

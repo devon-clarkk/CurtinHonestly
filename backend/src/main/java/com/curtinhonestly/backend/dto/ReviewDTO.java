@@ -1,7 +1,9 @@
 package com.curtinhonestly.backend.dto;
 
 import com.curtinhonestly.backend.domain.AcademicTerm;
+import com.curtinhonestly.backend.domain.RecognitionTier;
 import com.curtinhonestly.backend.domain.ReviewTag;
+import com.curtinhonestly.backend.domain.ReviewerTier;
 import lombok.Data;
 
 import java.time.Instant;
@@ -30,5 +32,14 @@ public class ReviewDTO {
     private boolean likedByCurrentUser;
 
     private boolean reviewerVerified;
+
+    // Reviewer standing (ReviewerRank), by tier name plus its display label. Null
+    // when the review is anonymised (author deleted their account) or the author
+    // has no standing to show. Recognition stays null until it is earned.
+    private ReviewerTier reviewerTier;
+    private String reviewerTierLabel;
+    private RecognitionTier reviewerRecognition;
+    private String reviewerRecognitionLabel;
+
     private Instant createdAt;
 }

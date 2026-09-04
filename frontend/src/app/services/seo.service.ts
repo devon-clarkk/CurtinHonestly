@@ -3,6 +3,12 @@ import { Injectable, inject } from '@angular/core';
 import { Meta, Title } from '@angular/platform-browser';
 import { UnitDetails } from '../models/unit.model';
 import { FacultyHub, facultyPagePath } from '../utils/faculty.util';
+import {
+  facultyShareImagePath,
+  infoShareImagePath,
+  shareCardMeta,
+  unitShareImagePath,
+} from '../utils/share-image';
 import { environment } from '../../environments/environment';
 import {
   UnitLink,
@@ -49,11 +55,12 @@ export class SeoService {
       description,
       url,
       type: 'website',
+      imagePath: infoShareImagePath('home'),
     });
     this.setJsonLd(buildHomeJsonLd(this.siteUrl));
   }
 
-  updateUnitPage(unit: UnitDetails): void {
+  updateUnitPage(unit: UnitDetails, requiredFor: string[] = []): void {
     if (!this.seoEnabled) {
       this.applyDevNoIndex(`${unit.code} (Dev)`);
       return;
@@ -72,8 +79,9 @@ export class SeoService {
       description,
       url,
       type: 'article',
+      imagePath: unitShareImagePath(unit.code),
     });
-    this.setJsonLd(buildUnitJsonLd(unit, this.siteUrl));
+    this.setJsonLd(buildUnitJsonLd(unit, this.siteUrl, requiredFor));
   }
 
   updateFacultyPage(hub: FacultyHub, units: UnitLink[]): void {
@@ -95,6 +103,7 @@ export class SeoService {
       description,
       url,
       type: 'website',
+      imagePath: facultyShareImagePath(hub.slug),
     });
     this.setJsonLd(buildFacultyJsonLd(hub, units, this.siteUrl));
   }
@@ -116,7 +125,15 @@ export class SeoService {
     this.setIndexable();
     this.setDescription(page.description);
     this.setCanonical(url);
-    this.setOpenGraph({ title, description: page.description, url, type: 'website' });
+    this.setOpenGraph({
+      title,
+      description: page.description,
+      url,
+      type: 'website',
+      // about and contact each have a hand-tuned card; anything else added
+      // later falls back to the logo until one is drawn for it.
+      imagePath: infoShareImagePath(page.path.replace(/^\//, '')),
+    });
     this.setJsonLd(buildInfoPageJsonLd(this.siteUrl, page));
   }
 
@@ -169,13 +186,21 @@ export class SeoService {
     description,
     url,
     type,
+    imagePath,
   }: {
     title: string;
     description: string;
     url: string;
     type: string;
+    /**
+     * The page's own share card, or null where this build generated none.
+     * shareCardMeta pairs it with the card type that fits its shape, so a
+     * `summary_large_image` is only ever claimed for a real 1200x630 file and
+     * the square logo keeps the `summary` it actually suits.
+     */
+    imagePath: string | null;
   }): void {
-    const image = `${this.siteUrl}/assets/images/logo.png`;
+    const { image, card } = shareCardMeta(imagePath, this.siteUrl);
 
     this.meta.updateTag({ property: 'og:title', content: title });
     this.meta.updateTag({ property: 'og:description', content: description });
@@ -184,7 +209,7 @@ export class SeoService {
     this.meta.updateTag({ property: 'og:locale', content: 'en_AU' });
     this.meta.updateTag({ property: 'og:site_name', content: 'CurtinHonestly' });
     this.meta.updateTag({ property: 'og:image', content: image });
-    this.meta.updateTag({ name: 'twitter:card', content: 'summary' });
+    this.meta.updateTag({ name: 'twitter:card', content: card });
     this.meta.updateTag({ name: 'twitter:title', content: title });
     this.meta.updateTag({ name: 'twitter:description', content: description });
     this.meta.updateTag({ name: 'twitter:image', content: image });

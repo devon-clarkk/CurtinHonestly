@@ -1,5 +1,5 @@
 <h1 class="page-title">Analytics</h1>
-<p class="page-subtitle">Deeper trends — signups, reviews, and faculty breakdown.</p>
+<p class="page-subtitle">Review quality, catalogue coverage and who is contributing.</p>
 
 <div class="toolbar card">
   <label>
@@ -10,6 +10,7 @@
       <option [ngValue]="90">Last 90 days</option>
     </select>
   </label>
+  <span class="toolbar-hint">The period applies to the daily series. Distributions and leaderboards cover all reviews.</span>
 </div>
 
 @if (errorMessage()) {
@@ -17,67 +18,128 @@
 }
 
 @if (isLoading()) {
-  <p>Loading analytics…</p>
+  <p>Loading analytics...</p>
 } @else if (analytics(); as data) {
+  <section class="card span-full">
+    <h2>New reviews and users per day</h2>
+    <p class="card-hint">Last {{ data.periodDays }} days (UTC).</p>
+    <app-series-chart [points]="data.signupsAndReviewsOverTime" />
+  </section>
+
+  <div class="kpi-grid">
+    <app-stat-tile
+      label="Would take again"
+      [value]="percent(data.wouldTakeAgainRatio)"
+      [hint]="'Of ' + compact(data.totalReviews) + ' reviews'"
+    />
+    <app-stat-tile
+      label="Average review length"
+      [value]="compact(data.averageReviewTextLength) + ' chars'"
+      hint="Reviews with text only"
+    />
+    <app-stat-tile
+      label="Reviews with a final grade"
+      [value]="percent(data.gradeShare)"
+      hint="Grade is optional on the form"
+    />
+    <app-stat-tile
+      label="Average workload"
+      [value]="data.averageWorkload + ' / 10'"
+      hint="Self-reported, 0 to 10"
+    />
+    <app-stat-tile
+      label="Users with a review"
+      [value]="percent(data.activeReviewerShare)"
+      [hint]="compact(data.activeReviewers) + ' of ' + compact(data.totalUsers) + ' users'"
+    />
+    <app-stat-tile
+      label="Reviews per reviewer"
+      [value]="'' + data.reviewsPerActiveReviewer"
+      hint="Among users with at least one review"
+    />
+  </div>
+
   <div class="grid">
-    <section class="card span-2">
-      <h2>Signups & reviews over time</h2>
-      <div class="legend">
-        <span><i class="dot users"></i> Users</span>
-        <span><i class="dot reviews"></i> Reviews</span>
-      </div>
-      <div class="chart-row">
-        @for (point of data.signupsAndReviewsOverTime; track point.period) {
-          <div class="chart-bar-group">
-            <div class="chart-bars">
-              <div
-                class="chart-bar users"
-                [style.height]="barHeight(point.users, maxSeriesValue(data.signupsAndReviewsOverTime))"
-                [title]="'Users: ' + point.users"
-              ></div>
-              <div
-                class="chart-bar reviews"
-                [style.height]="barHeight(point.reviews, maxSeriesValue(data.signupsAndReviewsOverTime))"
-                [title]="'Reviews: ' + point.reviews"
-              ></div>
-            </div>
-            <span class="chart-label">{{ point.period.slice(5) }}</span>
-          </div>
-        }
-      </div>
+    <section class="card">
+      <h2>Rating distribution</h2>
+      <p class="card-hint">Count and share of all reviews.</p>
+      <app-hbar-chart [rows]="ratingRows()" labelHeader="Rating" valueHeader="Reviews" />
     </section>
 
     <section class="card">
-      <h2>Reviews by faculty</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Faculty</th>
-            <th>Reviews</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (entry of data.reviewsByFaculty | keyvalue; track entry.key) {
+      <h2>Workload distribution</h2>
+      <p class="card-hint">Self-reported workload, 0 (light) to 10 (heavy).</p>
+      <app-hbar-chart [rows]="workloadRows()" labelHeader="Workload" valueHeader="Reviews" />
+    </section>
+
+    <section class="card">
+      <h2>Coverage by faculty</h2>
+      <p class="card-hint">Units with at least one review out of the units in the catalogue.</p>
+      <app-hbar-chart [rows]="facultyRows()" mode="meter" labelHeader="Faculty" valueHeader="Units reviewed / total" />
+    </section>
+
+    <section class="card">
+      <h2>Reviews by term</h2>
+      <p class="card-hint">Most recent eight teaching periods students reviewed.</p>
+      <app-hbar-chart [rows]="termRows()" labelHeader="Term" valueHeader="Reviews" emptyMessage="No reviews carry a term yet." />
+    </section>
+  </div>
+
+  <div class="grid">
+    <section class="card">
+      <h2>Most liked reviews</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
             <tr>
-              <td>{{ entry.key }}</td>
-              <td>{{ entry.value }}</td>
+              <th>Unit</th>
+              <th class="num">Likes</th>
+              <th>Excerpt</th>
             </tr>
-          }
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            @for (review of data.mostLikedReviews; track review.id) {
+              <tr>
+                <td><a [href]="unitUrl(review.unitCode)" target="_blank" rel="noopener">{{ review.unitCode }}</a></td>
+                <td class="num">{{ review.likeCount }}</td>
+                <td class="excerpt">{{ review.excerpt }}</td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="3">No review has been liked yet.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
     </section>
 
     <section class="card">
-      <h2>Quality signals</h2>
-      <div class="mini-stats">
-        <div>
-          <div class="stat-value">{{ data.averageWorkload }}</div>
-          <div class="stat-label">Avg workload (0–10)</div>
-        </div>
-        <div>
-          <div class="stat-value">{{ (data.wouldTakeAgainRatio * 100) | number: '1.0-0' }}%</div>
-          <div class="stat-label">Would take again</div>
-        </div>
+      <h2>Most active reviewers</h2>
+      <p class="card-hint">Emails are masked. The full address is on the Operations page.</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Reviewer</th>
+              <th class="num">Reviews</th>
+              <th class="num">Likes received</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (reviewer of data.mostActiveReviewers; track reviewer.maskedEmail) {
+              <tr>
+                <td>{{ reviewer.maskedEmail }}</td>
+                <td class="num">{{ reviewer.reviewCount }}</td>
+                <td class="num">{{ reviewer.likesReceived }}</td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="3">No reviews yet.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
       </div>
     </section>
   </div>

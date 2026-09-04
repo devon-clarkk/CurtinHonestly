@@ -13,6 +13,7 @@ import com.curtinhonestly.backend.dto.UnitSummaryDTO;
 import com.curtinhonestly.backend.mapper.UnitMapper;
 import com.curtinhonestly.backend.repo.UnitRepo;
 import com.curtinhonestly.backend.repo.UnitSpecification;
+import com.curtinhonestly.backend.util.ReviewerRank;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +24,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -32,6 +34,7 @@ import java.util.stream.Collectors;
 public class UnitService {
 
     private final UnitRepo unitRepo;
+    private final ReviewerRankService reviewerRankService;
 
     /**
      * Final tiebreak on every sort. Without one, rows that compare equal have no
@@ -88,7 +91,10 @@ public class UnitService {
         Unit unit = unitRepo.findByCode(code)
                 .orElseThrow(() -> new RuntimeException("Unit not found"));
 
-        return UnitMapper.toDetailsDTO(unit);
+        // One aggregate query for every author on the page, then each card is
+        // stamped with its author's tier while the reviews are mapped.
+        Map<String, ReviewerRank> ranks = reviewerRankService.ranksForAuthorsOf(unit.getReviews());
+        return UnitMapper.toDetailsDTO(unit, ranks);
     }
     public Unit getUnitByCode(String code) throws RuntimeException
     {

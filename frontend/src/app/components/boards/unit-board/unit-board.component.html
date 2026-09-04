@@ -1,0 +1,94 @@
+<div class="board-page">
+  @if (notFound()) {
+    <a class="board-crumb" routerLink="/boards"><app-icon name="arrow-left" /> All boards</a>
+    <header class="board-header">
+      <div>
+        <h1 class="handbook-title">Unit not found</h1>
+        <p class="board-lead">There is no unit with the code {{ unitCode() }} in the catalogue, so it has no board.</p>
+      </div>
+    </header>
+    <p class="board-notice">
+      <a routerLink="/">Search the catalogue</a> for the unit, or <a routerLink="/boards">browse the general board</a>.
+    </p>
+  } @else {
+    <a class="board-crumb" [routerLink]="['/units', unitCode()]"><app-icon name="arrow-left" /> Back to {{ unitCode() }}</a>
+
+    <header class="board-header">
+      <div>
+        <h1 class="handbook-title">{{ unitCode() }} discussion</h1>
+        @if (summary(); as summary) {
+          <p class="board-lead">
+            <strong class="unit-name">{{ summary.unitName }}</strong>
+            <span class="unit-counts">
+              {{ summary.threadCount }} {{ summary.threadCount === 1 ? 'thread' : 'threads' }}
+              <span aria-hidden="true">&middot;</span>
+              {{ summary.postCount }} {{ summary.postCount === 1 ? 'reply' : 'replies' }}
+            </span>
+          </p>
+        }
+      </div>
+      <button type="button" class="btn btn-primary" (click)="toggleComposer()" [attr.aria-expanded]="composing()">
+        {{ composing() ? 'Close' : 'Start a discussion' }}
+      </button>
+    </header>
+
+    @if (composing()) {
+      <app-thread-composer scope="UNIT" [unitCode]="unitCode()" (created)="onCreated($event)" (cancelled)="composing.set(false)" />
+    }
+
+    <section class="board-card" aria-labelledby="unit-threads-heading">
+      <div class="list-head">
+        <h2 id="unit-threads-heading">Threads</h2>
+        <div class="board-sort" role="group" aria-label="Sort threads">
+          <button type="button" [attr.aria-pressed]="sort() === 'activity'" (click)="setSort('activity')">Active</button>
+          <button type="button" [attr.aria-pressed]="sort() === 'newest'" (click)="setSort('newest')">Newest</button>
+        </div>
+      </div>
+
+      @if (loading()) {
+        <p class="board-loading">Loading threads...</p>
+      } @else if (errorMessage()) {
+        <p class="board-error" role="alert">{{ errorMessage() }}</p>
+      } @else if (threads().length === 0) {
+        <p class="board-empty">
+          Nobody has posted about {{ unitCode() }} yet. Start the first discussion: exam tips, workload, which tutor to pick.
+        </p>
+      } @else {
+        <ul class="thread-list">
+          @for (thread of threads(); track thread.id) {
+            <li class="thread-row" [class.pinned]="thread.pinned">
+              <a class="thread-title" [routerLink]="['/boards/threads', thread.id]">{{ thread.title }}</a>
+              <span class="thread-replies">
+                <strong>{{ thread.replyCount }}</strong>
+                {{ replyLabel(thread.replyCount) }}
+              </span>
+              <p class="thread-excerpt">{{ thread.excerpt }}</p>
+              <div class="thread-meta">
+                <app-board-author [author]="thread.author" />
+                @if (thread.pinned) {
+                  <span class="board-chip pinned">Pinned</span>
+                }
+                @if (thread.locked) {
+                  <span class="board-chip locked">Locked</span>
+                }
+                <span [title]="fullDate(thread.lastActivityAt)">Active {{ timeAgo(thread.lastActivityAt) }}</span>
+              </div>
+            </li>
+          }
+        </ul>
+
+        @if (totalPages() > 1) {
+          <nav class="board-pager" aria-label="Thread pages">
+            <button type="button" class="btn btn-accent" (click)="previousPage()" [disabled]="page() === 0">Previous</button>
+            <span>Page {{ page() + 1 }} of {{ totalPages() }}</span>
+            <button type="button" class="btn btn-accent" (click)="nextPage()" [disabled]="page() + 1 >= totalPages()">Next</button>
+          </nav>
+        }
+      }
+    </section>
+
+    <p class="board-foot">
+      Looking for something broader? <a routerLink="/boards">Visit the general board</a>.
+    </p>
+  }
+</div>

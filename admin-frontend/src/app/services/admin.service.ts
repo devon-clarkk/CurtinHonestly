@@ -5,6 +5,7 @@ import { environment } from '../../environments/environment';
 import {
   AdminAnalytics,
   AdminOverview,
+  AdminRecommendationStats,
   AdminReview,
   CampaignAdmin,
   CampaignEntryAdmin,
@@ -30,6 +31,10 @@ export class AdminService {
     });
   }
 
+  getRecommendationStats(): Observable<AdminRecommendationStats> {
+    return this.http.get<AdminRecommendationStats>(`${this.apiUrl}/recommendations/stats`);
+  }
+
   listUsers(): Observable<UserAdmin[]> {
     return this.http.get<UserAdmin[]>(`${this.apiUrl}/users`);
   }
@@ -46,6 +51,15 @@ export class AdminService {
     return this.http.patch<UserAdmin>(`${this.apiUrl}/users/${id}/unban`, {});
   }
 
+  // Manual student verification, for when the verification email does not arrive.
+  verifyUser(id: string): Observable<UserAdmin> {
+    return this.http.patch<UserAdmin>(`${this.apiUrl}/users/${id}/verify`, {});
+  }
+
+  unverifyUser(id: string): Observable<UserAdmin> {
+    return this.http.patch<UserAdmin>(`${this.apiUrl}/users/${id}/unverify`, {});
+  }
+
   deleteUser(id: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/users/${id}`);
   }
@@ -54,6 +68,10 @@ export class AdminService {
     return this.http.get<PagedReviews>(`${this.apiUrl}/reviews`, {
       params: { page: String(page), size: String(size) }
     });
+  }
+
+  getReview(id: string): Observable<AdminReview> {
+    return this.http.get<AdminReview>(`${this.apiUrl}/reviews/${id}`);
   }
 
   deleteReview(id: string): Observable<void> {

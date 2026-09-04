@@ -22,147 +22,334 @@
 </section>
 
 <section class="card section">
-  <h2>Users</h2>
-  <table>
-    <thead>
-      <tr>
-        <th>Email</th>
-        <th>Verified</th>
-        <th>Roles</th>
-        <th>Reviews</th>
-        <th>Joined</th>
-        <th>Status</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      @for (user of users(); track user.id) {
+  <div class="section-head">
+    <h2>Users</h2>
+    <div class="filter">
+      <input
+        type="search"
+        placeholder="Filter by email"
+        aria-label="Filter users by email"
+        [ngModel]="userFilter()"
+        (ngModelChange)="userFilter.set($event)"
+        name="userFilter"
+      />
+      <span class="filter-count">{{ filteredUsers().length }} of {{ users().length }}</span>
+    </div>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
         <tr>
-          <td>{{ user.email }}</td>
-          <td>
-            @if (user.verifiedStudent) {
-              <span class="badge badge-active">Verified</span>
-            } @else {
-              <span class="badge">Unverified</span>
-            }
-          </td>
-          <td>
-            @if (isAdmin(user)) {
-              <span class="badge badge-admin">Admin</span>
-            } @else {
-              <span class="badge">User</span>
-            }
-          </td>
-          <td>{{ user.reviewCount }}</td>
-          <td>{{ user.createdAt | date: 'mediumDate' }}</td>
-          <td>
-            @if (user.banned) {
-              <span class="badge badge-banned">Banned</span>
-            } @else {
-              <span class="badge badge-active">Active</span>
-            }
-          </td>
-          <td class="actions">
-            <button type="button" class="btn" (click)="toggleBan(user)">
-              {{ user.banned ? 'Unban' : 'Ban' }}
-            </button>
-            <button type="button" class="btn btn-danger" (click)="deleteUser(user)">Delete</button>
-          </td>
+          <th>Email</th>
+          <th>Verified</th>
+          <th>Roles</th>
+          <th>Reviews</th>
+          <th>Joined</th>
+          <th>Status</th>
+          <th>Actions</th>
         </tr>
-      }
-    </tbody>
-  </table>
+      </thead>
+      <tbody>
+        @for (user of filteredUsers(); track user.id) {
+          <tr>
+            <td>{{ user.email }}</td>
+            <td>
+              @if (user.verifiedStudent) {
+                <span class="badge badge-active">Verified</span>
+              } @else {
+                <span class="badge">Unverified</span>
+              }
+            </td>
+            <td>
+              @if (isAdmin(user)) {
+                <span class="badge badge-admin">Admin</span>
+              } @else {
+                <span class="badge">User</span>
+              }
+            </td>
+            <td>{{ user.reviewCount }}</td>
+            <td>{{ user.createdAt | date: 'mediumDate' }}</td>
+            <td>
+              @if (user.banned) {
+                <span class="badge badge-banned">Banned</span>
+              } @else {
+                <span class="badge badge-active">Active</span>
+              }
+            </td>
+            <td>
+              <div class="actions">
+                <button type="button" class="btn" (click)="toggleVerified(user)">
+                  {{ user.verifiedStudent ? 'Unverify' : 'Verify' }}
+                </button>
+                <button type="button" class="btn" (click)="toggleBan(user)">
+                  {{ user.banned ? 'Unban' : 'Ban' }}
+                </button>
+                <button type="button" class="btn btn-danger" (click)="deleteUser(user)">Delete</button>
+              </div>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="7">No users match that filter.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
 </section>
 
 <section class="card section">
-  <h2>Recent reviews</h2>
-  <table>
-    <thead>
-      <tr>
-        <th>Unit</th>
-        <th>Author</th>
-        <th>Rating</th>
-        <th>Excerpt</th>
-        <th>Date</th>
-        <th></th>
-      </tr>
-    </thead>
-    <tbody>
-      @for (review of reviews(); track review.id) {
+  <div class="section-head">
+    <h2>Recent reviews</h2>
+    <div class="pager">
+      <button type="button" class="btn" (click)="previousReviewPage()" [disabled]="reviewPage() === 0">Previous</button>
+      <span>Page {{ reviewTotalPages() ? reviewPage() + 1 : 0 }} of {{ reviewTotalPages() }}</span>
+      <button type="button" class="btn" (click)="nextReviewPage()" [disabled]="reviewPage() + 1 >= reviewTotalPages()">Next</button>
+    </div>
+  </div>
+  <p class="section-hint">{{ reviewTotalElements() }} reviews in total. Select a row to read the full review.</p>
+  <div class="table-wrap">
+    <table class="clickable">
+      <thead>
         <tr>
-          <td>{{ review.unitCode }}</td>
-          <td>{{ review.authorEmail }}</td>
-          <td>{{ review.rating }}/5</td>
-          <td class="excerpt">{{ review.reviewText }}</td>
-          <td>{{ review.createdAt | date: 'short' }}</td>
-          <td>
-            <button type="button" class="btn btn-danger" (click)="deleteReview(review)">Delete</button>
-          </td>
+          <th>Unit</th>
+          <th>Author</th>
+          <th>Rating</th>
+          <th>Excerpt</th>
+          <th>Likes</th>
+          <th>Flags</th>
+          <th>Date</th>
+          <th></th>
         </tr>
-      }
-    </tbody>
-  </table>
+      </thead>
+      <tbody>
+        @for (review of reviews(); track review.id) {
+          <tr
+            tabindex="0"
+            role="button"
+            [attr.aria-label]="'Open review for ' + review.unitCode"
+            (click)="openReview(review)"
+            (keydown)="onReviewRowKeydown($event, review)"
+          >
+            <td class="unit-code">{{ review.unitCode }}</td>
+            <td>{{ review.authorEmail }}</td>
+            <td><span class="stars" [title]="review.rating + ' out of 5'">{{ stars(review.rating) }}</span></td>
+            <td class="excerpt">{{ excerpt(review.reviewText) }}</td>
+            <td>{{ review.likeCount }}</td>
+            <td>
+              @if (review.flagCount > 0) {
+                <span class="badge badge-banned">{{ review.flagCount }}</span>
+              } @else {
+                <span class="muted">0</span>
+              }
+            </td>
+            <td>{{ review.createdAt | date: 'short' }}</td>
+            <td>
+              <button type="button" class="btn btn-danger" (click)="deleteReview(review); $event.stopPropagation()">Delete</button>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="8">No reviews yet.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
 </section>
 
 <section class="card section">
   <h2>Unit requests</h2>
-  <p class="section-hint">Units students searched for but couldn't find — drives what to add next.</p>
-  <table>
-    <thead>
-      <tr>
-        <th>Requested</th>
-        <th>Note</th>
-        <th>Date</th>
-        <th></th>
-      </tr>
-    </thead>
-    <tbody>
-      @for (request of unitRequests(); track request.id) {
+  <p class="section-hint">Units students searched for but could not find. This list drives what to add next.</p>
+  <div class="table-wrap">
+    <table>
+      <thead>
         <tr>
-          <td>{{ request.requestedCode }}</td>
-          <td class="excerpt">{{ request.note || '—' }}</td>
-          <td>{{ request.createdAt | date: 'short' }}</td>
-          <td>
-            <button type="button" class="btn btn-danger" (click)="deleteUnitRequest(request)">Dismiss</button>
-          </td>
+          <th>Requested</th>
+          <th>Note</th>
+          <th>Date</th>
+          <th></th>
         </tr>
-      } @empty {
-        <tr>
-          <td colspan="4">No unit requests yet.</td>
-        </tr>
-      }
-    </tbody>
-  </table>
+      </thead>
+      <tbody>
+        @for (request of unitRequests(); track request.id) {
+          <tr>
+            <td>{{ request.requestedCode }}</td>
+            <td class="excerpt">{{ request.note || 'No note' }}</td>
+            <td>{{ request.createdAt | date: 'short' }}</td>
+            <td>
+              <button type="button" class="btn btn-danger" (click)="deleteUnitRequest(request)">Dismiss</button>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="4">No unit requests yet.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
 </section>
 
 <section class="card section">
   <h2>Flagged reviews</h2>
-  <p class="section-hint">Reviews students have reported — sorted by most-flagged first.</p>
-  <table>
-    <thead>
-      <tr>
-        <th>Unit</th>
-        <th>Excerpt</th>
-        <th>Flags</th>
-        <th></th>
-      </tr>
-    </thead>
-    <tbody>
-      @for (flagged of flaggedReviews(); track flagged.reviewId) {
+  <p class="section-hint">Reviews students have reported, most-flagged first. Select a row to read the full review.</p>
+  <div class="table-wrap">
+    <table class="clickable">
+      <thead>
         <tr>
-          <td>{{ flagged.unitCode }}</td>
-          <td class="excerpt">{{ flagged.reviewText }}</td>
-          <td>{{ flagged.flagCount }}</td>
-          <td>
-            <button type="button" class="btn" (click)="dismissFlags(flagged)">Dismiss flags</button>
-            <button type="button" class="btn btn-danger" (click)="deleteFlaggedReview(flagged)">Delete review</button>
-          </td>
+          <th>Unit</th>
+          <th>Excerpt</th>
+          <th>Flags</th>
+          <th></th>
         </tr>
-      } @empty {
-        <tr>
-          <td colspan="4">No flagged reviews.</td>
-        </tr>
-      }
-    </tbody>
-  </table>
+      </thead>
+      <tbody>
+        @for (flagged of flaggedReviews(); track flagged.reviewId) {
+          <tr
+            tabindex="0"
+            role="button"
+            [attr.aria-label]="'Open flagged review for ' + flagged.unitCode"
+            (click)="openReviewById(flagged.reviewId)"
+            (keydown.enter)="openReviewById(flagged.reviewId)"
+            (keydown.space)="openReviewById(flagged.reviewId); $event.preventDefault()"
+          >
+            <td class="unit-code">{{ flagged.unitCode }}</td>
+            <td class="excerpt">{{ excerpt(flagged.reviewText) }}</td>
+            <td>{{ flagged.flagCount }}</td>
+            <td>
+              <div class="actions">
+                <button type="button" class="btn" (click)="dismissFlags(flagged); $event.stopPropagation()">Dismiss flags</button>
+                <button type="button" class="btn btn-danger" (click)="deleteFlaggedReview(flagged); $event.stopPropagation()">Delete review</button>
+              </div>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="4">No flagged reviews.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
 </section>
+
+@if (selectedReview(); as review) {
+  <div class="modal-backdrop" (click)="closeReview()">
+    <div
+      class="modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="review-dialog-title"
+      (click)="$event.stopPropagation()"
+    >
+      <header class="modal-head">
+        <div>
+          <h2 id="review-dialog-title">{{ review.unitCode }}</h2>
+          <p class="modal-subtitle">{{ review.unitName }}</p>
+        </div>
+        <button type="button" class="btn icon-btn" aria-label="Close" (click)="closeReview()">&times;</button>
+      </header>
+
+      @if (reviewDetailLoading()) {
+        <p class="section-hint">Refreshing...</p>
+      }
+
+      <dl class="facts">
+        <div>
+          <dt>Rating</dt>
+          <dd><span class="stars">{{ stars(review.rating) }}</span> {{ review.rating }} / 5</dd>
+        </div>
+        <div>
+          <dt>Workload</dt>
+          <dd>{{ review.workload }} / 10</dd>
+        </div>
+        <div>
+          <dt>Final grade</dt>
+          <dd>{{ review.finalGrade === null ? 'Not given' : review.finalGrade }}</dd>
+        </div>
+        <div>
+          <dt>Term</dt>
+          <dd>{{ termLabel(review.termType, review.termYear) }}</dd>
+        </div>
+        <div>
+          <dt>Professor</dt>
+          <dd>{{ review.professor || 'Not given' }}</dd>
+        </div>
+        <div>
+          <dt>Has exam</dt>
+          <dd>{{ review.hasExam ? 'Yes' : 'No' }}</dd>
+        </div>
+        <div>
+          <dt>Would take again</dt>
+          <dd>{{ review.wouldTakeAgain ? 'Yes' : 'No' }}</dd>
+        </div>
+        <div>
+          <dt>Likes</dt>
+          <dd>{{ review.likeCount }}</dd>
+        </div>
+        <div>
+          <dt>Flags</dt>
+          <dd>
+            @if (review.flagCount > 0) {
+              <span class="badge badge-banned">{{ review.flagCount }}</span>
+            } @else {
+              0
+            }
+          </dd>
+        </div>
+        <div>
+          <dt>Posted</dt>
+          <dd>{{ review.createdAt | date: 'medium' }}</dd>
+        </div>
+        <div class="wide">
+          <dt>Author</dt>
+          <dd>
+            {{ review.authorEmail }}
+            @if (review.authorId) {
+              @if (review.authorVerified) {
+                <span class="badge badge-active">Verified</span>
+              } @else {
+                <span class="badge">Unverified</span>
+              }
+            } @else {
+              <span class="badge">Account removed</span>
+            }
+          </dd>
+        </div>
+        <div class="wide">
+          <dt>Tags</dt>
+          <dd>
+            @if (review.tags.length) {
+              <span class="chips">
+                @for (tag of review.tags; track tag) {
+                  <span class="chip">{{ tagLabel(tag) }}</span>
+                }
+              </span>
+            } @else {
+              None
+            }
+          </dd>
+        </div>
+        <div class="wide">
+          <dt>Review ID</dt>
+          <dd class="mono">{{ review.id }}</dd>
+        </div>
+      </dl>
+
+      <h3>Review</h3>
+      @if (review.reviewText) {
+        <div class="review-text">{{ review.reviewText }}</div>
+      } @else {
+        <p class="section-hint">This review has no text.</p>
+      }
+
+      <footer class="modal-foot">
+        <a class="btn" [href]="unitUrl(review.unitCode)" target="_blank" rel="noopener">View unit page</a>
+        <span class="spacer"></span>
+        <button type="button" class="btn btn-danger" (click)="deleteReview(review)">Delete review</button>
+        <button type="button" class="btn" (click)="closeReview()">Close</button>
+      </footer>
+    </div>
+  </div>
+}

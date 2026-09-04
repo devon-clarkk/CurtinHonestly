@@ -1,0 +1,258 @@
+<h1 class="page-title">Boards</h1>
+<p class="page-subtitle">Moderation for the community boards: flagged content, recent threads and replies.</p>
+
+@if (errorMessage()) {
+  <div class="error-banner">{{ errorMessage() }}</div>
+}
+@if (successMessage()) {
+  <div class="success-banner">{{ successMessage() }}</div>
+}
+
+<section class="card section">
+  <h2>Flagged content</h2>
+  <p class="section-hint">Threads and replies students have reported, most-flagged first. Select a row to read the full text.</p>
+  <div class="table-wrap">
+    <table class="clickable">
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Board</th>
+          <th>Thread</th>
+          <th>Excerpt</th>
+          <th>Author</th>
+          <th>Flags</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (item of flagged(); track item.targetType + item.targetId) {
+          <tr
+            tabindex="0"
+            role="button"
+            [attr.aria-label]="'Open flagged ' + (item.targetType === 'THREAD' ? 'thread' : 'reply')"
+            (click)="openFlagged(item)"
+            (keydown.enter)="openFlagged(item)"
+            (keydown.space)="openFlagged(item); $event.preventDefault()"
+          >
+            <td>
+              <span class="badge" [class.badge-admin]="item.targetType === 'THREAD'">{{ item.targetType === 'THREAD' ? 'Thread' : 'Reply' }}</span>
+            </td>
+            <td class="unit-code">{{ item.unitCode || 'General' }}</td>
+            <td class="excerpt">{{ item.threadTitle }}</td>
+            <td class="excerpt">{{ excerpt(item.body) }}</td>
+            <td class="excerpt">{{ item.authorEmail || item.authorPseudonym }}</td>
+            <td><span class="badge badge-banned">{{ item.flagCount }}</span></td>
+            <td>
+              <div class="actions">
+                <button type="button" class="btn" (click)="dismissFlags(item); $event.stopPropagation()">Dismiss flags</button>
+                <button type="button" class="btn btn-danger" (click)="removeFlagged(item); $event.stopPropagation()">Remove</button>
+              </div>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="7">Nothing flagged.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="card section">
+  <div class="section-head">
+    <h2>Recent threads</h2>
+    <div class="pager">
+      <button type="button" class="btn" (click)="previousThreadPage()" [disabled]="threadPage() === 0">Previous</button>
+      <span>Page {{ threadTotalPages() ? threadPage() + 1 : 0 }} of {{ threadTotalPages() }}</span>
+      <button type="button" class="btn" (click)="nextThreadPage()" [disabled]="threadPage() + 1 >= threadTotalPages()">Next</button>
+    </div>
+  </div>
+  <p class="section-hint">{{ threadTotal() }} live threads. Pinned threads sort first on their board; locked threads accept no new replies.</p>
+  <div class="table-wrap">
+    <table class="clickable">
+      <thead>
+        <tr>
+          <th>Board</th>
+          <th>Title</th>
+          <th>Author</th>
+          <th>Replies</th>
+          <th>Flags</th>
+          <th>Status</th>
+          <th>Last activity</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (thread of threads(); track thread.id) {
+          <tr
+            tabindex="0"
+            role="button"
+            [attr.aria-label]="'Open thread ' + thread.title"
+            (click)="openThread(thread)"
+            (keydown.enter)="openThread(thread)"
+            (keydown.space)="openThread(thread); $event.preventDefault()"
+          >
+            <td class="unit-code">{{ thread.unitCode || 'General' }}</td>
+            <td class="excerpt title-cell">{{ thread.title }}</td>
+            <td class="excerpt">{{ thread.authorEmail || thread.authorPseudonym }}</td>
+            <td>{{ thread.replyCount }}</td>
+            <td>
+              @if (thread.flagCount > 0) {
+                <span class="badge badge-banned">{{ thread.flagCount }}</span>
+              } @else {
+                <span class="muted">0</span>
+              }
+            </td>
+            <td>
+              <span class="status-chips">
+                @if (thread.pinned) {
+                  <span class="badge badge-active">Pinned</span>
+                }
+                @if (thread.locked) {
+                  <span class="badge">Locked</span>
+                }
+                @if (!thread.pinned && !thread.locked) {
+                  <span class="muted">Open</span>
+                }
+              </span>
+            </td>
+            <td>{{ thread.lastActivityAt | date: 'short' }}</td>
+            <td>
+              <div class="actions">
+                <button type="button" class="btn" (click)="togglePinned(thread); $event.stopPropagation()">{{ thread.pinned ? 'Unpin' : 'Pin' }}</button>
+                <button type="button" class="btn" (click)="toggleLocked(thread); $event.stopPropagation()">{{ thread.locked ? 'Unlock' : 'Lock' }}</button>
+                <button type="button" class="btn btn-danger" (click)="removeThread(thread.id, thread.title); $event.stopPropagation()">Remove</button>
+              </div>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="8">No threads yet.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="card section">
+  <div class="section-head">
+    <h2>Recent replies</h2>
+    <div class="pager">
+      <button type="button" class="btn" (click)="previousPostPage()" [disabled]="postPage() === 0">Previous</button>
+      <span>Page {{ postTotalPages() ? postPage() + 1 : 0 }} of {{ postTotalPages() }}</span>
+      <button type="button" class="btn" (click)="nextPostPage()" [disabled]="postPage() + 1 >= postTotalPages()">Next</button>
+    </div>
+  </div>
+  <p class="section-hint">{{ postTotal() }} live replies. Select a row to read the full reply.</p>
+  <div class="table-wrap">
+    <table class="clickable">
+      <thead>
+        <tr>
+          <th>Board</th>
+          <th>Thread</th>
+          <th>Excerpt</th>
+          <th>Author</th>
+          <th>Flags</th>
+          <th>Posted</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (post of posts(); track post.id) {
+          <tr
+            tabindex="0"
+            role="button"
+            aria-label="Open reply"
+            (click)="openPost(post)"
+            (keydown.enter)="openPost(post)"
+            (keydown.space)="openPost(post); $event.preventDefault()"
+          >
+            <td class="unit-code">{{ post.unitCode || 'General' }}</td>
+            <td class="excerpt">{{ post.threadTitle }}</td>
+            <td class="excerpt">{{ excerpt(post.body) }}</td>
+            <td class="excerpt">{{ post.authorEmail || post.authorPseudonym }}</td>
+            <td>
+              @if (post.flagCount > 0) {
+                <span class="badge badge-banned">{{ post.flagCount }}</span>
+              } @else {
+                <span class="muted">0</span>
+              }
+            </td>
+            <td>{{ post.createdAt | date: 'short' }}</td>
+            <td>
+              <button type="button" class="btn btn-danger" (click)="removePost(post.id); $event.stopPropagation()">Remove</button>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="7">No replies yet.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</section>
+
+@if (selected(); as detail) {
+  <div class="modal-backdrop" (click)="closeDetail()">
+    <div
+      class="modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="board-dialog-title"
+      (click)="$event.stopPropagation()"
+    >
+      <header class="modal-head">
+        <div>
+          <h2 id="board-dialog-title">{{ detail.heading }}</h2>
+          <p class="modal-subtitle">{{ detail.subheading }}</p>
+        </div>
+        <button type="button" class="btn icon-btn" aria-label="Close" (click)="closeDetail()">&times;</button>
+      </header>
+
+      <dl class="facts">
+        @for (fact of detail.facts; track fact.label) {
+          <div [class.wide]="fact.label === 'Author' || fact.label.endsWith('ID')">
+            <dt>{{ fact.label }}</dt>
+            <dd [class.mono]="fact.label.endsWith('ID')">{{ fact.value }}</dd>
+          </div>
+        }
+        @if (detail.flag && detail.flag.reasons.length) {
+          <div class="wide">
+            <dt>Reasons given</dt>
+            <dd>
+              <ul class="reasons">
+                @for (reason of detail.flag.reasons; track $index) {
+                  <li>{{ reason }}</li>
+                }
+              </ul>
+            </dd>
+          </div>
+        }
+      </dl>
+
+      <h3>{{ detail.kind === 'thread' ? 'Opening post' : 'Reply' }}</h3>
+      <div class="review-text">{{ detail.body }}</div>
+
+      <footer class="modal-foot">
+        <a class="btn" [href]="threadUrl(detail.threadId)" target="_blank" rel="noopener">View thread</a>
+        <span class="spacer"></span>
+        @if (detail.flag) {
+          <button type="button" class="btn" (click)="dismissFlags(detail.flag)">Dismiss flags</button>
+        }
+        @if (detail.thread; as thread) {
+          <button type="button" class="btn" (click)="togglePinned(thread)">{{ thread.pinned ? 'Unpin' : 'Pin' }}</button>
+          <button type="button" class="btn" (click)="toggleLocked(thread)">{{ thread.locked ? 'Unlock' : 'Lock' }}</button>
+        }
+        @if (detail.kind === 'thread') {
+          <button type="button" class="btn btn-danger" (click)="removeThread(detail.id, detail.heading)">Remove thread</button>
+        } @else {
+          <button type="button" class="btn btn-danger" (click)="removePost(detail.id)">Remove reply</button>
+        }
+        <button type="button" class="btn" (click)="closeDetail()">Close</button>
+      </footer>
+    </div>
+  </div>
+}
