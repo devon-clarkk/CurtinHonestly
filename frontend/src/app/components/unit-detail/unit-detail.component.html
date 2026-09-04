@@ -62,6 +62,55 @@
     </div>
   </header>
 
+  <!-- Match for you. Requested in the browser for a signed-in student only
+       (see loadUnitMatch), so it is absent from the prerendered page. States:
+       MATCH shows the score; REVIEWED says so; COLD_START nudges once the unit
+       has reviews to be matched against; NO_SIGNAL renders nothing. -->
+  @if (unitMatch(); as match) {
+    @if (showMatchPanel(match, unit.numberOfReviews)) {
+      <section class="match-panel" [class.match-panel-quiet]="match.state !== 'MATCH'" aria-labelledby="match-heading">
+        @if (match.state === 'MATCH') {
+          <div
+            class="match-ring"
+            [style.--pct]="match.matchScore + '%'"
+            role="img"
+            [attr.aria-label]="'Match score ' + match.matchScore + ' out of 100'">
+            <span class="match-value">{{ match.matchScore }}%</span>
+            <span class="match-label">match</span>
+          </div>
+          <div class="match-body">
+            <h2 id="match-heading" class="match-title">Match for you</h2>
+            <p class="match-meta">
+              <strong>{{ match.confidence }}%</strong> confidence, {{ matchSupportLabel(match) }}
+            </p>
+            @if (match.reasons.length > 0) {
+              <ul class="reason-chips">
+                @for (reason of match.reasons; track reason) {
+                  <li>{{ reason }}</li>
+                }
+              </ul>
+            }
+            <a routerLink="/for-you" class="match-link">See all your picks</a>
+          </div>
+        } @else if (match.state === 'REVIEWED') {
+          <div class="match-body">
+            <h2 id="match-heading" class="match-title">You reviewed this unit</h2>
+            <p class="match-meta">Your review helps match {{ unit.code }} to students whose ratings agree with yours.</p>
+            <a routerLink="/for-you" class="match-link">See your picks</a>
+          </div>
+        } @else {
+          <div class="match-body">
+            <h2 id="match-heading" class="match-title">Review a couple more units to unlock your match</h2>
+            <p class="match-meta">
+              Matches come from students whose ratings agree with yours. Two reviews of your own is enough to start.
+            </p>
+            <a routerLink="/my-reviews" class="match-link">My reviews</a>
+          </div>
+        }
+      </section>
+    }
+  }
+
   <!-- Summary Cards Section -->
   <section class="summary-stats" *ngIf="unit.numberOfReviews > 0">
     <div class="stat-card">
@@ -490,6 +539,38 @@
       </div>
     </aside>
   </div>
+
+  <!-- Community and resources: the unit's discussion board preview and the
+       curated links that apply to it. Both fetch in the browser only. -->
+  <div class="community-row">
+    <app-unit-board-preview [unitCode]="unit.code" />
+    <app-unit-resources [unitCode]="unit.code" [unitName]="unit.name" />
+  </div>
+
+  <!-- Students who rated this highly also liked: units the same students also
+       rated well, topped up from the same faculty and level when few students
+       have reviewed both. Fetched in the browser after hydration (see
+       loadSimilarUnits) and absent when there is nothing to show. -->
+  @if (similarUnits().length > 0) {
+    <section class="similar-section" aria-labelledby="similar-heading">
+      <h2 id="similar-heading" class="section-heading">Students who rated {{ unit.code }} highly also liked</h2>
+      <ul class="similar-strip">
+        @for (item of similarUnits(); track item.unitCode) {
+          <li>
+            <a class="similar-card" [routerLink]="['/units', item.unitCode]">
+              <span class="similar-code">{{ item.unitCode }}</span>
+              <span class="similar-name">{{ item.unitName }}</span>
+              <span class="similar-faculty">{{ item.faculty }}</span>
+              <span class="similar-foot">
+                <span class="similar-score">{{ item.matchScore }}% match</span>
+                <span class="similar-support">{{ similarSupportLabel(item) }}</span>
+              </span>
+            </a>
+          </li>
+        }
+      </ul>
+    </section>
+  }
 </div>
 
 <!-- Loading / not-found template -->

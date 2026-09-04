@@ -65,8 +65,8 @@ class RecommendationEngineTest {
         assertThat(u5).isNotNull();
         assertThat(u5.matchScore()).isGreaterThanOrEqualTo(95);
         assertThat(u5.supportingStudents()).isEqualTo(1);
-        // One neighbour at about 0.72 similarity gives 100 * (1 - e^-0.72), about 51 percent
-        assertThat(u5.confidence()).isBetween(45, 60);
+        // One neighbour at about 0.72 similarity gives 100 * (1 - e^(-0.72 / 2.5)), about 25 percent
+        assertThat(u5.confidence()).isBetween(20, 30);
         assertThat(u5.reasons()).isNotEmpty().hasSizeLessThanOrEqualTo(3);
         assertThat(u5.unitName()).isEqualTo("Unit U5");
         assertThat(u5.faculty()).isEqualTo("Science and Engineering");
@@ -100,7 +100,8 @@ class RecommendationEngineTest {
         RecommendationItemDTO u5 = find(result.recommended(), "U5");
         assertThat(u5).isNotNull();
         assertThat(u5.supportingStudents()).isEqualTo(3);
-        assertThat(u5.confidence()).isGreaterThanOrEqualTo(80);
+        // Three neighbours at about 0.72 each: 100 * (1 - e^(-2.15 / 2.5)), about 58 percent
+        assertThat(u5.confidence()).isBetween(52, 64);
         assertThat(u5.reasons()).contains("All 3 similar students would take this again");
     }
 

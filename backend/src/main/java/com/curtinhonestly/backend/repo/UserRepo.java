@@ -28,4 +28,9 @@ public interface UserRepo extends JpaRepository<User, String> {
     // Only the timestamps, for bucketing into a daily series.
     @org.springframework.data.jpa.repository.Query("select u.createdAt from User u where u.createdAt >= :since")
     List<Instant> findCreatedAtSince(@org.springframework.data.repository.query.Param("since") Instant since);
+
+    // Recommendation model (RecommendationService): every self-reported completed
+    // unit code with its owner, in one query. Rows are [userId, unitCode].
+    @org.springframework.data.jpa.repository.Query("select u.id, c from User u join u.completedUnitCodes c")
+    List<Object[]> findAllCompletedUnitCodes();
 }

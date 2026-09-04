@@ -5,6 +5,8 @@ import com.curtinhonestly.backend.domain.ReviewTag;
 import com.curtinhonestly.backend.dto.RecommendationItemDTO;
 import com.curtinhonestly.backend.dto.RecommendationSimilarUnitDTO;
 import com.curtinhonestly.backend.dto.RecommendationSimilarUnitsDTO;
+import com.curtinhonestly.backend.dto.RecommendationUnitMatchDTO;
+import com.curtinhonestly.backend.dto.RecommendationUnitMatchDTO.State;
 import com.curtinhonestly.backend.dto.RecommendationsDTO;
 import com.curtinhonestly.backend.service.recommendation.RecommendationModel.UnitStats;
 
@@ -19,7 +21,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-import static com.curtinhonestly.backend.service.recommendation.RecommendationWeights.AVOID_THRESHOLD;
 import static com.curtinhonestly.backend.service.recommendation.RecommendationWeights.BAYESIAN_PRIOR_WEIGHT;
 import static com.curtinhonestly.backend.service.recommendation.RecommendationWeights.CONFIDENCE_MAX;
 import static com.curtinhonestly.backend.service.recommendation.RecommendationWeights.CONFIDENCE_MIN;
@@ -27,16 +28,13 @@ import static com.curtinhonestly.backend.service.recommendation.RecommendationWe
 import static com.curtinhonestly.backend.service.recommendation.RecommendationWeights.FALLBACK_CONFIDENCE_MAX;
 import static com.curtinhonestly.backend.service.recommendation.RecommendationWeights.FALLBACK_CONFIDENCE_PER_REVIEW;
 import static com.curtinhonestly.backend.service.recommendation.RecommendationWeights.HIGH_GRADE_MIN;
+import static com.curtinhonestly.backend.service.recommendation.RecommendationWeights.ITEM_OVERLAP_SHRINK;
 import static com.curtinhonestly.backend.service.recommendation.RecommendationWeights.LIKED_AFFINITY;
 import static com.curtinhonestly.backend.service.recommendation.RecommendationWeights.LIST_LIMIT;
 import static com.curtinhonestly.backend.service.recommendation.RecommendationWeights.MAX_ANCHOR_UNITS_IN_REASON;
 import static com.curtinhonestly.backend.service.recommendation.RecommendationWeights.MAX_REASONS;
 import static com.curtinhonestly.backend.service.recommendation.RecommendationWeights.MIN_REVIEWS_FOR_PERSONALISED;
-import static com.curtinhonestly.backend.service.recommendation.RecommendationWeights.NEIGHBOUR_LIMIT;
-import static com.curtinhonestly.backend.service.recommendation.RecommendationWeights.NEIGHBOUR_MIN_SIMILARITY;
-import static com.curtinhonestly.backend.service.recommendation.RecommendationWeights.OVERLAP_SHRINK;
 import static com.curtinhonestly.backend.service.recommendation.RecommendationWeights.RATING_RANGE;
-import static com.curtinhonestly.backend.service.recommendation.RecommendationWeights.RECOMMEND_THRESHOLD;
 import static com.curtinhonestly.backend.service.recommendation.RecommendationWeights.SIMILAR_MIN_CO_REVIEWERS;
 import static com.curtinhonestly.backend.service.recommendation.RecommendationWeights.SIMILAR_MIN_CO_REVIEW_ITEMS;
 import static com.curtinhonestly.backend.service.recommendation.RecommendationWeights.SIMILAR_UNITS_LIMIT;
@@ -49,8 +47,8 @@ import static com.curtinhonestly.backend.service.recommendation.RecommendationWe
  * Pure Java: no Spring, no persistence, deterministic for a given model.
  *
  * <p>Privacy rule for generated reasons: the only unit codes that may appear
- * are ones the target student has reviewed themselves. Neighbours are only
- * ever described in aggregate ("4 similar students").
+ * are ones the target student has reviewed or completed themselves. Neighbours
+ * are only ever described in aggregate ("4 similar students").
  */
 public final class RecommendationEngine {
 
@@ -64,9 +62,15 @@ public final class RecommendationEngine {
             " Until then, here are the highest rated units on CurtinHonestly.";
 
     private final RecommendationModel model;
+    private final RecommendationTuning tuning;
 
     public RecommendationEngine(RecommendationModel model) {
+        this(model, RecommendationTuning.defaults());
+    }
+
+    public RecommendationEngine(RecommendationModel model, RecommendationTuning tuning) {
         this.model = Objects.requireNonNull(model);
+        this.tuning = Objects.requireNonNull(tuning);
     }
 
     private record Neighbour(TasteProfile profile, double similarity) {}
@@ -74,6 +78,9 @@ public final class RecommendationEngine {
     private record Support(Neighbour neighbour, double affinity) {}
 
     private record Candidate(String unitCode, double predicted, int confidence, List<Support> supports) {}
+
+    /** One row of the full ranking, for the evaluation harness. */
+    record ScoredUnit(String unitCode, double predicted, int confidence, int supportingStudents) {}
 
     // ---------------------------------------------------------------- user
 
@@ -92,31 +99,18 @@ public final class RecommendationEngine {
         }
 
         Set<String> excluded = excludedUnits(target, completed);
-        Map<String, List<Support>> supports = new HashMap<>();
-        for (Neighbour neighbour : neighbours) {
-            neighbour.profile().affinities().forEach((code, affinity) -> {
-                if (!excluded.contains(code)) {
-                    supports.computeIfAbsent(code, k -> new ArrayList<>()).add(new Support(neighbour, affinity));
-                }
-            });
-        }
-
-        List<Candidate> candidates = supports.entrySet().stream()
-                .map(e -> score(e.getKey(), e.getValue()))
-                .toList();
+        List<Candidate> candidates = scoreCandidates(neighbours, excluded);
 
         List<RecommendationItemDTO> recommended = candidates.stream()
-                .filter(c -> c.predicted() >= RECOMMEND_THRESHOLD)
-                .sorted(Comparator.comparingInt((Candidate c) -> c.confidence()).reversed()
-                        .thenComparing(Comparator.comparingDouble((Candidate c) -> c.predicted()).reversed())
-                        .thenComparing(Candidate::unitCode))
+                .filter(c -> c.predicted() >= tuning.recommendThreshold())
+                .sorted(positiveOrder())
                 .limit(LIST_LIMIT)
                 .map(c -> toItem(target, c, true))
                 .toList();
 
         List<RecommendationItemDTO> avoid = candidates.stream()
-                .filter(c -> c.predicted() <= AVOID_THRESHOLD)
-                .sorted(Comparator.comparingInt((Candidate c) -> c.confidence()).reversed()
+                .filter(c -> c.predicted() <= tuning.avoidThreshold())
+                .sorted(Comparator.comparingDouble((Candidate c) -> rankScore(c, false)).reversed()
                         .thenComparingDouble(Candidate::predicted)
                         .thenComparing(Candidate::unitCode))
                 .limit(LIST_LIMIT)
@@ -126,20 +120,93 @@ public final class RecommendationEngine {
         return new RecommendationsDTO(false, null, basedOn, neighbours.size(), recommended, avoid);
     }
 
+    /**
+     * How well one unit fits a student, from the same neighbourhood the For You
+     * page uses. REVIEWED wins over everything: the student already knows.
+     * COLD_START mirrors the page's cold start. NO_SIGNAL means the student has
+     * enough reviews but no neighbour has reviewed this unit.
+     */
+    public RecommendationUnitMatchDTO matchFor(String userId, Set<String> completedUnitCodes, String unitCode) {
+        TasteProfile target = model.profile(userId);
+        int basedOn = target == null ? 0 : target.reviewCount();
+        if (target != null && target.hasReviewed(unitCode)) {
+            return RecommendationUnitMatchDTO.of(State.REVIEWED, basedOn);
+        }
+        if (target == null || basedOn < MIN_REVIEWS_FOR_PERSONALISED) {
+            return RecommendationUnitMatchDTO.of(State.COLD_START, basedOn);
+        }
+        List<Neighbour> neighbours = findNeighbours(target);
+        List<Support> supports = new ArrayList<>();
+        for (Neighbour neighbour : neighbours) {
+            Double affinity = neighbour.profile().affinities().get(unitCode);
+            if (affinity != null) {
+                supports.add(new Support(neighbour, affinity));
+            }
+        }
+        if (supports.isEmpty()) {
+            return RecommendationUnitMatchDTO.of(State.NO_SIGNAL, basedOn);
+        }
+        Candidate candidate = score(unitCode, supports);
+        return new RecommendationUnitMatchDTO(State.MATCH, matchScore(candidate.predicted()), candidate.confidence(),
+                supports.size(), reasons(target, candidate, candidate.predicted() >= 0), basedOn);
+    }
+
+    /**
+     * The full ranking behind the recommended list, best first, without the
+     * threshold or the length limit. Empty when the student is a cold start.
+     * Package-private for the evaluation harness.
+     */
+    List<ScoredUnit> rankAll(String userId, Set<String> completedUnitCodes) {
+        TasteProfile target = model.profile(userId);
+        if (target == null || target.reviewCount() < MIN_REVIEWS_FOR_PERSONALISED) {
+            return List.of();
+        }
+        List<Neighbour> neighbours = findNeighbours(target);
+        if (neighbours.isEmpty()) {
+            return List.of();
+        }
+        Set<String> excluded = excludedUnits(target, normalise(completedUnitCodes));
+        return scoreCandidates(neighbours, excluded).stream()
+                .sorted(positiveOrder())
+                .map(c -> new ScoredUnit(c.unitCode(), c.predicted(), c.confidence(), c.supports().size()))
+                .toList();
+    }
+
+    /** Every unit at least one neighbour reviewed, scored, minus the excluded set. Unordered. */
+    private List<Candidate> scoreCandidates(List<Neighbour> neighbours, Set<String> excluded) {
+        Map<String, List<Support>> supports = new HashMap<>();
+        for (Neighbour neighbour : neighbours) {
+            neighbour.profile().affinities().forEach((code, affinity) -> {
+                if (!excluded.contains(code)) {
+                    supports.computeIfAbsent(code, k -> new ArrayList<>()).add(new Support(neighbour, affinity));
+                }
+            });
+        }
+        return supports.entrySet().stream()
+                .map(e -> score(e.getKey(), e.getValue()))
+                .toList();
+    }
+
+    private Comparator<Candidate> positiveOrder() {
+        return Comparator.comparingDouble((Candidate c) -> rankScore(c, true)).reversed()
+                .thenComparing(Comparator.comparingDouble((Candidate c) -> c.predicted()).reversed())
+                .thenComparing(Candidate::unitCode);
+    }
+
     private List<Neighbour> findNeighbours(TasteProfile target) {
         return model.profiles().values().stream()
                 .filter(p -> !p.userId().equals(target.userId()))
-                .map(p -> new Neighbour(p, UserSimilarity.similarity(target, p)))
-                .filter(n -> n.similarity() > NEIGHBOUR_MIN_SIMILARITY)
+                .map(p -> new Neighbour(p, UserSimilarity.similarity(target, p, tuning)))
+                .filter(n -> n.similarity() > tuning.neighbourMinSimilarity())
                 .sorted(Comparator.comparingDouble((Neighbour n) -> n.similarity()).reversed()
                         .thenComparing(n -> n.profile().userId()))
-                .limit(NEIGHBOUR_LIMIT)
+                .limit(tuning.neighbourLimit())
                 .toList();
     }
 
     /**
      * predicted = sum(sim * affinity) / sum(|sim|)
-     * confidence = 100 * (1 - exp(-supportMass)) * agreement, clamped 5..99,
+     * confidence = 100 * (1 - exp(-supportMass / scale)) * agreement, clamped 5..99,
      * where supportMass is the summed similarity of supporters and agreement is
      * one minus the standard deviation of their affinities (max spread is 1).
      */
@@ -165,20 +232,36 @@ public final class RecommendationEngine {
         variance /= supports.size();
         double agreement = clamp(1 - Math.sqrt(variance), 0, 1);
 
-        double confidence = 100 * (1 - Math.exp(-mass)) * agreement;
+        double confidence = 100 * (1 - Math.exp(-mass / tuning.confidenceMassScale())) * agreement;
         int rounded = (int) Math.round(clamp(confidence, CONFIDENCE_MIN, CONFIDENCE_MAX));
         return new Candidate(unitCode, predicted, rounded, supports);
     }
 
+    /**
+     * Order within the recommended (or avoid) list: confidence, optionally
+     * weighted by how strongly the unit is predicted in the list's direction.
+     */
+    private double rankScore(Candidate c, boolean positive) {
+        double w = tuning.rankAffinityWeight();
+        if (w <= 0) {
+            return c.confidence();
+        }
+        double strength = positive ? (c.predicted() + 1) / 2 : (1 - c.predicted()) / 2;
+        return c.confidence() * Math.pow(clamp(strength, 0, 1), w);
+    }
+
+    private static int matchScore(double predicted) {
+        return (int) Math.round(clamp((predicted + 1) / 2 * 100, 0, 100));
+    }
+
     private RecommendationItemDTO toItem(TasteProfile target, Candidate candidate, boolean positive) {
         UnitInfo info = model.unit(candidate.unitCode());
-        int matchScore = (int) Math.round(clamp((candidate.predicted() + 1) / 2 * 100, 0, 100));
         return new RecommendationItemDTO(
                 candidate.unitCode(),
                 nameOf(info, candidate.unitCode()),
                 info == null ? "" : info.facultyLabel(),
                 info == null ? "" : info.levelLabel(),
-                matchScore,
+                matchScore(candidate.predicted()),
                 candidate.confidence(),
                 candidate.supports().size(),
                 reasons(target, candidate, positive));
@@ -213,6 +296,26 @@ public final class RecommendationEngine {
             reasons.add(positive
                     ? "Popular with students who liked " + joined
                     : "Rated poorly by students who liked " + joined);
+        }
+
+        // 1b. A unit the target completed without reviewing, which supporters
+        //     also took (reviewed positively, or completed). Only ever names a
+        //     unit from the target's own record.
+        if (positive) {
+            Map<String, Integer> tookCounts = new HashMap<>();
+            for (String code : target.completedUnits()) {
+                for (Support s : supports) {
+                    TasteProfile p = s.neighbour().profile();
+                    if (p.took(code) && p.vector().get(code) > 0) {
+                        tookCounts.merge(code, 1, Integer::sum);
+                    }
+                }
+            }
+            tookCounts.entrySet().stream()
+                    .sorted(Map.Entry.<String, Integer>comparingByValue().reversed()
+                            .thenComparing(Map.Entry.comparingByKey()))
+                    .findFirst()
+                    .ifPresent(e -> reasons.add("Students who took " + e.getKey() + " also liked this"));
         }
 
         // 2. Would take again among supporters, plus their grades for later.
@@ -350,10 +453,10 @@ public final class RecommendationEngine {
 
     /**
      * Units that the same students also rated well. Item-item cosine over shared
-     * reviewers (min SIMILAR_MIN_CO_REVIEWERS) with the same overlap shrink as
-     * user similarity; only units the co-reviewers liked on average qualify.
-     * When fewer than SIMILAR_MIN_CO_REVIEW_ITEMS result, the list is topped up
-     * with same faculty and level units of the closest average rating.
+     * reviewers (min SIMILAR_MIN_CO_REVIEWERS) shrunk by ITEM_OVERLAP_SHRINK;
+     * only units the co-reviewers liked on average qualify. When fewer than
+     * SIMILAR_MIN_CO_REVIEW_ITEMS result, the list is topped up with same
+     * faculty and level units of the closest average rating.
      */
     public RecommendationSimilarUnitsDTO similarUnits(UnitInfo target) {
         String code = target.code();
@@ -390,7 +493,7 @@ public final class RecommendationEngine {
                     continue;
                 }
                 double cosine = dot / (Math.sqrt(normA) * Math.sqrt(normB));
-                double similarity = cosine * (shared / (shared + OVERLAP_SHRINK));
+                double similarity = cosine * (shared / (shared + ITEM_OVERLAP_SHRINK));
                 if (similarity <= 0 || otherSum / shared < 0) {
                     rejected.add(other.getKey());
                     continue;
@@ -448,10 +551,11 @@ public final class RecommendationEngine {
 
     // ------------------------------------------------------------- helpers
 
+    /** Reviewed units, completed units from the request and completed units in the model are never candidates. */
     private static Set<String> excludedUnits(TasteProfile target, Set<String> completed) {
         Set<String> excluded = new HashSet<>(completed);
         if (target != null) {
-            excluded.addAll(target.affinities().keySet());
+            excluded.addAll(target.vector().keySet());
         }
         return excluded;
     }

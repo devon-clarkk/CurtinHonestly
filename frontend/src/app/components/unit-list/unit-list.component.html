@@ -12,6 +12,44 @@
     </div>
   }
 
+  <!-- "For you" teaser for a signed-in student: top picks, or the nudge when
+       the model has nothing personal yet. Browser only (see loadForYou): the
+       signal is null during prerender and hydration, so the static HTML and
+       the TransferState handoff below are unchanged. -->
+  @if (forYou(); as picks) {
+    <section class="for-you" aria-labelledby="for-you-heading">
+      <div class="for-you-head">
+        <h2 id="for-you-heading" class="for-you-title">For you</h2>
+        <a routerLink="/for-you" class="for-you-link">See all picks</a>
+      </div>
+      @if (picks.coldStart) {
+        <p class="for-you-nudge">
+          Review a couple more units to unlock picks from students whose ratings match yours.
+          <a routerLink="/my-reviews">My reviews</a>
+        </p>
+      } @else if (forYouTop().length > 0) {
+        <ul class="for-you-strip">
+          @for (item of forYouTop(); track item.unitCode) {
+            <li>
+              <a class="for-you-card" [routerLink]="['/units', item.unitCode]">
+                <span class="for-you-score">{{ item.matchScore }}%</span>
+                <span class="for-you-text">
+                  <span class="for-you-code">{{ item.unitCode }}</span>
+                  <span class="for-you-name">{{ item.unitName }}</span>
+                </span>
+              </a>
+            </li>
+          }
+        </ul>
+      } @else {
+        <p class="for-you-nudge">
+          No strong matches yet. Each review you add gives similar students more to go on.
+          <a routerLink="/my-reviews">My reviews</a>
+        </p>
+      }
+    </section>
+  }
+
   <div class="catalog">
   <!-- Filter Bar -->
   <div class="filter-bar">

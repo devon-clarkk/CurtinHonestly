@@ -2,10 +2,8 @@ package com.curtinhonestly.backend.service.recommendation;
 
 import com.curtinhonestly.backend.domain.ReviewTag;
 
-import static com.curtinhonestly.backend.service.recommendation.RecommendationWeights.COLLAB_WEIGHT;
 import static com.curtinhonestly.backend.service.recommendation.RecommendationWeights.MIN_OVERLAP;
 import static com.curtinhonestly.backend.service.recommendation.RecommendationWeights.OVERLAP_SHRINK;
-import static com.curtinhonestly.backend.service.recommendation.RecommendationWeights.PROFILE_WEIGHT;
 import static com.curtinhonestly.backend.service.recommendation.RecommendationWeights.WORKLOAD_SCALE;
 
 /** Pure similarity functions between two {@link TasteProfile}s. */
@@ -20,22 +18,32 @@ public final class UserSimilarity {
      * units can still be weak neighbours. Result in [-1, 1].
      */
     public static double similarity(TasteProfile a, TasteProfile b) {
-        double blended = COLLAB_WEIGHT * collaborative(a, b) + PROFILE_WEIGHT * profile(a, b);
+        return similarity(a, b, RecommendationTuning.defaults());
+    }
+
+    public static double similarity(TasteProfile a, TasteProfile b, RecommendationTuning tuning) {
+        double blended = tuning.collabWeight() * collaborative(a, b, tuning.overlapShrink())
+                + tuning.profileWeight() * profile(a, b);
         return Math.max(-1.0, Math.min(1.0, blended));
     }
 
     /**
-     * Cosine similarity over the units both students reviewed, shrunk by
-     * overlap / (overlap + OVERLAP_SHRINK). Zero when they share fewer than
-     * MIN_OVERLAP units or when either side is flat over the overlap.
+     * Cosine similarity over the units in both students' taste vectors (reviewed
+     * units, plus completed ones at their weak weight), shrunk by
+     * overlap / (overlap + shrink). Zero when they share fewer than MIN_OVERLAP
+     * units or when either side is flat over the overlap.
      */
     static double collaborative(TasteProfile a, TasteProfile b) {
+        return collaborative(a, b, OVERLAP_SHRINK);
+    }
+
+    static double collaborative(TasteProfile a, TasteProfile b, double shrink) {
         double dot = 0;
         double normA = 0;
         double normB = 0;
         int overlap = 0;
-        for (var entry : a.affinities().entrySet()) {
-            Double other = b.affinities().get(entry.getKey());
+        for (var entry : a.vector().entrySet()) {
+            Double other = b.vector().get(entry.getKey());
             if (other == null) {
                 continue;
             }
@@ -49,7 +57,7 @@ public final class UserSimilarity {
             return 0;
         }
         double cosine = dot / (Math.sqrt(normA) * Math.sqrt(normB));
-        return cosine * (overlap / (overlap + OVERLAP_SHRINK));
+        return cosine * (overlap / (overlap + shrink));
     }
 
     /** Profile similarity in [0, 1]: mean of a workload-tolerance term and a tag-preference cosine. */

@@ -71,6 +71,23 @@ export interface AdminOverview {
   mostRequestedUnits: RequestedUnit[];
 }
 
+// GET /admin/recommendations/stats: the in-memory recommendation model
+// currently serving requests.
+export interface AdminRecommendationStats {
+  builtAt: string;
+  reviewCount: number;
+  // Students with at least one attributed review.
+  userCount: number;
+  unitCount: number;
+  // Students with enough reviews and at least one similar student.
+  usersWithNeighbours: number;
+  // Students under the personalisation minimum or with no similar student.
+  coldStartUsers: number;
+  meanNeighboursPerUser: number;
+  // Pairs of units reviewed by at least one common student.
+  itemPairsWithCoReviews: number;
+}
+
 export interface AdminAnalytics {
   periodDays: number;
   signupsAndReviewsOverTime: TimeSeriesPoint[];

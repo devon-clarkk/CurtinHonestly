@@ -5,6 +5,7 @@ import { environment } from '../../environments/environment';
 import {
   AdminAnalytics,
   AdminOverview,
+  AdminRecommendationStats,
   AdminReview,
   CampaignAdmin,
   CampaignEntryAdmin,
@@ -28,6 +29,10 @@ export class AdminService {
     return this.http.get<AdminAnalytics>(`${this.apiUrl}/stats/analytics`, {
       params: { days: String(days) }
     });
+  }
+
+  getRecommendationStats(): Observable<AdminRecommendationStats> {
+    return this.http.get<AdminRecommendationStats>(`${this.apiUrl}/recommendations/stats`);
   }
 
   listUsers(): Observable<UserAdmin[]> {

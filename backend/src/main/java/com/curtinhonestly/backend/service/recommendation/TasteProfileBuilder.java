@@ -8,7 +8,9 @@ import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 import static com.curtinhonestly.backend.service.recommendation.RecommendationWeights.FAIL_GRADE_MAX_EXCLUSIVE;
 import static com.curtinhonestly.backend.service.recommendation.RecommendationWeights.FAIL_GRADE_PENALTY;
@@ -49,8 +51,22 @@ public final class TasteProfileBuilder {
         return affinity(observation.rating(), observation.wouldTakeAgain(), observation.finalGrade());
     }
 
-    /** One profile per user with at least one attributed review, keyed by user id. */
+    /** One profile per user with at least one attributed review, keyed by user id. No completed units. */
     public static Map<String, TasteProfile> buildAll(List<ReviewObservation> observations, Map<String, UnitInfo> units) {
+        return buildAll(observations, units, Map.of(), 0.0);
+    }
+
+    /**
+     * One profile per user with at least one attributed review, keyed by user id.
+     *
+     * @param completedByUser       userId -> unit codes the student marked as completed
+     * @param completedUnitAffinity weight of a completed-but-unreviewed unit in the
+     *                              taste vector; 0 leaves the vector equal to the affinities
+     */
+    public static Map<String, TasteProfile> buildAll(List<ReviewObservation> observations,
+                                                     Map<String, UnitInfo> units,
+                                                     Map<String, Set<String>> completedByUser,
+                                                     double completedUnitAffinity) {
         Map<String, List<ReviewObservation>> byUser = new LinkedHashMap<>();
         for (ReviewObservation o : observations) {
             if (o.userId() == null) {
@@ -59,11 +75,17 @@ public final class TasteProfileBuilder {
             byUser.computeIfAbsent(o.userId(), k -> new ArrayList<>()).add(o);
         }
         Map<String, TasteProfile> profiles = new HashMap<>();
-        byUser.forEach((userId, reviews) -> profiles.put(userId, buildOne(userId, reviews, units)));
+        byUser.forEach((userId, reviews) -> profiles.put(userId,
+                buildOne(userId, reviews, completedByUser.getOrDefault(userId, Set.of()), completedUnitAffinity, units)));
         return profiles;
     }
 
     public static TasteProfile buildOne(String userId, List<ReviewObservation> reviews, Map<String, UnitInfo> units) {
+        return buildOne(userId, reviews, Set.of(), 0.0, units);
+    }
+
+    public static TasteProfile buildOne(String userId, List<ReviewObservation> reviews, Set<String> completedUnits,
+                                        double completedUnitAffinity, Map<String, UnitInfo> units) {
         Map<String, Double> affinities = new LinkedHashMap<>();
         List<ReviewObservation> liked = new ArrayList<>();
         for (ReviewObservation o : reviews) {
@@ -71,6 +93,19 @@ public final class TasteProfileBuilder {
             affinities.put(o.unitCode(), a);
             if (a >= LIKED_AFFINITY) {
                 liked.add(o);
+            }
+        }
+
+        Map<String, Double> vector = new LinkedHashMap<>(affinities);
+        if (completedUnitAffinity > 0 && completedUnits != null) {
+            for (String raw : completedUnits) {
+                if (raw == null) {
+                    continue;
+                }
+                String code = raw.trim().toUpperCase(Locale.ROOT);
+                if (!code.isEmpty() && !vector.containsKey(code)) {
+                    vector.put(code, completedUnitAffinity);
+                }
             }
         }
 
@@ -105,6 +140,6 @@ public final class TasteProfileBuilder {
             facultyMix.put(e.getKey(), e.getValue() / (double) known);
         }
 
-        return new TasteProfile(userId, affinities, likedWorkloadMean, tagShares, facultyMix);
+        return new TasteProfile(userId, affinities, vector, likedWorkloadMean, tagShares, facultyMix);
     }
 }

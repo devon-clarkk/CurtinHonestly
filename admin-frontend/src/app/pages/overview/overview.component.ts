@@ -1,7 +1,7 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AdminService } from '../../services/admin.service';
-import { AdminOverview } from '../../models/admin.model';
+import { AdminOverview, AdminRecommendationStats } from '../../models/admin.model';
 import { StatTileComponent } from '../../components/stat-tile/stat-tile.component';
 import { SeriesChartComponent } from '../../components/series-chart/series-chart.component';
 import { compactNumber, percent } from '../../utils/labels';
@@ -22,6 +22,10 @@ export class OverviewComponent implements OnInit {
   readonly percent = percent;
   readonly compact = compactNumber;
 
+  // Recommendation model shape, loaded beside the overview so a slow or failed
+  // model build never delays the main metrics. Null until it arrives.
+  recommendationStats = signal<AdminRecommendationStats | null>(null);
+
   ngOnInit(): void {
     this.adminService.getOverview().subscribe({
       next: (data) => {
@@ -33,6 +37,22 @@ export class OverviewComponent implements OnInit {
         this.isLoading.set(false);
       }
     });
+    this.adminService.getRecommendationStats().subscribe({
+      next: (stats) => this.recommendationStats.set(stats),
+      error: () => this.recommendationStats.set(null)
+    });
+  }
+
+  recommendationShare(stats: AdminRecommendationStats, count: number): string {
+    return stats.userCount ? this.percent(count / stats.userCount) : '0%';
+  }
+
+  modelBuiltLabel(stats: AdminRecommendationStats): string {
+    const built = new Date(stats.builtAt);
+    if (isNaN(built.getTime())) {
+      return 'Built time unknown';
+    }
+    return `Built ${built.toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' })}`;
   }
 
   attentionTotal(data: AdminOverview): number {

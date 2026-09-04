@@ -46,6 +46,33 @@
     <app-stat-tile label="Units in catalogue" [value]="compact(data.totalUnits)" hint="Importable via unit requests" />
   </div>
 
+  <!-- Recommendation model: who gets personalised picks and how much the
+       reviews overlap. Arrives separately from the overview; absent until then. -->
+  @if (recommendationStats(); as rec) {
+    <div class="kpi-grid secondary">
+      <app-stat-tile
+        label="Students with matches"
+        [value]="compact(rec.usersWithNeighbours)"
+        [hint]="recommendationShare(rec, rec.usersWithNeighbours) + ' of ' + compact(rec.userCount) + ' reviewers, ' + rec.meanNeighboursPerUser + ' similar students each'"
+      />
+      <app-stat-tile
+        label="Cold-start students"
+        [value]="compact(rec.coldStartUsers)"
+        hint="Under two reviews, or no similar student yet"
+      />
+      <app-stat-tile
+        label="Co-reviewed unit pairs"
+        [value]="compact(rec.itemPairsWithCoReviews)"
+        [hint]="'Across ' + compact(rec.unitCount) + ' reviewed units'"
+      />
+      <app-stat-tile
+        label="Recommendation model"
+        [value]="compact(rec.reviewCount) + ' reviews'"
+        [hint]="modelBuiltLabel(rec)"
+      />
+    </div>
+  }
+
   <div class="grid">
     <section class="card span-2">
       <h2>Last 30 days</h2>

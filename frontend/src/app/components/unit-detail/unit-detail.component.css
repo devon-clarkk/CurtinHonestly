@@ -1242,3 +1242,226 @@
 .prereq-link-plain:hover {
   background: inherit;
 }
+
+/* Match for you: a signed-in student's fit for this unit, above the stats. */
+.match-panel {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  margin-bottom: 32px;
+  padding: 18px 20px;
+  background-color: var(--card-background);
+  border: 1px solid var(--border-color);
+  border-left: 4px solid var(--primary-color);
+  border-radius: var(--radius-none);
+}
+
+.match-panel-quiet {
+  border-left-color: var(--border-color);
+}
+
+.match-body {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.match-title {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--secondary-color);
+}
+
+.match-meta {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.match-meta strong {
+  color: var(--text-primary);
+}
+
+.match-link {
+  align-self: flex-start;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--primary-ink);
+  text-decoration: none;
+}
+
+.match-link:hover,
+.match-link:focus-visible {
+  text-decoration: underline;
+}
+
+/* Conic ring driven by the --pct custom property set inline. */
+.match-ring {
+  --pct: 0%;
+  flex-shrink: 0;
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  background: conic-gradient(var(--primary-color) var(--pct), var(--border-color) 0);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  position: relative;
+}
+
+.match-ring::before {
+  content: "";
+  position: absolute;
+  inset: 6px;
+  border-radius: 50%;
+  background-color: var(--card-background);
+}
+
+.match-value,
+.match-label {
+  position: relative;
+  line-height: 1;
+}
+
+.match-value {
+  font-family: var(--header-font);
+  font-weight: 700;
+  font-size: 1.15rem;
+  color: var(--secondary-color);
+}
+
+.match-label {
+  font-size: 0.55rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-secondary);
+}
+
+.reason-chips {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.reason-chips li {
+  font-size: 0.78rem;
+  padding: 4px 10px;
+  background-color: var(--surface-muted);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  line-height: 1.3;
+}
+
+/* Students who rated this highly also liked: a full-width strip under the grid. */
+.similar-section {
+  margin-top: 40px;
+  padding-top: 32px;
+  border-top: 1px solid var(--border-color);
+}
+
+.similar-section .section-heading {
+  margin: 0 0 16px;
+  font-size: 1.25rem;
+}
+
+.similar-strip {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+.similar-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  height: 100%;
+  padding: 14px 16px;
+  background-color: var(--card-background);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-none);
+  color: inherit;
+  text-decoration: none;
+  transition: border-color 0.15s ease;
+}
+
+.similar-card:hover,
+.similar-card:focus-visible {
+  border-color: var(--primary-color);
+}
+
+.similar-code {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: var(--primary-ink);
+}
+
+.similar-name {
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--secondary-color);
+}
+
+.similar-faculty {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--text-secondary);
+}
+
+.similar-foot {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: auto;
+  padding-top: 10px;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.similar-score {
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+@media (max-width: 768px) {
+  .match-panel {
+    gap: 14px;
+    padding: 14px 16px;
+  }
+
+  .match-ring {
+    width: 64px;
+    height: 64px;
+  }
+
+  .similar-section {
+    margin-top: 28px;
+    padding-top: 24px;
+  }
+
+  .similar-strip {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Community and resources row: board preview beside the resource links,
+   stacking on narrow screens. */
+.community-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+  margin-top: 24px;
+}

@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Immutable in-memory snapshot of everything the recommender derives from the
@@ -30,22 +31,36 @@ public final class RecommendationModel {
     private final Map<String, UnitStats> unitStats;
     private final Map<String, Map<String, Double>> itemVectors;
     private final double globalMeanRating;
+    private final int observationCount;
 
     private RecommendationModel(Map<String, TasteProfile> profiles,
                                 Map<String, UnitInfo> units,
                                 Map<String, Map<String, ReviewObservation>> observationsByUser,
                                 Map<String, UnitStats> unitStats,
                                 Map<String, Map<String, Double>> itemVectors,
-                                double globalMeanRating) {
+                                double globalMeanRating,
+                                int observationCount) {
         this.profiles = Collections.unmodifiableMap(profiles);
         this.units = Collections.unmodifiableMap(units);
         this.observationsByUser = Collections.unmodifiableMap(observationsByUser);
         this.unitStats = Collections.unmodifiableMap(unitStats);
         this.itemVectors = Collections.unmodifiableMap(itemVectors);
         this.globalMeanRating = globalMeanRating;
+        this.observationCount = observationCount;
     }
 
+    /** Model from reviews alone; no completed-unit signal. */
     public static RecommendationModel build(List<ReviewObservation> observations, Map<String, UnitInfo> units) {
+        return build(observations, units, Map.of(), 0.0);
+    }
+
+    /**
+     * @param completedByUser       userId -> unit codes the student marked as completed;
+     *                              those not reviewed enter the taste vector at completedUnitAffinity
+     * @param completedUnitAffinity see {@link RecommendationWeights#COMPLETED_UNIT_AFFINITY}
+     */
+    public static RecommendationModel build(List<ReviewObservation> observations, Map<String, UnitInfo> units,
+                                            Map<String, Set<String>> completedByUser, double completedUnitAffinity) {
         Map<String, List<ReviewObservation>> byUnit = new HashMap<>();
         Map<String, Map<String, ReviewObservation>> byUser = new HashMap<>();
         Map<String, Map<String, Double>> itemVectors = new HashMap<>();
@@ -66,10 +81,12 @@ public final class RecommendationModel {
         Map<String, UnitStats> stats = new HashMap<>();
         byUnit.forEach((code, list) -> stats.put(code, statsOf(list)));
 
-        Map<String, TasteProfile> profiles = TasteProfileBuilder.buildAll(observations, units);
+        Map<String, TasteProfile> profiles =
+                TasteProfileBuilder.buildAll(observations, units, completedByUser, completedUnitAffinity);
         double globalMean = ratingCount == 0 ? 0 : ratingSum / ratingCount;
 
-        return new RecommendationModel(profiles, new HashMap<>(units), byUser, stats, itemVectors, globalMean);
+        return new RecommendationModel(profiles, new HashMap<>(units), byUser, stats, itemVectors, globalMean,
+                observations.size());
     }
 
     private static UnitStats statsOf(List<ReviewObservation> reviews) {
@@ -129,5 +146,10 @@ public final class RecommendationModel {
 
     public double globalMeanRating() {
         return globalMeanRating;
+    }
+
+    /** Reviews the model was built from, attributed and anonymised. */
+    public int observationCount() {
+        return observationCount;
     }
 }

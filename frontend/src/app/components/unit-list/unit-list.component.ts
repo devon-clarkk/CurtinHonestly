@@ -1,12 +1,15 @@
-import { Component, inject, OnInit, OnDestroy, ElementRef, NgZone, ViewChild, PLATFORM_ID, TransferState, makeStateKey, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, OnDestroy, ElementRef, NgZone, ViewChild, PLATFORM_ID, TransferState, makeStateKey, signal } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { UnitService } from '../../services/unit.service';
 import { SeoService } from '../../services/seo.service';
 import { UnitRequestService } from '../../services/unit-request.service';
+import { AuthService } from '../../services/auth.service';
+import { RecommendationService } from '../../services/recommendation.service';
 import { isResultsSeasonWindow } from '../../utils/results-season.util';
 import { Page, UnitSummary, Faculty, UnitLevel } from '../../models/unit.model';
+import { Recommendations } from '../../models/recommendation.model';
 import { environment } from '../../../environments/environment';
 import { BehaviorSubject, Subject } from 'rxjs';
 import { debounceTime, takeUntil } from 'rxjs/operators';
@@ -48,6 +51,8 @@ export class UnitListComponent implements OnInit, OnDestroy {
   private unitService = inject(UnitService);
   private seoService = inject(SeoService);
   private unitRequestService = inject(UnitRequestService);
+  private authService = inject(AuthService);
+  private recommendationService = inject(RecommendationService);
   private platformId = inject(PLATFORM_ID);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
@@ -223,6 +228,7 @@ export class UnitListComponent implements OnInit, OnDestroy {
     }
 
     this.watchScrollForBackToTop();
+    this.loadForYou();
 
     // Search input is debounced; sort/faculty/level fire immediately
     this.searchSubject.pipe(debounceTime(300), takeUntil(this.destroy$)).subscribe(() => this.loadPage0());
@@ -259,6 +265,31 @@ export class UnitListComponent implements OnInit, OnDestroy {
   // Shows a request-a-unit card at the top of the list, independent of the
   // empty-state form, when arrived at via the 404 page's "Request a unit" link.
   requestFromDeepLink = signal(false);
+
+  /**
+   * "For you" teaser above the catalogue: the signed-in student's top picks,
+   * or the nudge to review more units when the model has nothing personal yet.
+   *
+   * Browser only, and only after ngOnInit's platform check: the signal stays
+   * null during prerender and through hydration (the request has not answered
+   * yet), so the server-drawn markup and TransferState handling above are
+   * untouched. A logged-out visitor never issues the request.
+   */
+  readonly FOR_YOU_LIMIT = 4;
+  forYou = signal<Recommendations | null>(null);
+  // Sliced once per result rather than in the template, so the list keeps one
+  // array identity across change detection.
+  forYouTop = computed(() => this.forYou()?.recommended.slice(0, this.FOR_YOU_LIMIT) ?? []);
+
+  private loadForYou(): void {
+    if (!this.authService.isLoggedIn()) {
+      return;
+    }
+    this.recommendationService.getForMe().subscribe({
+      next: result => this.forYou.set(result),
+      error: () => this.forYou.set(null)
+    });
+  }
 
   dismissSeasonalBanner(): void {
     this.showSeasonalBanner.set(false);
