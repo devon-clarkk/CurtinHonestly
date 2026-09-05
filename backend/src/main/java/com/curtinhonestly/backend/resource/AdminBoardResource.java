@@ -8,6 +8,7 @@ import com.curtinhonestly.backend.security.SecurityConstants;
 import com.curtinhonestly.backend.service.BoardAdminService;
 import com.curtinhonestly.backend.service.BoardNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /** Board moderation. /admin/** is admin-only in SecurityConfig; the class-level guard is belt and braces. */
+@ConditionalOnProperty(prefix = "app.boards", name = "enabled", havingValue = "true")
 @RestController
 @RequestMapping("/admin/boards")
 @RequiredArgsConstructor

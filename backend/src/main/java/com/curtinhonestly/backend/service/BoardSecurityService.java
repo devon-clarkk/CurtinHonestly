@@ -4,6 +4,7 @@ import com.curtinhonestly.backend.domain.User;
 import com.curtinhonestly.backend.repo.BoardPostRepo;
 import com.curtinhonestly.backend.repo.BoardThreadRepo;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Service;
  * UnitTipSecurityService: the username comes off Authentication.getName(),
  * and anonymised content (author deleted their account) has no owner.
  */
+@ConditionalOnProperty(prefix = "app.boards", name = "enabled", havingValue = "true")
 @Service
 @RequiredArgsConstructor
 public class BoardSecurityService {

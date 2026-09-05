@@ -23,6 +23,7 @@ import { IconComponent } from '../icon/icon.component';
 import { UnitBoardPreviewComponent } from '../boards/unit-board-preview/unit-board-preview.component';
 import { UnitResourcesComponent } from '../unit-resources/unit-resources.component';
 import { UnitEventsCardComponent } from '../events/unit-events-card/unit-events-card.component';
+import { environment } from '../../../environments/environment';
 
 const MAX_TIP_LENGTH = 200;
 
@@ -116,6 +117,9 @@ export class UnitDetailComponent implements OnInit {
   tips = signal<Tip[]>([]);
   newTipText = '';
   readonly maxTipLength = MAX_TIP_LENGTH;
+
+  /** Build-time flag (BOARDS_ENABLED): the unit board preview renders only in builds with boards. */
+  readonly boardsEnabled = environment.boardsEnabled;
   tipError = signal<string | null>(null);
   isSubmittingTip = signal(false);
   private currentUnitCode = '';

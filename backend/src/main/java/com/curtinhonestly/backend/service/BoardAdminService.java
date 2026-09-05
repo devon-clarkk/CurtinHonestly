@@ -14,6 +14,7 @@ import com.curtinhonestly.backend.repo.BoardThreadRepo;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -33,6 +34,7 @@ import java.util.Objects;
  * pin / lock / remove. Removal is the same soft delete students get, plus the
  * flags are cleared so the item leaves the queue.
  */
+@ConditionalOnProperty(prefix = "app.boards", name = "enabled", havingValue = "true")
 @Service
 @Slf4j
 @RequiredArgsConstructor

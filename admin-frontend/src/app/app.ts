@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthService } from './services/auth.service';
+import { environment } from '../environments/environment';
 
 @Component({
   selector: 'app-root',
@@ -10,6 +11,8 @@ import { AuthService } from './services/auth.service';
 })
 export class App {
   auth = inject(AuthService);
+  /** Build-time flag (BOARDS_ENABLED): the Boards nav entry exists only in builds with boards. */
+  readonly boardsEnabled = environment.boardsEnabled;
   private router = inject(Router);
 
   logout(): void {

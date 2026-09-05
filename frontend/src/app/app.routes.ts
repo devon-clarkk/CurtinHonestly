@@ -10,6 +10,7 @@ import { ForgotPasswordComponent } from './components/forgot-password/forgot-pas
 import { ResetPasswordComponent } from './components/reset-password/reset-password.component';
 import { authGuard } from './guards/auth.guard';
 import { clubGuard } from './guards/club.guard';
+import { boardsGuard } from './guards/boards.guard';
 
 export const routes: Routes = [
   { path: '', component: UnitListComponent },
@@ -59,17 +60,21 @@ export const routes: Routes = [
   },
   // Community boards. Client-rendered and noindex for now, entered from the nav
   // or a unit page, so lazy like the other secondary pages. The three routes
-  // share the components under components/boards.
+  // share the components under components/boards. Behind the BOARDS_ENABLED
+  // build flag: boardsGuard stops them matching in a build without boards.
   {
     path: 'boards',
+    canMatch: [boardsGuard],
     loadComponent: () => import('./components/boards/boards-landing/boards-landing.component').then(m => m.BoardsLandingComponent)
   },
   {
     path: 'boards/units/:code',
+    canMatch: [boardsGuard],
     loadComponent: () => import('./components/boards/unit-board/unit-board.component').then(m => m.UnitBoardComponent)
   },
   {
     path: 'boards/threads/:id',
+    canMatch: [boardsGuard],
     loadComponent: () => import('./components/boards/thread-view/thread-view.component').then(m => m.ThreadViewComponent)
   },
   // Club study sessions and events. Client-rendered and noindex for now, like

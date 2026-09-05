@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 import { environment } from '../../environments/environment';
 import {
   ClubEvent,
@@ -32,6 +32,11 @@ export class ClubEventService {
   /** Unit page card: upcoming events whose targeting covers the unit. */
   forUnit(unitCode: string): Observable<ClubEvent[]> {
     return this.http.get<ClubEvent[]>(`${this.apiUrl}/units/${encodeURIComponent(unitCode)}/events`);
+  }
+
+  /** Whether any upcoming published event exists, for the Events nav entry. One page of one. */
+  hasUpcoming(): Observable<boolean> {
+    return this.list(0, 1).pipe(map((page) => page.totalElements > 0 || page.content.length > 0));
   }
 
   list(page = 0, size = 20, clubSlug?: string | null, kind?: string | null): Observable<ClubEventPage<ClubEvent>> {

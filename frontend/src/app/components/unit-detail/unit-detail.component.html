@@ -544,10 +544,14 @@
        fetch; renders nothing when there are none. -->
   <app-unit-events-card [unitCode]="unit.code" />
 
-  <!-- Community and resources: the unit's discussion board preview and the
-       curated links that apply to it. Both fetch in the browser only. -->
+  <!-- Community and resources: the unit's discussion board preview (builds with
+       BOARDS_ENABLED only) and the curated links that apply to it. Both fetch in
+       the browser only. The grid auto-fits, so the resources card takes the full
+       row when it is alone. -->
   <div class="community-row">
-    <app-unit-board-preview [unitCode]="unit.code" />
+    @if (boardsEnabled) {
+      <app-unit-board-preview [unitCode]="unit.code" />
+    }
     <app-unit-resources [unitCode]="unit.code" [unitName]="unit.name" />
   </div>
 

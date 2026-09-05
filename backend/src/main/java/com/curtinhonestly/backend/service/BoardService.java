@@ -21,6 +21,7 @@ import com.curtinhonestly.backend.util.Pseudonym;
 import com.curtinhonestly.backend.util.ReviewerRank;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -44,6 +45,7 @@ import java.util.Set;
  * and profanity filtered on the way in. Moderation lives in
  * {@link BoardAdminService}; this class is what the public API calls.
  */
+@ConditionalOnProperty(prefix = "app.boards", name = "enabled", havingValue = "true")
 @Service
 @Slf4j
 @Transactional(rollbackOn = Exception.class)

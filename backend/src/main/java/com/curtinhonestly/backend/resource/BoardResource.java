@@ -15,6 +15,7 @@ import com.curtinhonestly.backend.service.BoardNotFoundException;
 import com.curtinhonestly.backend.service.BoardService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,6 +30,7 @@ import java.util.List;
  * writes need a signed-in student, and edit/delete additionally require the
  * owner or an admin via BoardSecurityService.
  */
+@ConditionalOnProperty(prefix = "app.boards", name = "enabled", havingValue = "true")
 @RestController
 @RequestMapping("/boards")
 @RequiredArgsConstructor
