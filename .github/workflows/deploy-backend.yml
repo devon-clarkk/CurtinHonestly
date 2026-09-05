@@ -105,7 +105,12 @@ jobs:
               MAIL_USERNAME="$MAIL_USERNAME" \
               MAIL_PASSWORD="$MAIL_PASSWORD" \
               MAIL_FROM="$MAIL_FROM" \
-              FRONTEND_BASE_URL="$FRONTEND_BASE_URL"
+              FRONTEND_BASE_URL="$FRONTEND_BASE_URL" \
+            --min-replicas 0 \
+            --max-replicas 3 \
+            --scale-rule-name http-scale \
+            --scale-rule-type http \
+            --scale-rule-http-concurrency 50
           az containerapp ingress update \
             --name "${{ secrets.CONTAINER_APP_NAME }}" \
             --resource-group "${{ secrets.RESOURCE_GROUP }}" \

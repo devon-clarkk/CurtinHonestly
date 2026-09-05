@@ -6,6 +6,18 @@ spring:
     username: ${database-username:postgres}
     password: ${database-password:?Database password must be provided}
     driver-class-name: org.postgresql.Driver
+    # Supabase's session pooler allows 15 client connections for the whole project,
+    # shared by every backend replica, the previous revision during a rollover, and
+    # any psql or seed session. Hikari's default is 10 per replica held open from
+    # boot, which left a new revision unable to get a single connection for Flyway.
+    # Four per replica, opened on demand, is ample for this traffic and keeps a
+    # rollover (old revision plus one new replica) inside the limit.
+    hikari:
+      maximum-pool-size: ${DB_POOL_MAX:4}
+      minimum-idle: ${DB_POOL_MIN_IDLE:1}
+      idle-timeout: 120000
+      max-lifetime: 1500000
+      connection-timeout: 20000
 
   # Versioned schema migrations. Flyway runs before Hibernate on every boot.
   #
