@@ -107,7 +107,7 @@ jobs:
               MAIL_FROM="$MAIL_FROM" \
               FRONTEND_BASE_URL="$FRONTEND_BASE_URL" \
             --min-replicas 0 \
-            --max-replicas 3 \
+            --max-replicas 2 \
             --scale-rule-name http-scale \
             --scale-rule-type http \
             --scale-rule-http-concurrency 50
