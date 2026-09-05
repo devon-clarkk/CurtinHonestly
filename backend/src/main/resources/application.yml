@@ -25,6 +25,13 @@ spring:
     baseline-on-migrate: true
     baseline-version: 1
     locations: classpath:db/migration
+    # The dev and prod databases received V6 and V7 before V5 existed, because V5
+    # arrived on a branch that merged later. Flyway's default validation refuses to
+    # boot when a lower version is pending behind an applied higher one, which left
+    # new revisions crash-looping while traffic stayed on an old one. Every migration
+    # here is written to be idempotent and independent (IF NOT EXISTS guards), so
+    # applying a pending lower version after a higher one is safe.
+    out-of-order: true
 
   jpa:
     hibernate:
@@ -62,3 +69,13 @@ app:
     from: ${MAIL_FROM:no-reply@curtinhonestly.com}
     verification-token-ttl-hours: ${VERIFICATION_TOKEN_TTL_HOURS:24}
     reset-token-ttl-hours: ${RESET_TOKEN_TTL_HOURS:1}
+  boards:
+    # Boards ship dark until there is a user base to fill them. Off by default in every
+    # environment; set BOARDS_ENABLED=true (dev Container App) to register the board
+    # controllers and services. Entities and repositories are always loaded, so the
+    # tables exist either way.
+    enabled: ${BOARDS_ENABLED:false}
+    # Key for the HMAC that turns a user id into a board pseudonym ("Quiet Quokka 42").
+    # Defaults to the JWT secret so no extra deployment secret is needed. Set
+    # BOARDS_PSEUDONYM_SECRET to rotate it independently; rotating renames every author.
+    pseudonym-secret: ${BOARDS_PSEUDONYM_SECRET:${jwt.secret}}

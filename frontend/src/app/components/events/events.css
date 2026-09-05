@@ -1,0 +1,249 @@
+/* Shared styling for the events and clubs pages. Each page lists this file
+   first in its styleUrls and layers page-specific rules on top. Same card and
+   button shapes as the boards and unit pages, so the section reads as part of
+   the same handbook. */
+
+.events-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 20px 40px;
+}
+
+.events-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.events-header h1 {
+  margin: 0;
+  font-size: 2rem;
+}
+
+.events-lead {
+  margin: 6px 0 0;
+  color: var(--text-secondary);
+  max-width: 62ch;
+}
+
+.events-crumb {
+  display: inline-block;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--primary-ink);
+  text-decoration: none;
+  margin-bottom: 10px;
+}
+
+.events-crumb:hover {
+  text-decoration: underline;
+}
+
+.events-card {
+  background-color: var(--card-background);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-none);
+  padding: 20px;
+}
+
+.events-card h2 {
+  font-size: 1.1rem;
+  margin: 0 0 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.events-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 14px;
+}
+
+.events-week {
+  margin: 0 0 22px;
+}
+
+.events-week-title {
+  margin: 0 0 10px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+/* Filters */
+
+.events-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-end;
+  margin-bottom: 18px;
+}
+
+.events-filter {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--secondary-color);
+}
+
+.events-filter select {
+  min-width: 180px;
+  padding: 8px 10px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-none);
+  font-family: var(--main-font);
+  font-size: 0.9rem;
+  font-weight: 400;
+  color: var(--text-primary);
+  background-color: var(--card-background);
+}
+
+.events-filter select:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 1px;
+}
+
+.events-count {
+  font-family: var(--alt-font);
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+/* States */
+
+.events-empty,
+.events-loading {
+  margin: 0;
+  padding: 28px 0;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.events-loading {
+  font-family: var(--alt-font);
+}
+
+.events-error {
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid #f5c2c7;
+  background: #fff5f5;
+  color: #a12622;
+  font-size: 0.9rem;
+}
+
+.events-notice {
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  border: 1px solid var(--border-color);
+  border-left: 4px solid var(--primary-color);
+  background: var(--surface-muted);
+  font-size: 0.95rem;
+}
+
+.events-notice a {
+  color: var(--primary-ink);
+  font-weight: 600;
+}
+
+/* Pager */
+
+.events-pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 16px;
+  font-family: var(--alt-font);
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.events-pager .btn {
+  padding: 6px 14px;
+  font-size: 0.85rem;
+}
+
+.events-pager .btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* Chips */
+
+.events-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 8px;
+  border: 1px solid var(--border-color);
+  background: var(--surface-muted);
+  color: var(--text-secondary);
+  font-family: var(--main-font);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.events-chip.gold {
+  border-color: var(--primary-color);
+  background-color: color-mix(in srgb, var(--primary-color) 14%, var(--card-background));
+  color: var(--primary-ink);
+}
+
+/* Club identity */
+
+.club-logo {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  border: 1px solid var(--border-color);
+  background: var(--card-background);
+  flex-shrink: 0;
+}
+
+.club-mark {
+  width: 48px;
+  height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-family: var(--header-font);
+  font-size: 1.1rem;
+  font-weight: 700;
+  background-color: var(--secondary-color);
+  color: var(--primary-color);
+}
+
+.events-link {
+  color: var(--primary-ink);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.events-link:hover,
+.events-link:focus-visible {
+  text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+  .events-page {
+    padding: 16px 14px 32px;
+  }
+
+  .events-header h1 {
+    font-size: 1.6rem;
+  }
+}

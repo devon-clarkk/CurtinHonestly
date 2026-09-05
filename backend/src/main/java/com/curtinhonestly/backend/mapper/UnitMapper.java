@@ -3,6 +3,7 @@ package com.curtinhonestly.backend.mapper;
 import com.curtinhonestly.backend.domain.*;
 import com.curtinhonestly.backend.dto.*;
 import com.curtinhonestly.backend.util.ReviewRanking;
+import com.curtinhonestly.backend.util.ReviewerRank;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -33,6 +34,16 @@ public class UnitMapper {
     }
 
     public static UnitDetailsDTO toDetailsDTO(Unit unit)
+    {
+        return toDetailsDTO(unit, Map.of());
+    }
+
+    /**
+     * @param ranksByUserId reviewer standing per author id, looked up once per
+     *                      page by ReviewerRankService and stamped onto each
+     *                      review card; pass an empty map to omit tiers.
+     */
+    public static UnitDetailsDTO toDetailsDTO(Unit unit, Map<String, ReviewerRank> ranksByUserId)
     {
 
         UnitDetailsDTO dto = new UnitDetailsDTO();
@@ -74,7 +85,7 @@ public class UnitMapper {
         dto.setTagSummary(calculateTagSummary(reviews));
 
         // Unit reviews in ReviewDTO format.
-        dto.setReviews(ReviewMapper.mapToDTOs(reviews));
+        dto.setReviews(ReviewMapper.mapToDTOs(reviews, ranksByUserId));
         return dto;
     }
 

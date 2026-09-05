@@ -1,5 +1,5 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, inject, OnInit, PLATFORM_ID, signal } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { UnitService } from '../../services/unit.service';
@@ -9,14 +9,21 @@ import { TipService } from '../../services/tip.service';
 import { CompletedUnitsService } from '../../services/completed-units.service';
 import { SeoService } from '../../services/seo.service';
 import { PrerequisiteGraphService } from '../../services/prerequisite-graph.service';
+import { RecommendationService } from '../../services/recommendation.service';
+import { SimilarUnit, UnitMatch } from '../../models/recommendation.model';
 import { FacultyHub, facultyHubByName, unitCodeForUrl } from '../../utils/faculty.util';
 import { reviewAuthorName } from '../../utils/unit-seo.utils';
 import { GradeBand, gradeDistribution, gradedReviewCount } from '../../utils/grade-distribution.util';
 import { formatTerm, termSortKey } from '../../utils/semester-options.util';
+import { reviewerRecognitionDisplay, reviewerTierDisplay } from '../../utils/reviewer-tier.util';
 import { MyReview, PrerequisiteGroup, PrerequisiteOption, REVIEW_TAGS, Review, Tip, UnitDetails } from '../../models/unit.model';
 import { Observable, switchMap, map, of, tap, catchError } from 'rxjs';
 import { AddReviewComponent } from '../add-review/add-review.component';
 import { IconComponent } from '../icon/icon.component';
+import { UnitBoardPreviewComponent } from '../boards/unit-board-preview/unit-board-preview.component';
+import { UnitResourcesComponent } from '../unit-resources/unit-resources.component';
+import { UnitEventsCardComponent } from '../events/unit-events-card/unit-events-card.component';
+import { environment } from '../../../environments/environment';
 
 const MAX_TIP_LENGTH = 200;
 
@@ -27,7 +34,7 @@ const MAX_TIP_LENGTH = 200;
 @Component({
   selector: 'app-unit-detail',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, AddReviewComponent, IconComponent],
+  imports: [CommonModule, FormsModule, RouterLink, AddReviewComponent, IconComponent, UnitBoardPreviewComponent, UnitResourcesComponent, UnitEventsCardComponent],
   templateUrl: './unit-detail.component.html',
   styleUrl: './unit-detail.component.css'
 })
@@ -39,6 +46,13 @@ export class UnitDetailComponent implements OnInit {
   private completedUnitsService = inject(CompletedUnitsService);
   private seoService = inject(SeoService);
   private prerequisiteGraph = inject(PrerequisiteGraphService);
+  private recommendationService = inject(RecommendationService);
+  private platformId = inject(PLATFORM_ID);
+
+  // Reviewer standing chips on each card. Null when there is nothing to show,
+  // which is the normal case for anonymised reviews and unliked authors.
+  reviewerTierDisplay = reviewerTierDisplay;
+  reviewerRecognitionDisplay = reviewerRecognitionDisplay;
 
   /**
    * The hub that lists every unit in this unit's faculty, or undefined if the
@@ -103,6 +117,9 @@ export class UnitDetailComponent implements OnInit {
   tips = signal<Tip[]>([]);
   newTipText = '';
   readonly maxTipLength = MAX_TIP_LENGTH;
+
+  /** Build-time flag (BOARDS_ENABLED): the unit board preview renders only in builds with boards. */
+  readonly boardsEnabled = environment.boardsEnabled;
   tipError = signal<string | null>(null);
   isSubmittingTip = signal(false);
   private currentUnitCode = '';
@@ -223,9 +240,73 @@ export class UnitDetailComponent implements OnInit {
           this.currentUnitCode = unit.code;
           this.loadTips(unit.code);
           this.loadMyReviewForUnit(unit.code);
+          this.loadSimilarUnits(unit.code);
+          this.loadUnitMatch(unit.code);
         }
       })
     );
+  }
+
+  // "Students who rated this highly also liked": units the same students also
+  // rated well, from the public similar-units endpoint. Browser only: the unit
+  // page is prerendered for every unit, and the strip is not worth one extra
+  // API call per unit at build time. It fills in after hydration instead.
+  similarUnits = signal<SimilarUnit[]>([]);
+
+  private loadSimilarUnits(unitCode: string) {
+    this.similarUnits.set([]);
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+    this.recommendationService.getSimilarUnits(unitCode).subscribe({
+      next: (result) => this.similarUnits.set(result.items),
+      error: () => this.similarUnits.set([])
+    });
+  }
+
+  // Co-reviewed items carry the number of students behind them; catalogue
+  // fallback items (same faculty and level, closest rating) carry none.
+  similarSupportLabel(item: SimilarUnit): string {
+    const n = item.sharedStudents;
+    if (n === 0) {
+      return 'Same area';
+    }
+    return `${n} shared ${n === 1 ? 'student' : 'students'}`;
+  }
+
+  // "Match for you": how well this unit fits the signed-in student, from the
+  // same model as the For you page. Only ever requested in the browser for a
+  // logged-in student, so the prerendered markup never includes it.
+  unitMatch = signal<UnitMatch | null>(null);
+
+  private loadUnitMatch(unitCode: string) {
+    this.unitMatch.set(null);
+    if (!isPlatformBrowser(this.platformId) || !this.authService.isLoggedIn()) {
+      return;
+    }
+    this.recommendationService.getMatchForUnit(unitCode).subscribe({
+      next: (match) => this.unitMatch.set(match),
+      error: () => this.unitMatch.set(null)
+    });
+  }
+
+  // The panel appears for a match or the student's own review. The cold-start
+  // nudge only appears where the unit has reviews at all, since on the many
+  // units with none there is nothing a further review of theirs would unlock
+  // here. NO_SIGNAL renders nothing.
+  showMatchPanel(match: UnitMatch | null, reviewCount: number): match is UnitMatch {
+    if (!match) {
+      return false;
+    }
+    if (match.state === 'MATCH' || match.state === 'REVIEWED') {
+      return true;
+    }
+    return match.state === 'COLD_START' && reviewCount > 0;
+  }
+
+  matchSupportLabel(match: UnitMatch): string {
+    const n = match.supportingStudents;
+    return `based on ${n} similar ${n === 1 ? 'student' : 'students'}`;
   }
 
   // Find the current user's review for this unit so its card can offer editing.

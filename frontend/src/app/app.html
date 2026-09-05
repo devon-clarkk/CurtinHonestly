@@ -26,11 +26,20 @@
     <nav id="main-nav" class="main-nav" [class.is-open]="mobileNavOpen()">
       <a routerLink="/" (click)="closeMobileNav()">Home</a>
       <a routerLink="/compare" (click)="closeMobileNav()">Compare</a>
+      @if (boardsEnabled) {
+        <a routerLink="/boards" (click)="closeMobileNav()">Boards</a>
+      }
+      @if (hasEvents()) {
+        <a routerLink="/events" (click)="closeMobileNav()">Events</a>
+      }
       <ng-container *ngIf="!authService.isLoggedIn()">
         <a routerLink="/login" (click)="closeMobileNav()">Login</a>
         <a routerLink="/register" class="register-link" (click)="closeMobileNav()">Register</a>
       </ng-container>
       <ng-container *ngIf="authService.isLoggedIn()">
+        <a routerLink="/for-you" (click)="closeMobileNav()">For you</a>
+        <!-- Club member accounts (ROLE_CLUB) and admins manage their club's events at /club. -->
+        <a *ngIf="authService.isClubMember() || authService.isAdmin()" routerLink="/club" (click)="closeMobileNav()">My club</a>
         <a routerLink="/my-reviews" (click)="closeMobileNav()">My Reviews</a>
         <a routerLink="/account" (click)="closeMobileNav()">My Account</a>
         <a href="javascript:void(0)" (click)="logout()">Logout</a>

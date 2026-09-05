@@ -1,0 +1,10 @@
+.composer {
+  margin-bottom: 20px;
+  border-top: 4px solid var(--primary-color);
+}
+
+.composer-hint {
+  margin: 0 0 14px;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}

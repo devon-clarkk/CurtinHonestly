@@ -1,0 +1,649 @@
+<h1 class="page-title">Clubs</h1>
+<p class="page-subtitle">
+  Student clubs and study services that publish study sessions and events. Trusted clubs publish straight to the
+  site; events from other clubs wait in the queue below. Members sign in on the public site and manage their events
+  at /club.
+</p>
+
+@if (errorMessage()) {
+  <div class="error-banner">{{ errorMessage() }}</div>
+}
+@if (successMessage()) {
+  <div class="success-banner">{{ successMessage() }}</div>
+}
+
+<!-- Pending events -->
+<section class="card section">
+  <div class="section-header">
+    <h2>Events awaiting approval</h2>
+    <span class="count">{{ pending().length }}</span>
+  </div>
+
+  @if (pending().length === 0) {
+    <p class="subtle">Nothing waiting. Events from trusted clubs publish without coming through here.</p>
+  } @else {
+    <ul class="queue">
+      @for (row of pending(); track row.id) {
+        <li class="queue-item">
+          <div class="queue-main">
+            <div class="queue-title-row">
+              <strong>{{ row.title }}</strong>
+              <span class="badge badge-kind">{{ row.kindLabel }}</span>
+              <span class="badge badge-scope">{{ row.targetUnitCode || row.scopeLabel }}</span>
+              @if (row.showOnHome) {
+                <span class="badge badge-home">Home page</span>
+              }
+            </div>
+            <p class="queue-meta">
+              {{ row.clubName }}, {{ when(row) }}{{ row.recurring && row.recurrenceNote ? ', ' + row.recurrenceNote : '' }}.
+              {{ row.online && !row.location ? 'Online' : (row.location || 'No location') }}{{ row.location && row.online ? ' and online' : '' }}.
+            </p>
+            @if (row.description) {
+              <p class="queue-desc">{{ row.description }}</p>
+            }
+            @if (row.link) {
+              <a class="queue-url" [href]="row.link" target="_blank" rel="noopener noreferrer">{{ row.link }}</a>
+            }
+            <p class="queue-meta">Submitted by {{ row.createdByEmail || 'a removed account' }}</p>
+          </div>
+          <div class="queue-actions">
+            <button type="button" class="btn btn-primary" (click)="approve(row)">Approve</button>
+            <button type="button" class="btn" (click)="openEditEvent(row, true)">Edit and approve</button>
+            <button type="button" class="btn btn-danger" (click)="reject(row)">Reject</button>
+          </div>
+        </li>
+      }
+    </ul>
+  }
+</section>
+
+<!-- Clubs -->
+<section class="card section">
+  <div class="section-header">
+    <h2>Clubs</h2>
+    <span class="count">{{ clubs().length }}</span>
+  </div>
+
+  @if (clubs().length === 0) {
+    <p class="subtle">No clubs yet. Add one below.</p>
+  } @else {
+    <div class="club-list">
+      @for (club of clubs(); track club.id) {
+        <article class="club-card" [class.club-inactive]="!club.active">
+          <header class="club-card-head">
+            <div class="club-card-title">
+              <strong>{{ club.name }}</strong>
+              <span class="club-slug">/clubs/{{ club.slug }}</span>
+              @if (club.trusted) {
+                <span class="badge badge-active">Trusted</span>
+              } @else {
+                <span class="badge badge-pending">Needs approval</span>
+              }
+              @if (!club.active) {
+                <span class="badge badge-banned">Inactive</span>
+              }
+            </div>
+            <div class="club-card-actions">
+              <button type="button" class="btn" (click)="openEditClub(club)">Edit</button>
+              <button type="button" class="btn" (click)="copyInvite(club)">
+                {{ copiedClubId() === club.id ? 'Copied' : 'Copy invite text' }}
+              </button>
+            </div>
+          </header>
+          <p class="club-meta">
+            {{ club.eventCount }} event{{ club.eventCount === 1 ? '' : 's' }}
+            @if (club.pendingCount > 0) {
+              <span>, {{ club.pendingCount }} pending</span>
+            }
+            @if (club.websiteUrl) {
+              <span>, <a [href]="club.websiteUrl" target="_blank" rel="noopener noreferrer">{{ club.websiteUrl }}</a></span>
+            }
+            @if (club.contactEmail) {
+              <span>, {{ club.contactEmail }}</span>
+            }
+          </p>
+
+          <h3 class="club-members-title">Members</h3>
+          @if (club.members.length === 0) {
+            <p class="subtle">
+              No members yet. Add an existing account by email, or send the club the invite text so they sign up first.
+            </p>
+          } @else {
+            <div class="table-wrap">
+              <table class="members-table">
+                <thead>
+                  <tr>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (member of club.members; track member.userId) {
+                    <tr>
+                      <td>{{ member.email }}</td>
+                      <td>
+                        <select [value]="member.role" (change)="setMemberRole(club, member.userId, $any($event.target).value)" [attr.aria-label]="'Role for ' + member.email">
+                          <option value="OWNER">Owner (edits profile and events)</option>
+                          <option value="EDITOR">Editor (events only)</option>
+                        </select>
+                      </td>
+                      <td class="row-actions">
+                        <button type="button" class="btn btn-danger" (click)="removeMember(club, member.userId, member.email)">Remove</button>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+
+          <form class="member-add" (ngSubmit)="addMember(club)">
+            <label>
+              <span class="visually-hidden">Email of an existing account</span>
+              <input type="email" [name]="'memberEmail-' + club.id" [(ngModel)]="memberEmail[club.id]" placeholder="president@club.org.au" />
+            </label>
+            <select [name]="'memberRole-' + club.id" [(ngModel)]="memberRole[club.id]" [attr.aria-label]="'Role for the new member of ' + club.name">
+              <option value="">Editor</option>
+              <option value="OWNER">Owner</option>
+            </select>
+            <button type="submit" class="btn btn-primary">Add member</button>
+          </form>
+          <p class="field-hint">
+            The email must already have a CurtinHonestly account. If it does not, copy the invite text above and
+            send it to the club; add them here once they have signed up.
+          </p>
+          <details class="invite-details">
+            <summary>Invite text</summary>
+            <p class="invite-text">{{ inviteText(club) }}</p>
+          </details>
+        </article>
+      }
+    </div>
+  }
+</section>
+
+<!-- Add a club -->
+<section class="card section">
+  <h2>Add a club</h2>
+  <p class="page-subtitle">
+    The slug becomes the public address (/clubs/slug) and is derived from the name when left blank.
+    Mark clubs you know as trusted so their events publish without review.
+  </p>
+  <div class="form-grid">
+    <label>
+      Name
+      <input type="text" [(ngModel)]="clubForm.name" name="clubName" maxlength="120" placeholder="Curtin Computing Students Society" />
+    </label>
+    <label>
+      Slug
+      <span class="field-hint">Lower-case letters, digits and dashes.</span>
+      <input type="text" [(ngModel)]="clubForm.slug" name="clubSlug" maxlength="60" placeholder="comssa" />
+    </label>
+    <label>
+      Website
+      <input type="text" [(ngModel)]="clubForm.websiteUrl" name="clubWebsite" placeholder="https://" />
+    </label>
+    <label class="span-2">
+      Description
+      <input type="text" [(ngModel)]="clubForm.description" name="clubDescription" maxlength="600" placeholder="Who they are and what they run." />
+    </label>
+    <label>
+      Contact email
+      <input type="email" [(ngModel)]="clubForm.contactEmail" name="clubContact" placeholder="hello@club.org.au" />
+    </label>
+    <label>
+      Logo image link
+      <input type="text" [(ngModel)]="clubForm.logoUrl" name="clubLogo" placeholder="https://" />
+    </label>
+  </div>
+  <div class="mode-row">
+    <label class="radio">
+      <input type="checkbox" [(ngModel)]="clubForm.trusted" name="clubTrusted" />
+      Trusted (publishes without review)
+    </label>
+    <label class="radio">
+      <input type="checkbox" [(ngModel)]="clubForm.active" name="clubActive" />
+      Active (shown on the site)
+    </label>
+  </div>
+  <div class="actions">
+    <button type="button" class="btn btn-primary" (click)="createClub()" [disabled]="creatingClub()">
+      {{ creatingClub() ? 'Saving' : 'Add club' }}
+    </button>
+  </div>
+</section>
+
+<!-- Add an event on behalf of a club -->
+<section class="card section">
+  <h2>Post an event for a club</h2>
+  <p class="page-subtitle">
+    Publishes immediately under the club's name. Times are Perth local. Targeting works like resources: one unit by
+    code, or a rule over code prefixes, faculty and level.
+  </p>
+
+  <fieldset class="form-fieldset">
+    <legend>Event</legend>
+    <div class="form-grid">
+      <label>
+        Club
+        <select [(ngModel)]="eventForm.clubId" name="eventClub">
+          <option value="">Choose a club</option>
+          @for (club of clubs(); track club.id) {
+            <option [value]="club.id">{{ club.name }}</option>
+          }
+        </select>
+      </label>
+      <label>
+        Title
+        <input type="text" [(ngModel)]="eventForm.title" name="eventTitle" maxlength="140" placeholder="COMP1000 exam revision" />
+      </label>
+      <label>
+        Kind
+        <select [(ngModel)]="eventForm.kind" name="eventKind">
+          @for (kind of options().kinds; track kind.value) {
+            <option [value]="kind.value">{{ kind.label }}</option>
+          }
+        </select>
+      </label>
+      <label class="span-2">
+        Description
+        <textarea [(ngModel)]="eventForm.description" name="eventDescription" maxlength="2000" rows="3"></textarea>
+      </label>
+      <label>
+        Link
+        <span class="field-hint">Registration, Teams or Discord. Optional.</span>
+        <input type="text" [(ngModel)]="eventForm.link" name="eventLink" placeholder="https://" />
+      </label>
+      <label>
+        Starts (Perth time)
+        <input type="datetime-local" [(ngModel)]="eventForm.startsAt" name="eventStarts" />
+      </label>
+      <label>
+        Ends (optional)
+        <input type="datetime-local" [(ngModel)]="eventForm.endsAt" name="eventEnds" />
+      </label>
+      <label>
+        Location
+        <input type="text" [(ngModel)]="eventForm.location" name="eventLocation" maxlength="200" placeholder="Building 314, room 218" />
+      </label>
+    </div>
+    <div class="mode-row">
+      <label class="radio">
+        <input type="checkbox" [(ngModel)]="eventForm.online" name="eventOnline" />
+        Online
+      </label>
+      <label class="radio">
+        <input type="checkbox" [(ngModel)]="eventForm.recurring" name="eventRecurring" />
+        Repeats
+      </label>
+      <label class="radio">
+        <input type="checkbox" [(ngModel)]="eventForm.showOnHome" name="eventHome" />
+        Show on the home page
+      </label>
+    </div>
+    @if (eventForm.recurring) {
+      <div class="form-grid">
+        <label class="span-2">
+          How often
+          <span class="field-hint">Free text shown with the event, e.g. "Every Tuesday, weeks 2 to 12". Enter the first session as the start.</span>
+          <input type="text" [(ngModel)]="eventForm.recurrenceNote" name="eventRecurrence" maxlength="120" />
+        </label>
+      </div>
+    }
+  </fieldset>
+
+  <fieldset class="form-fieldset">
+    <legend>Which unit pages</legend>
+    <div class="mode-row">
+      <label class="radio">
+        <input type="radio" name="eventMode" value="rule" [(ngModel)]="eventForm.targetMode" />
+        Rule (many units)
+      </label>
+      <label class="radio">
+        <input type="radio" name="eventMode" value="unit" [(ngModel)]="eventForm.targetMode" />
+        One unit
+      </label>
+    </div>
+    @if (eventForm.targetMode === 'unit') {
+      <div class="form-grid">
+        <label>
+          Unit code
+          <input type="text" [(ngModel)]="eventForm.unitCode" name="eventUnitCode" placeholder="COMP1000" />
+        </label>
+      </div>
+    } @else {
+      <div class="form-grid">
+        <label>
+          Code prefixes
+          <span class="field-hint">Comma separated. Blank skips this criterion; a rule with nothing set shows on every unit page.</span>
+          <input type="text" [(ngModel)]="eventForm.codePrefixes" name="eventPrefixes" placeholder="COMP1, ISAD1" />
+        </label>
+        <label>
+          Faculty
+          <select [(ngModel)]="eventForm.faculty" name="eventFaculty">
+            <option value="">Any faculty</option>
+            @for (f of options().faculties; track f.value) {
+              <option [value]="f.value">{{ f.label }}</option>
+            }
+          </select>
+        </label>
+        <label>
+          Level
+          <select [(ngModel)]="eventForm.level" name="eventLevel">
+            <option value="">Any level</option>
+            @for (l of options().levels; track l.value) {
+              <option [value]="l.value">{{ l.label }}</option>
+            }
+          </select>
+        </label>
+      </div>
+    }
+    <div class="preview-row">
+      <button type="button" class="btn" (click)="previewCreateEvent()" [disabled]="eventPreviewLoading()">
+        {{ eventPreviewLoading() ? 'Checking' : 'Preview matches' }}
+      </button>
+      @if (eventPreview(); as preview) {
+        <span class="preview-result" [class.preview-empty]="preview.matchCount === 0">
+          {{ previewSummary(preview) }}
+          @if (preview.matchCount > 0) {
+            <span class="preview-scope">Shown as "{{ preview.scopeLabel }}"</span>
+          }
+        </span>
+      }
+    </div>
+  </fieldset>
+
+  <div class="actions">
+    <button type="button" class="btn btn-primary" (click)="createEvent()" [disabled]="creatingEvent()">
+      {{ creatingEvent() ? 'Saving' : 'Publish event' }}
+    </button>
+    <button type="button" class="btn" (click)="resetEventForm()">Clear</button>
+  </div>
+</section>
+
+<!-- All events -->
+<section class="card section">
+  <div class="section-header">
+    <h2>All events</h2>
+    <span class="count">{{ filteredEvents().length }} of {{ events().length }}</span>
+  </div>
+
+  <div class="form-row filters">
+    <input type="search" placeholder="Search title, club, scope or unit" [value]="search()" (input)="search.set($any($event.target).value)" />
+    <select [value]="statusFilter()" (change)="statusFilter.set($any($event.target).value)">
+      <option value="ALL">Any status</option>
+      @for (s of options().statuses; track s.value) {
+        <option [value]="s.value">{{ s.label }}</option>
+      }
+    </select>
+    <select [value]="clubFilter()" (change)="clubFilter.set($any($event.target).value)">
+      <option value="ALL">Any club</option>
+      @for (club of clubs(); track club.id) {
+        <option [value]="club.id">{{ club.name }}</option>
+      }
+    </select>
+  </div>
+
+  @if (filteredEvents().length === 0) {
+    <p class="subtle">No events match these filters.</p>
+  } @else {
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Event</th>
+            <th>Club</th>
+            <th>When (Perth)</th>
+            <th>Shown on</th>
+            <th>Status</th>
+            <th class="num">Views</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of filteredEvents(); track row.id) {
+            <tr>
+              <td>
+                <div class="cell-title">{{ row.title }}</div>
+                <div class="cell-sub">{{ row.kindLabel }}{{ row.recurring ? ', repeats' : '' }}</div>
+              </td>
+              <td>{{ row.clubName }}</td>
+              <td>
+                <div>{{ when(row) }}</div>
+                @if (row.recurring && row.recurrenceNote) {
+                  <div class="cell-sub">{{ row.recurrenceNote }}</div>
+                }
+              </td>
+              <td>
+                <span class="badge badge-scope">{{ row.targetUnitCode || row.scopeLabel }}</span>
+                @if (row.showOnHome) {
+                  <div class="cell-sub">and the home page</div>
+                }
+              </td>
+              <td>
+                <span [class]="statusClass(row.status)">{{ row.statusLabel }}</span>
+                @if (row.status === 'REJECTED' && row.rejectionReason) {
+                  <div class="cell-sub">{{ row.rejectionReason }}</div>
+                }
+              </td>
+              <td class="num">{{ row.viewCount }}</td>
+              <td class="row-actions">
+                <button type="button" class="btn" (click)="openEditEvent(row)">Edit</button>
+                @if (row.status === 'PENDING') {
+                  <button type="button" class="btn btn-primary" (click)="approve(row)">Approve</button>
+                }
+                @if (row.status === 'PENDING' || row.status === 'PUBLISHED') {
+                  <button type="button" class="btn" (click)="reject(row)">{{ row.status === 'PUBLISHED' ? 'Unpublish' : 'Reject' }}</button>
+                  <button type="button" class="btn" (click)="cancel(row)">Cancel</button>
+                }
+                <button type="button" class="btn btn-danger" (click)="deleteEvent(row)">Delete</button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>
+
+<!-- Edit club dialog -->
+@if (editingClub(); as club) {
+  <div class="modal-backdrop" (click)="closeEditClub()">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="club-dialog-title" (click)="$event.stopPropagation()">
+      <header class="modal-head">
+        <div>
+          <h2 id="club-dialog-title">Edit club</h2>
+          <p class="modal-subtitle">{{ club.members.length }} member{{ club.members.length === 1 ? '' : 's' }}, {{ club.eventCount }} event{{ club.eventCount === 1 ? '' : 's' }}</p>
+        </div>
+        <button type="button" class="btn icon-btn" (click)="closeEditClub()" aria-label="Close">&times;</button>
+      </header>
+      <div class="form-grid">
+        <label>
+          Name
+          <input type="text" [(ngModel)]="editClubForm.name" name="editClubName" maxlength="120" />
+        </label>
+        <label>
+          Slug
+          <input type="text" [(ngModel)]="editClubForm.slug" name="editClubSlug" maxlength="60" />
+        </label>
+        <label>
+          Website
+          <input type="text" [(ngModel)]="editClubForm.websiteUrl" name="editClubWebsite" />
+        </label>
+        <label class="span-2">
+          Description
+          <input type="text" [(ngModel)]="editClubForm.description" name="editClubDescription" maxlength="600" />
+        </label>
+        <label>
+          Contact email
+          <input type="email" [(ngModel)]="editClubForm.contactEmail" name="editClubContact" />
+        </label>
+        <label>
+          Logo image link
+          <input type="text" [(ngModel)]="editClubForm.logoUrl" name="editClubLogo" />
+        </label>
+      </div>
+      <div class="mode-row">
+        <label class="radio">
+          <input type="checkbox" [(ngModel)]="editClubForm.trusted" name="editClubTrusted" />
+          Trusted (publishes without review)
+        </label>
+        <label class="radio">
+          <input type="checkbox" [(ngModel)]="editClubForm.active" name="editClubActive" />
+          Active (shown on the site)
+        </label>
+      </div>
+      <footer class="modal-foot">
+        <button type="button" class="btn btn-primary" (click)="saveClub()" [disabled]="savingClub()">{{ savingClub() ? 'Saving' : 'Save' }}</button>
+        <button type="button" class="btn" (click)="closeEditClub()">Cancel</button>
+        <span class="spacer"></span>
+        <button type="button" class="btn btn-danger" (click)="deleteClub(club)">Delete club</button>
+      </footer>
+    </div>
+  </div>
+}
+
+<!-- Edit event dialog -->
+@if (editingEvent(); as row) {
+  <div class="modal-backdrop" (click)="closeEditEvent()">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="event-dialog-title" (click)="$event.stopPropagation()">
+      <header class="modal-head">
+        <div>
+          <h2 id="event-dialog-title">Edit event</h2>
+          <p class="modal-subtitle">{{ row.clubName }}, {{ row.statusLabel | lowercase }}, {{ row.viewCount }} views</p>
+        </div>
+        <button type="button" class="btn icon-btn" (click)="closeEditEvent()" aria-label="Close">&times;</button>
+      </header>
+
+      <fieldset class="form-fieldset">
+        <legend>Event</legend>
+        <div class="form-grid">
+          <label class="span-2">
+            Title
+            <input type="text" [(ngModel)]="editEventForm.title" name="editEventTitle" maxlength="140" />
+          </label>
+          <label>
+            Kind
+            <select [(ngModel)]="editEventForm.kind" name="editEventKind">
+              @for (kind of options().kinds; track kind.value) {
+                <option [value]="kind.value">{{ kind.label }}</option>
+              }
+            </select>
+          </label>
+          <label class="span-2">
+            Description
+            <textarea [(ngModel)]="editEventForm.description" name="editEventDescription" maxlength="2000" rows="3"></textarea>
+          </label>
+          <label>
+            Link
+            <input type="text" [(ngModel)]="editEventForm.link" name="editEventLink" />
+          </label>
+          <label>
+            Starts (Perth time)
+            <input type="datetime-local" [(ngModel)]="editEventForm.startsAt" name="editEventStarts" />
+          </label>
+          <label>
+            Ends (optional)
+            <input type="datetime-local" [(ngModel)]="editEventForm.endsAt" name="editEventEnds" />
+          </label>
+          <label>
+            Location
+            <input type="text" [(ngModel)]="editEventForm.location" name="editEventLocation" maxlength="200" />
+          </label>
+        </div>
+        <div class="mode-row">
+          <label class="radio">
+            <input type="checkbox" [(ngModel)]="editEventForm.online" name="editEventOnline" />
+            Online
+          </label>
+          <label class="radio">
+            <input type="checkbox" [(ngModel)]="editEventForm.recurring" name="editEventRecurring" />
+            Repeats
+          </label>
+          <label class="radio">
+            <input type="checkbox" [(ngModel)]="editEventForm.showOnHome" name="editEventHome" />
+            Show on the home page
+          </label>
+        </div>
+        @if (editEventForm.recurring) {
+          <div class="form-grid">
+            <label class="span-2">
+              How often
+              <input type="text" [(ngModel)]="editEventForm.recurrenceNote" name="editEventRecurrence" maxlength="120" placeholder="Every Tuesday, weeks 2 to 12" />
+            </label>
+          </div>
+        }
+      </fieldset>
+
+      <fieldset class="form-fieldset">
+        <legend>Which unit pages</legend>
+        <div class="mode-row">
+          <label class="radio">
+            <input type="radio" name="editEventMode" value="rule" [(ngModel)]="editEventForm.targetMode" />
+            Rule (many units)
+          </label>
+          <label class="radio">
+            <input type="radio" name="editEventMode" value="unit" [(ngModel)]="editEventForm.targetMode" />
+            One unit
+          </label>
+        </div>
+        @if (editEventForm.targetMode === 'unit') {
+          <div class="form-grid">
+            <label>
+              Unit code
+              <input type="text" [(ngModel)]="editEventForm.unitCode" name="editEventUnitCode" placeholder="COMP1000" />
+            </label>
+          </div>
+        } @else {
+          <div class="form-grid">
+            <label>
+              Code prefixes
+              <input type="text" [(ngModel)]="editEventForm.codePrefixes" name="editEventPrefixes" placeholder="COMP1, ISAD1" />
+            </label>
+            <label>
+              Faculty
+              <select [(ngModel)]="editEventForm.faculty" name="editEventFaculty">
+                <option value="">Any faculty</option>
+                @for (f of options().faculties; track f.value) {
+                  <option [value]="f.value">{{ f.label }}</option>
+                }
+              </select>
+            </label>
+            <label>
+              Level
+              <select [(ngModel)]="editEventForm.level" name="editEventLevel">
+                <option value="">Any level</option>
+                @for (l of options().levels; track l.value) {
+                  <option [value]="l.value">{{ l.label }}</option>
+                }
+              </select>
+            </label>
+          </div>
+        }
+        <div class="preview-row">
+          <button type="button" class="btn" (click)="previewEditEvent()" [disabled]="editEventPreviewLoading()">
+            {{ editEventPreviewLoading() ? 'Checking' : 'Preview matches' }}
+          </button>
+          @if (editEventPreview(); as preview) {
+            <span class="preview-result" [class.preview-empty]="preview.matchCount === 0">
+              {{ previewSummary(preview) }}
+              @if (preview.matchCount > 0) {
+                <span class="preview-scope">Shown as "{{ preview.scopeLabel }}"</span>
+              }
+            </span>
+          }
+        </div>
+      </fieldset>
+
+      <footer class="modal-foot">
+        <button type="button" class="btn btn-primary" (click)="saveEvent()" [disabled]="savingEvent()">
+          {{ savingEvent() ? 'Saving' : (approveAfterSave() ? 'Save and approve' : 'Save') }}
+        </button>
+        <button type="button" class="btn" (click)="closeEditEvent()">Cancel</button>
+        <span class="spacer"></span>
+        <button type="button" class="btn btn-danger" (click)="deleteEvent(row)">Delete</button>
+      </footer>
+    </div>
+  </div>
+}

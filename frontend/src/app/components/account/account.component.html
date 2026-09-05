@@ -24,6 +24,16 @@
           <span class="status-badge unverified">Not verified</span>
         }
       </dd>
+      @if (reviewerProfile(); as rank) {
+        <dt>Reviewer rank</dt>
+        <dd>
+          <a routerLink="/my-reviews" class="status-badge rank">{{ rank.activityTierLabel }}</a>
+          @if (rank.recognitionTierLabel) {
+            <span class="status-badge rank-recognition">{{ rank.recognitionTierLabel }}</span>
+          }
+          <span class="rank-hint">{{ nextTierNudge(rank) }} <a routerLink="/my-reviews">See your progress</a></span>
+        </dd>
+      }
     </dl>
   </section>
 

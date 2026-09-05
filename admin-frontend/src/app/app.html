@@ -11,6 +11,11 @@
         <a routerLink="/analytics" routerLinkActive="active">Analytics</a>
         <a routerLink="/operations" routerLinkActive="active">Operations</a>
         <a routerLink="/campaigns" routerLinkActive="active">Campaigns</a>
+        @if (boardsEnabled) {
+          <a routerLink="/boards" routerLinkActive="active">Boards</a>
+        }
+        <a routerLink="/resources" routerLinkActive="active">Resources</a>
+        <a routerLink="/clubs" routerLinkActive="active">Clubs</a>
       </nav>
 
       <div class="user-actions">

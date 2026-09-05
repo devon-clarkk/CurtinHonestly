@@ -44,6 +44,109 @@
   margin-bottom: 16px;
 }
 
+/* Reviewer rank panel. A thin gold rule on the left ties it to the handbook
+   title bar above without turning it into a banner. */
+.rank-panel {
+  border-left: 4px solid var(--primary-color);
+}
+
+.rank-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px 16px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.rank-eyebrow {
+  margin: 0 0 2px;
+  font-family: var(--alt-font);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+}
+
+.rank-title {
+  margin: 0;
+  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rank-glyph {
+  color: var(--primary-color);
+}
+
+.rank-recognition {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border: 1px solid #ead9a8;
+  background: #fbf6e6;
+  color: var(--primary-ink);
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.rank-recognition app-icon {
+  display: inline-flex;
+  font-size: 0.85rem;
+}
+
+.rank-tracks {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px 32px;
+}
+
+.rank-track-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.rank-count {
+  font-variant-numeric: tabular-nums;
+}
+
+.rank-of {
+  color: var(--text-secondary);
+  font-weight: 400;
+}
+
+.rank-bar {
+  height: 8px;
+  background: var(--surface-muted);
+  border: 1px solid var(--border-color);
+  overflow: hidden;
+}
+
+.rank-bar-fill {
+  height: 100%;
+  background: var(--secondary-color);
+  transition: width 0.3s ease;
+}
+
+.rank-bar-fill.recognition {
+  background: var(--primary-color);
+}
+
+.rank-nudge {
+  margin: 8px 0 0;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
 .add-flow-header {
   display: flex;
   justify-content: space-between;

@@ -1,0 +1,121 @@
+@if (loaded() && (items().length > 0 || authService.isLoggedIn())) {
+  <section class="resources-block" aria-labelledby="resources-heading">
+    <h2 id="resources-heading">Resources and communities</h2>
+
+    @if (items().length > 0) {
+      <p class="resources-hint">Links students and admins have found useful for {{ unitName || unitCode }}.</p>
+
+      @for (group of groups(); track group.kind) {
+        <div class="resource-group">
+          <h3 class="resource-group-title">{{ group.label }}</h3>
+          <ul class="resource-list">
+            @for (item of group.items; track item.id) {
+              <li class="resource-item">
+                <span class="resource-glyph" [attr.data-kind]="item.kind" aria-hidden="true">{{ glyph(item.kind) }}</span>
+                <div class="resource-body">
+                  <a
+                    class="resource-title"
+                    [href]="item.url"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    (click)="recordClick(item)"
+                    (auxclick)="recordClick(item)">
+                    {{ item.title }}
+                    <span class="visually-hidden">(opens in a new tab)</span>
+                  </a>
+                  @if (item.description) {
+                    <p class="resource-description">{{ item.description }}</p>
+                  }
+                  <p class="resource-meta">
+                    <span class="resource-scope" [class.resource-scope-unit]="item.scopeLabel === 'This unit'">{{ item.scopeLabel }}</span>
+                    @if (host(item.url); as hostname) {
+                      <span class="resource-host">{{ hostname }}</span>
+                    }
+                  </p>
+                </div>
+              </li>
+            }
+          </ul>
+        </div>
+      }
+    }
+
+    @if (authService.isLoggedIn()) {
+      <div class="resource-suggest" [class.resource-suggest-empty]="items().length === 0">
+        @if (suggestDone()) {
+          <p class="resource-suggest-done" role="status">Thanks, an admin will review it.</p>
+        } @else {
+          <button type="button" class="resource-suggest-toggle" (click)="toggleSuggestForm()" [attr.aria-expanded]="showSuggestForm()">
+            @if (items().length === 0) {
+              Know a useful link for this unit? Suggest it
+            } @else {
+              Know another useful link? Suggest it
+            }
+          </button>
+
+          @if (showSuggestForm()) {
+            <form class="resource-suggest-form" (ngSubmit)="submitSuggestion()">
+              <label class="resource-field">
+                <span>Title</span>
+                <input
+                  type="text"
+                  name="title"
+                  [(ngModel)]="suggestTitle"
+                  [maxlength]="maxTitle"
+                  placeholder="ComSSA Discord"
+                  required />
+              </label>
+              <label class="resource-field">
+                <span>Link</span>
+                <input
+                  type="text"
+                  name="url"
+                  inputmode="url"
+                  [(ngModel)]="suggestUrl"
+                  placeholder="https://"
+                  required />
+              </label>
+              <label class="resource-field">
+                <span>Kind</span>
+                <select name="kind" [(ngModel)]="suggestKind">
+                  @for (kind of kinds; track kind) {
+                    <option [value]="kind">{{ kindLabels[kind] }}</option>
+                  }
+                </select>
+              </label>
+              <label class="resource-field">
+                <span>Description <em>(optional)</em></span>
+                <input
+                  type="text"
+                  name="description"
+                  [(ngModel)]="suggestDescription"
+                  [maxlength]="maxDescription"
+                  placeholder="What is it and who is it for?" />
+              </label>
+              <label class="resource-field">
+                <span>Note for the admins <em>(optional)</em></span>
+                <input
+                  type="text"
+                  name="note"
+                  [(ngModel)]="suggestNote"
+                  [maxlength]="maxNote"
+                  placeholder="Anything that helps us check it" />
+              </label>
+
+              @if (suggestError()) {
+                <p class="resource-suggest-error" role="alert">{{ suggestError() }}</p>
+              }
+
+              <div class="resource-suggest-actions">
+                <button type="submit" class="btn btn-primary resource-suggest-submit" [disabled]="!canSubmitSuggestion()">
+                  {{ suggestSubmitting() ? 'Sending' : 'Send suggestion' }}
+                </button>
+                <button type="button" class="resource-suggest-cancel" (click)="toggleSuggestForm()">Cancel</button>
+              </div>
+            </form>
+          }
+        }
+      </div>
+    }
+  </section>
+}

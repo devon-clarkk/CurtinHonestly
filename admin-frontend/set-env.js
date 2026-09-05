@@ -6,6 +6,9 @@ const targetPath = path.resolve(__dirname, 'src/environments/environment.ts');
 
 let apiUrl = process.env.API_URL || 'http://localhost:8080';
 let production = process.env.NODE_ENV === 'production';
+// Board moderation pages follow the public boards flag. Off unless the build sets
+// BOARDS_ENABLED=true; the prod admin workflow does not.
+const boardsEnabled = process.env.BOARDS_ENABLED === 'true';
 
 if (fs.existsSync(envPath)) {
   const lines = fs.readFileSync(envPath, 'utf8').split(/\r?\n/);
@@ -22,9 +25,10 @@ if (fs.existsSync(envPath)) {
 
 const envConfigFile = `export const environment = {
   production: ${production},
-  apiUrl: '${apiUrl}'
+  apiUrl: '${apiUrl}',
+  boardsEnabled: ${boardsEnabled}
 };
 `;
 
 fs.writeFileSync(targetPath, envConfigFile);
-console.log(`Generated environment.ts with API_URL: ${apiUrl}`);
+console.log(`Generated environment.ts with API_URL: ${apiUrl}, BOARDS ${boardsEnabled ? 'enabled' : 'disabled'}`);

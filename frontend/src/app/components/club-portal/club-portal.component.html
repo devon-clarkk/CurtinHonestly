@@ -1,0 +1,198 @@
+<div class="events-page portal">
+  <header class="events-header">
+    <div>
+      <h1 class="handbook-title">My club</h1>
+      <p class="events-lead">
+        Publish study sessions and events. They appear on the home page, on the unit pages they apply to and on
+        <a routerLink="/events" class="events-link">the events page</a>. Times are Perth local.
+      </p>
+    </div>
+    @if (club(); as club) {
+      <a class="btn btn-accent" [routerLink]="['/clubs', club.slug]">View public page</a>
+    }
+  </header>
+
+  @if (loading()) {
+    <p class="events-loading">Loading your clubs...</p>
+  } @else if (clubs().length === 0) {
+    <section class="events-card">
+      <h2>No club linked to this account</h2>
+      <p class="portal-empty">
+        Club access is granted by the CurtinHonestly team.
+        @if (errorMessage()) {
+          <span>{{ errorMessage() }}</span>
+        } @else {
+          <span>If your club has been set up, sign out and back in, or <a routerLink="/contact" class="events-link">get in touch</a>.</span>
+        }
+      </p>
+    </section>
+  } @else if (club(); as club) {
+    @if (clubs().length > 1) {
+      <label class="portal-switcher">
+        <span>Club</span>
+        <select [value]="club.id" (change)="selectClub($any($event.target).value)">
+          @for (c of clubs(); track c.id) {
+            <option [value]="c.id">{{ c.name }} ({{ roleLabel(c.role) }})</option>
+          }
+        </select>
+      </label>
+    }
+
+    @if (!club.trusted) {
+      <p class="events-notice">
+        <strong>Pending admin approval.</strong>
+        Events from {{ club.name }} are checked by a CurtinHonestly admin before they go live. Publishing sends an
+        event to the queue; you will see it move from "Pending approval" to "Published" here.
+      </p>
+    }
+    @if (!club.active) {
+      <p class="events-notice"><strong>{{ club.name }} is not currently shown on the site.</strong> Contact the CurtinHonestly team to reactivate it.</p>
+    }
+
+    @if (errorMessage()) {
+      <p class="events-error" role="alert">{{ errorMessage() }}</p>
+    }
+    @if (successMessage()) {
+      <p class="portal-success" role="status">{{ successMessage() }}</p>
+    }
+
+    <section class="events-card portal-profile" aria-labelledby="portal-profile-heading">
+      <div class="portal-card-head">
+        <h2 id="portal-profile-heading">{{ club.name }}</h2>
+        <span class="events-chip">{{ roleLabel(club.role) }}</span>
+        @if (club.trusted) {
+          <span class="events-chip gold">Publishes directly</span>
+        }
+        @if (canEditProfile()) {
+          <button type="button" class="btn-text portal-profile-toggle" (click)="toggleProfile()" [attr.aria-expanded]="profileOpen()">
+            {{ profileOpen() ? 'Close' : 'Edit profile' }}
+          </button>
+        }
+      </div>
+
+      @if (!profileOpen()) {
+        <p class="portal-profile-text">{{ club.description || 'No description yet.' }}</p>
+        <p class="portal-profile-meta">
+          @if (club.websiteUrl) {
+            <a class="events-link" [href]="club.websiteUrl" target="_blank" rel="noopener noreferrer">{{ club.websiteUrl }}</a>
+          }
+          @if (club.contactEmail) {
+            <span>{{ club.contactEmail }}</span>
+          }
+          <span>curtinhonestly.com/clubs/{{ club.slug }}</span>
+        </p>
+      } @else {
+        <form class="portal-form" (ngSubmit)="saveProfile()">
+          <label class="portal-field">
+            <span>Description</span>
+            <textarea name="description" [(ngModel)]="profileForm.description" [maxlength]="limits.clubDescription" rows="3"
+                      placeholder="Who you are and what you run."></textarea>
+          </label>
+          <div class="portal-form-row">
+            <label class="portal-field">
+              <span>Website <em>(optional)</em></span>
+              <input type="text" name="websiteUrl" inputmode="url" [(ngModel)]="profileForm.websiteUrl" placeholder="https://" />
+            </label>
+            <label class="portal-field">
+              <span>Logo image link <em>(optional)</em></span>
+              <input type="text" name="logoUrl" inputmode="url" [(ngModel)]="profileForm.logoUrl" placeholder="https://" />
+            </label>
+            <label class="portal-field">
+              <span>Contact email <em>(optional, shown publicly)</em></span>
+              <input type="email" name="contactEmail" [(ngModel)]="profileForm.contactEmail" placeholder="hello@example.org.au" />
+            </label>
+          </div>
+          <p class="portal-hint">The club name and web address are set by the CurtinHonestly team. Contact us to change them.</p>
+          <div class="portal-actions">
+            <button type="submit" class="btn btn-primary" [disabled]="profileSaving()">{{ profileSaving() ? 'Saving' : 'Save profile' }}</button>
+            <button type="button" class="btn-text" (click)="toggleProfile()">Cancel</button>
+          </div>
+        </form>
+      }
+    </section>
+
+    @if (editorOpen()) {
+      <app-event-editor
+        [clubId]="club.id"
+        [event]="editingEvent()"
+        [options]="options()"
+        [trusted]="club.trusted"
+        (saved)="onSaved($event)"
+        (cancelled)="closeEditor()" />
+    }
+
+    <section class="events-card portal-events" aria-labelledby="portal-events-heading">
+      <div class="portal-card-head">
+        <h2 id="portal-events-heading">Events</h2>
+        <span class="events-count">{{ events().length }}</span>
+        @if (!editorOpen()) {
+          <button type="button" class="btn btn-primary portal-new" (click)="openNew()">New event</button>
+        }
+      </div>
+
+      @if (eventsLoading()) {
+        <p class="events-loading">Loading events...</p>
+      } @else if (events().length === 0) {
+        <p class="events-empty">No events yet. Create the first one and publish it when it is ready.</p>
+      } @else {
+        <div class="portal-table-wrap">
+          <table class="portal-table">
+            <thead>
+              <tr>
+                <th scope="col">Event</th>
+                <th scope="col">When</th>
+                <th scope="col">Shown on</th>
+                <th scope="col">Status</th>
+                <th scope="col" class="portal-num">Views</th>
+                <th scope="col"><span class="visually-hidden">Actions</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (event of events(); track event.id) {
+                <tr>
+                  <td>
+                    <div class="portal-title">{{ event.title }}</div>
+                    <div class="portal-sub">{{ event.kindLabel }}{{ event.recurring ? ', repeats' : '' }}</div>
+                  </td>
+                  <td>
+                    <div>{{ when(event) }}</div>
+                    @if (event.recurring && event.recurrenceNote) {
+                      <div class="portal-sub">{{ event.recurrenceNote }}</div>
+                    }
+                  </td>
+                  <td>
+                    <div>{{ event.targetUnitCode || event.scopeLabel }}</div>
+                    @if (event.showOnHome) {
+                      <div class="portal-sub">and the home page</div>
+                    }
+                  </td>
+                  <td>
+                    <span [class]="statusClass(event.status)">{{ event.statusLabel }}</span>
+                    @if (event.status === 'REJECTED' && event.rejectionReason) {
+                      <div class="portal-reason">{{ event.rejectionReason }}</div>
+                    }
+                  </td>
+                  <td class="portal-num">{{ event.viewCount }}</td>
+                  <td class="portal-row-actions">
+                    <button type="button" class="btn-text" (click)="openEdit(event)">Edit</button>
+                    @if (canPublish(event)) {
+                      <button type="button" class="btn-text" (click)="publish(event)">
+                        {{ club.trusted ? 'Publish' : 'Send for approval' }}
+                      </button>
+                    }
+                    @if (canCancel(event)) {
+                      <button type="button" class="btn-text danger" (click)="cancel(event)">Cancel event</button>
+                    }
+                    @if (event.status === 'DRAFT') {
+                      <button type="button" class="btn-text danger" (click)="remove(event)">Delete</button>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </section>
+  }
+</div>

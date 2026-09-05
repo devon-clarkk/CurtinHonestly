@@ -1,11 +1,26 @@
 package com.curtinhonestly.backend.dto;
 
 import java.util.List;
-import java.util.Map;
 
+// The time series follows the requested period; every other figure covers the
+// whole dataset so the distributions stay meaningful on a small site.
 public record AdminAnalyticsDTO(
+        int periodDays,
         List<TimeSeriesPointDTO> signupsAndReviewsOverTime,
-        Map<String, Long> reviewsByFaculty,
+        long totalUsers,
+        long totalReviews,
+        long activeReviewers,
+        double verificationRate,
+        double activeReviewerShare,
+        double reviewsPerActiveReviewer,
+        List<AdminDistributionBucketDTO> ratingDistribution,
+        List<AdminDistributionBucketDTO> workloadDistribution,
         double averageWorkload,
-        double wouldTakeAgainRatio
+        double wouldTakeAgainRatio,
+        double averageReviewTextLength,
+        double gradeShare,
+        List<AdminFacultyBreakdownDTO> facultyBreakdown,
+        List<AdminTermCountDTO> reviewsByTerm,
+        List<AdminLikedReviewDTO> mostLikedReviews,
+        List<AdminReviewerDTO> mostActiveReviewers
 ) {}

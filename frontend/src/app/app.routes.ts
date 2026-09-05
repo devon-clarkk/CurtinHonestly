@@ -9,6 +9,8 @@ import { VerifyStudentConfirmComponent } from './components/verify-student-confi
 import { ForgotPasswordComponent } from './components/forgot-password/forgot-password.component';
 import { ResetPasswordComponent } from './components/reset-password/reset-password.component';
 import { authGuard } from './guards/auth.guard';
+import { clubGuard } from './guards/club.guard';
+import { boardsGuard } from './guards/boards.guard';
 
 export const routes: Routes = [
   { path: '', component: UnitListComponent },
@@ -48,6 +50,57 @@ export const routes: Routes = [
   {
     path: 'faculty/:slug',
     loadComponent: () => import('./components/faculty/faculty.component').then(m => m.FacultyComponent)
+  },
+  // Personalised recommendations. Signed-in only and reached from the nav, so
+  // lazy: anonymous visitors never download it.
+  {
+    path: 'for-you',
+    loadComponent: () => import('./components/recommendations/recommendations.component').then(m => m.RecommendationsComponent),
+    canActivate: [authGuard]
+  },
+  // Community boards. Client-rendered and noindex for now, entered from the nav
+  // or a unit page, so lazy like the other secondary pages. The three routes
+  // share the components under components/boards. Behind the BOARDS_ENABLED
+  // build flag: boardsGuard stops them matching in a build without boards.
+  {
+    path: 'boards',
+    canMatch: [boardsGuard],
+    loadComponent: () => import('./components/boards/boards-landing/boards-landing.component').then(m => m.BoardsLandingComponent)
+  },
+  {
+    path: 'boards/units/:code',
+    canMatch: [boardsGuard],
+    loadComponent: () => import('./components/boards/unit-board/unit-board.component').then(m => m.UnitBoardComponent)
+  },
+  {
+    path: 'boards/threads/:id',
+    canMatch: [boardsGuard],
+    loadComponent: () => import('./components/boards/thread-view/thread-view.component').then(m => m.ThreadViewComponent)
+  },
+  // Club study sessions and events. Client-rendered and noindex for now, like
+  // the boards, and lazy for the same reason: entered from the nav, a unit
+  // page or the home strip rather than being anyone's first page.
+  {
+    path: 'events',
+    loadComponent: () => import('./components/events/events-page/events-page.component').then(m => m.EventsPageComponent)
+  },
+  {
+    path: 'events/:id',
+    loadComponent: () => import('./components/events/event-detail/event-detail.component').then(m => m.EventDetailComponent)
+  },
+  {
+    path: 'clubs',
+    loadComponent: () => import('./components/clubs/clubs-directory/clubs-directory.component').then(m => m.ClubsDirectoryComponent)
+  },
+  {
+    path: 'clubs/:slug',
+    loadComponent: () => import('./components/clubs/club-profile/club-profile.component').then(m => m.ClubProfileComponent)
+  },
+  // The club portal: club member accounts (ROLE_CLUB) and admins only.
+  {
+    path: 'club',
+    loadComponent: () => import('./components/club-portal/club-portal.component').then(m => m.ClubPortalComponent),
+    canActivate: [clubGuard]
   },
   { path: 'units/:code', component: UnitDetailComponent },
   {

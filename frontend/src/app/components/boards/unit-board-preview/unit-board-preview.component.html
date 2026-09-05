@@ -1,0 +1,47 @@
+<section class="preview-block" aria-labelledby="unit-discussion-heading">
+  <div class="preview-head">
+    <h2 id="unit-discussion-heading">Unit discussion</h2>
+    @if (summary(); as summary) {
+      <span class="preview-counts">
+        {{ summary.threadCount }} {{ summary.threadCount === 1 ? 'thread' : 'threads' }}
+        <span aria-hidden="true">&middot;</span>
+        {{ summary.postCount }} {{ summary.postCount === 1 ? 'reply' : 'replies' }}
+      </span>
+    }
+  </div>
+  <p class="preview-hint">Ask a question or share what you know. Anonymous, with a pseudonym that stays the same.</p>
+
+  @if (loading()) {
+    <p class="preview-loading">Loading discussion...</p>
+  } @else if (failed()) {
+    <p class="preview-empty">The discussion board is not reachable right now.</p>
+  } @else if (summary(); as summary) {
+    @if (summary.latestThreads.length === 0) {
+      <p class="preview-empty">No threads yet. Start the first discussion about {{ summary.unitCode }}.</p>
+    } @else {
+      <ul class="preview-list">
+        @for (thread of summary.latestThreads; track thread.id) {
+          <li class="preview-item">
+            <a class="preview-title" [routerLink]="['/boards/threads', thread.id]">{{ thread.title }}</a>
+            <span class="preview-meta">
+              <span class="preview-author">{{ thread.author.pseudonym }}</span>
+              <span aria-hidden="true">&middot;</span>
+              {{ thread.replyCount }} {{ replyLabel(thread.replyCount) }}
+              <span aria-hidden="true">&middot;</span>
+              {{ timeAgo(thread.lastActivityAt) }}
+            </span>
+          </li>
+        }
+      </ul>
+    }
+  }
+
+  <div class="preview-actions">
+    <a class="btn btn-primary preview-start" [routerLink]="['/boards/units', boardCode()]" [queryParams]="{ compose: 1 }">
+      Start a discussion
+    </a>
+    @if (summary()?.threadCount) {
+      <a class="preview-all" [routerLink]="['/boards/units', boardCode()]">See all threads</a>
+    }
+  </div>
+</section>

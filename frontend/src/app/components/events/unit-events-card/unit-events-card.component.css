@@ -1,0 +1,48 @@
+/* Same register as the unit page's .info-block cards and the resources card:
+   white surface, hairline border, square corners. */
+.unit-events {
+  margin-top: 24px;
+  background-color: var(--card-background);
+  padding: 20px;
+  border-radius: var(--radius-none);
+  border: 1px solid var(--border-color);
+}
+
+.unit-events h2 {
+  font-size: 1.1rem;
+  margin: 0 0 15px;
+  color: var(--secondary-color);
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 10px;
+}
+
+.unit-events-hint {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin: -8px 0 14px;
+}
+
+.unit-events-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
+}
+
+.unit-events-foot {
+  margin: 14px 0 0;
+  font-size: 0.85rem;
+}
+
+.unit-events-foot a {
+  color: var(--primary-ink);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.unit-events-foot a:hover,
+.unit-events-foot a:focus-visible {
+  text-decoration: underline;
+}

@@ -1,0 +1,219 @@
+<div class="board-page thread-page">
+  @if (loading() && !thread()) {
+    <p class="board-loading">Loading thread...</p>
+  } @else if (notFound()) {
+    <a class="board-crumb" routerLink="/boards"><app-icon name="arrow-left" /> All boards</a>
+    <header class="board-header">
+      <div>
+        <h1 class="handbook-title">Thread not found</h1>
+        <p class="board-lead">This thread has been removed or the link is not right.</p>
+      </div>
+    </header>
+    <p class="board-notice"><a routerLink="/boards">Browse the boards</a> to find the discussion you were after.</p>
+  } @else if (errorMessage() && !thread()) {
+    <p class="board-error" role="alert">{{ errorMessage() }}</p>
+  } @else if (thread(); as thread) {
+    <a class="board-crumb" [routerLink]="boardLink()"><app-icon name="arrow-left" /> {{ boardLabel() }}</a>
+
+    @if (actionMessage()) {
+      <p class="board-notice success" role="status">{{ actionMessage() }}</p>
+    }
+    @if (actionError()) {
+      <p class="board-error" role="alert">{{ actionError() }}</p>
+    }
+
+    <!-- Opening post -->
+    <article class="board-card op-card" [class.pinned]="thread.pinned">
+      @if (editingThread()) {
+        <form class="board-form" (ngSubmit)="saveThread()" novalidate>
+          <div class="board-field">
+            <label for="edit-title">Title</label>
+            <input id="edit-title" type="text" name="editTitle" [ngModel]="editTitle()" (ngModelChange)="editTitle.set($event)" [attr.maxlength]="titleMax" required />
+            <span class="board-counter" [class.over]="editTitle().length > titleMax">{{ editTitle().length }} / {{ titleMax }}</span>
+          </div>
+          <div class="board-field">
+            <label for="edit-body">Details</label>
+            <textarea id="edit-body" name="editBody" [ngModel]="editBody()" (ngModelChange)="editBody.set($event)" [attr.maxlength]="bodyMax" required></textarea>
+            <span class="board-counter" [class.over]="editBody().length > bodyMax">{{ editBody().length }} / {{ bodyMax }}</span>
+          </div>
+          @if (editError()) {
+            <p class="board-error" role="alert">{{ editError() }}</p>
+          }
+          <div class="board-actions">
+            <button type="submit" class="btn btn-primary" [disabled]="!canSaveThread()">{{ editSubmitting() ? 'Saving...' : 'Save changes' }}</button>
+            <button type="button" class="btn-text" (click)="cancelEditThread()">Cancel</button>
+          </div>
+        </form>
+      } @else {
+        <div class="op-chips">
+          @if (thread.unitCode) {
+            <a class="thread-unit" [routerLink]="['/units', thread.unitCode]">{{ thread.unitCode }}</a>
+          }
+          @if (thread.pinned) {
+            <span class="board-chip pinned">Pinned</span>
+          }
+          @if (thread.locked) {
+            <span class="board-chip locked">Locked</span>
+          }
+        </div>
+        <h1 class="op-title">{{ thread.title }}</h1>
+        <div class="post-meta">
+          <app-board-author [author]="thread.author" [op]="true" />
+          <span class="post-time" [title]="fullDate(thread.createdAt)">{{ timeAgo(thread.createdAt) }}</span>
+          @if (thread.editedAt) {
+            <span class="board-chip" [title]="fullDate(thread.editedAt)">Edited</span>
+          }
+        </div>
+        <div class="post-body">{{ thread.body }}</div>
+        <div class="post-actions">
+          <span class="reply-count">{{ thread.replyCount }} {{ replyLabel(thread.replyCount) }}</span>
+          @if (thread.canEdit) {
+            <button type="button" class="btn-text" (click)="startEditThread()">Edit</button>
+          }
+          @if (thread.ownedByCurrentUser || thread.canEdit) {
+            <button type="button" class="btn-text danger" (click)="deleteThread()">Delete</button>
+          }
+          @if (authService.isLoggedIn() && !thread.ownedByCurrentUser) {
+            @if (isReported(thread.id)) {
+              <span class="reported">Reported</span>
+            } @else {
+              <button type="button" class="btn-text report" (click)="openReport('thread', thread.id)">
+                <app-icon name="flag" /> Report
+              </button>
+            }
+          }
+        </div>
+        @if (isReporting('thread', thread.id)) {
+          <ng-container *ngTemplateOutlet="reportForm" />
+        }
+      }
+    </article>
+
+    <!-- Replies -->
+    <section class="replies" aria-labelledby="replies-heading">
+      <h2 id="replies-heading" class="replies-heading">Replies</h2>
+
+      @if (thread.posts.length === 0) {
+        <p class="board-empty">No replies yet. {{ thread.locked ? 'This thread is locked.' : 'Be the first to answer.' }}</p>
+      } @else {
+        <ol class="post-list">
+          @for (post of thread.posts; track post.id) {
+            <li class="board-card post-card" [class.removed]="post.deleted" [class.mine]="post.ownedByCurrentUser">
+              @if (post.deleted) {
+                <p class="removed-text">[removed]</p>
+                <span class="post-time" [title]="fullDate(post.createdAt)">{{ timeAgo(post.createdAt) }}</span>
+              } @else if (editingPostId() === post.id) {
+                <form class="board-form" (ngSubmit)="savePost(post)" novalidate>
+                  <div class="board-field">
+                    <label [for]="'edit-post-' + post.id">Edit reply</label>
+                    <textarea [id]="'edit-post-' + post.id" name="editPostBody" [ngModel]="editPostBody()" (ngModelChange)="editPostBody.set($event)" [attr.maxlength]="bodyMax" required></textarea>
+                    <span class="board-counter" [class.over]="editPostBody().length > bodyMax">{{ editPostBody().length }} / {{ bodyMax }}</span>
+                  </div>
+                  @if (editError()) {
+                    <p class="board-error" role="alert">{{ editError() }}</p>
+                  }
+                  <div class="board-actions">
+                    <button type="submit" class="btn btn-primary" [disabled]="!canSavePost()">{{ editSubmitting() ? 'Saving...' : 'Save reply' }}</button>
+                    <button type="button" class="btn-text" (click)="cancelEditPost()">Cancel</button>
+                  </div>
+                </form>
+              } @else {
+                <div class="post-meta">
+                  <app-board-author [author]="post.author" [op]="post.op" />
+                  <span class="post-time" [title]="fullDate(post.createdAt)">{{ timeAgo(post.createdAt) }}</span>
+                  @if (post.editedAt) {
+                    <span class="board-chip" [title]="fullDate(post.editedAt)">Edited</span>
+                  }
+                </div>
+                <div class="post-body">{{ post.body }}</div>
+                <div class="post-actions">
+                  @if (post.canEdit) {
+                    <button type="button" class="btn-text" (click)="startEditPost(post)">Edit</button>
+                  }
+                  @if (post.ownedByCurrentUser || post.canEdit) {
+                    <button type="button" class="btn-text danger" (click)="deletePost(post)">Delete</button>
+                  }
+                  @if (authService.isLoggedIn() && !post.ownedByCurrentUser) {
+                    @if (isReported(post.id)) {
+                      <span class="reported">Reported</span>
+                    } @else {
+                      <button type="button" class="btn-text report" (click)="openReport('post', post.id)">
+                        <app-icon name="flag" /> Report
+                      </button>
+                    }
+                  }
+                </div>
+                @if (isReporting('post', post.id)) {
+                  <ng-container *ngTemplateOutlet="reportForm" />
+                }
+              }
+            </li>
+          }
+        </ol>
+
+        @if (thread.postTotalPages > 1) {
+          <nav class="board-pager" aria-label="Reply pages">
+            <button type="button" class="btn btn-accent" (click)="previousPostPage()" [disabled]="thread.postPage === 0">Previous</button>
+            <span>Page {{ thread.postPage + 1 }} of {{ thread.postTotalPages }}</span>
+            <button type="button" class="btn btn-accent" (click)="nextPostPage()" [disabled]="thread.postPage + 1 >= thread.postTotalPages">Next</button>
+          </nav>
+        }
+      }
+    </section>
+
+    <!-- Reply composer -->
+    <section class="board-card reply-card" aria-labelledby="reply-heading">
+      <h2 id="reply-heading">Reply</h2>
+      @if (thread.locked) {
+        <p class="board-notice">This thread is locked. You can read it, but new replies are closed.</p>
+      } @else if (!authService.isLoggedIn()) {
+        <p class="board-notice">
+          <a routerLink="/login">Log in</a> or <a routerLink="/register">create an account</a> to reply.
+          Replies are anonymous: other students see a pseudonym, never your email.
+        </p>
+      } @else {
+        <form class="board-form" (ngSubmit)="submitReply()" novalidate>
+          <div class="board-field">
+            <label for="reply-body" class="visually-hidden">Your reply</label>
+            <textarea
+              id="reply-body"
+              name="replyBody"
+              [ngModel]="replyBody()"
+              (ngModelChange)="replyBody.set($event)"
+              [attr.maxlength]="bodyMax"
+              placeholder="Add what you know. Specific beats general."
+              required
+            ></textarea>
+            <span class="board-counter" [class.over]="replyBody().length > bodyMax" aria-live="polite">{{ replyBody().length }} / {{ bodyMax }}</span>
+          </div>
+          @if (replyError()) {
+            <p class="board-error" role="alert">{{ replyError() }}</p>
+          }
+          <div class="board-actions">
+            <button type="submit" class="btn btn-primary" [disabled]="!canReply()">{{ replySubmitting() ? 'Posting...' : 'Post reply' }}</button>
+            <span class="reply-hint">Posting as your board pseudonym. You can edit for 15 minutes after posting.</span>
+          </div>
+        </form>
+      }
+    </section>
+  }
+</div>
+
+<ng-template #reportForm>
+  <form class="report-form" (ngSubmit)="submitReport()" novalidate>
+    <label for="report-reason">Why are you reporting this? (optional)</label>
+    <input
+      id="report-reason"
+      type="text"
+      name="reportReason"
+      [ngModel]="reportReason()"
+      (ngModelChange)="reportReason.set($event)"
+      [attr.maxlength]="reasonMax"
+      placeholder="Spam, harassment, personal information, off topic..."
+    />
+    <div class="board-actions">
+      <button type="submit" class="btn btn-accent" [disabled]="reportSubmitting()">{{ reportSubmitting() ? 'Sending...' : 'Send report' }}</button>
+      <button type="button" class="btn-text" (click)="cancelReport()">Cancel</button>
+    </div>
+  </form>
+</ng-template>

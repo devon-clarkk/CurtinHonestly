@@ -4,16 +4,20 @@ const { resolveSeoBuildConfig } = require('./scripts/seo-build-config');
 
 const targetPath = path.resolve(__dirname, 'src/environments/environment.ts');
 const { apiUrl, siteUrl, production, seoEnabled } = resolveSeoBuildConfig();
+// Community boards ship dark until there is a user base to fill them. Off unless the
+// build sets BOARDS_ENABLED=true (the dev Static Web App workflow does; prod does not).
+const boardsEnabled = process.env.BOARDS_ENABLED === 'true';
 
 const envConfigFile = `export const environment = {
   production: ${production},
   apiUrl: '${apiUrl.replace(/'/g, "\\'")}',
   siteUrl: '${siteUrl.replace(/'/g, "\\'")}',
-  seoEnabled: ${seoEnabled}
+  seoEnabled: ${seoEnabled},
+  boardsEnabled: ${boardsEnabled}
 };
 `;
 
 fs.writeFileSync(targetPath, envConfigFile);
 console.log(
-  `Generated environment.ts — API_URL: ${apiUrl}, SITE_URL: ${siteUrl}, SEO: ${seoEnabled ? 'enabled (prod)' : 'disabled (dev/local)'}`
+  `Generated environment.ts: API_URL ${apiUrl}, SITE_URL ${siteUrl}, SEO ${seoEnabled ? 'enabled (prod)' : 'disabled (dev/local)'}, BOARDS ${boardsEnabled ? 'enabled' : 'disabled'}`
 );
