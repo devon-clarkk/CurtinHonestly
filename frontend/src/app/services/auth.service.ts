@@ -1,4 +1,4 @@
-import { Injectable, computed, inject, signal } from '@angular/core';
+import { Injectable, afterNextRender, computed, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 import { environment } from '../../environments/environment';
@@ -88,6 +88,24 @@ export class AuthService {
    */
   roles = signal<string[]>(this.getStoredRoles());
   isClubMember = computed(() => this.roles().includes('ROLE_CLUB'));
+
+  /**
+   * False during prerender and during the browser's first (hydrating) render,
+   * true from the first render after that. Templates that are prerendered must
+   * branch on showLoggedIn / showLoggedOut rather than isLoggedIn: the session
+   * lives in localStorage, so isLoggedIn is already true when a signed-in
+   * visitor's browser hydrates HTML that was rendered signed out, and a branch
+   * that differs between the two renders leaves both variants in the page.
+   * Guards and event handlers keep using isLoggedIn, which is always current.
+   */
+  readonly hydrated = signal(false);
+  readonly showLoggedIn = computed(() => this.hydrated() && this.isLoggedIn());
+  readonly showLoggedOut = computed(() => this.hydrated() && !this.isLoggedIn());
+
+  constructor() {
+    // Never runs on the server, so prerendered HTML carries neither branch.
+    afterNextRender(() => this.hydrated.set(true));
+  }
   isAdmin = computed(() => this.roles().includes('ROLE_ADMIN'));
 
   login(request: LoginRequest): Observable<JwtResponse> {

@@ -154,7 +154,7 @@
         <h2 class="section-heading">{{ unit.code }} student reviews</h2>
 
         <!-- Button to show the add review form -->
-        <button *ngIf="authService.isLoggedIn() && !showAddReviewForm()"
+        <button *ngIf="authService.showLoggedIn() && !showAddReviewForm()"
                 (click)="toggleAddReviewForm()"
                 class="btn btn-primary add-review-btn">
           Add Review
@@ -212,14 +212,14 @@
       <!-- Two invitations to write a review used to stack here on the 1,729
            units that have none. The empty state carries its own way in, so this
            one is for pages where there are reviews to sit above. -->
-      <div *ngIf="!authService.isLoggedIn() && unit.reviews.length > 0" class="login-to-review">
+      <div *ngIf="authService.showLoggedOut() && unit.reviews.length > 0" class="login-to-review">
         <p>Want to share your experience? <a routerLink="/login">Log in</a> to leave a review!</p>
       </div>
 
       <div *ngIf="unit.reviews.length === 0" class="no-reviews">
         No reviews of {{ unit.code }} yet. Be the first: the workload it really took,
         how it was assessed, and whether you would take it again.
-        <a *ngIf="!authService.isLoggedIn()" routerLink="/login" class="no-reviews-link">Log in to write one</a>
+        <a *ngIf="authService.showLoggedOut()" routerLink="/login" class="no-reviews-link">Log in to write one</a>
       </div>
       <div *ngIf="unit.reviews.length > 0 && filteredReviews(unit.reviews).length === 0" class="no-reviews">
         No reviews from {{ selectedLecturer() }}. <button type="button" class="btn-text" (click)="selectedLecturer.set(null)">Show all reviews</button>
@@ -286,7 +286,7 @@
           </div>
 
           <div class="review-actions">
-            @if (authService.isLoggedIn()) {
+            @if (authService.showLoggedIn()) {
               <button
                 type="button"
                 class="icon-btn like-btn"
@@ -305,7 +305,7 @@
                 <span class="like-count">{{ review.likeCount || 0 }}</span>
               </span>
             }
-            @if (authService.isLoggedIn()) {
+            @if (authService.showLoggedIn()) {
               <button
                 type="button"
                 class="icon-btn report-btn"
@@ -316,7 +316,7 @@
                 <app-icon name="flag" [filled]="isFlagged(review)" />
               </button>
             }
-            @if (authService.isLoggedIn() && isOwnReview(review)) {
+            @if (authService.showLoggedIn() && isOwnReview(review)) {
               <button
                 type="button"
                 class="btn-text edit-review-btn"
@@ -380,7 +380,7 @@
         <h2>Quick tips</h2>
         <p class="tips-hint">One-line things worth knowing. No full review required.</p>
 
-        <form *ngIf="authService.isLoggedIn()" (ngSubmit)="submitTip()" class="tip-form">
+        <form *ngIf="authService.showLoggedIn()" (ngSubmit)="submitTip()" class="tip-form">
           <input
             type="text"
             name="newTip"
@@ -393,7 +393,7 @@
             {{ isSubmittingTip() ? 'Posting…' : 'Post' }}
           </button>
         </form>
-        <p class="tip-char-count" *ngIf="authService.isLoggedIn()">
+        <p class="tip-char-count" *ngIf="authService.showLoggedIn()">
           {{ newTipText.length }}/{{ maxTipLength }}
         </p>
         <div *ngIf="tipError()" class="error-box">{{ tipError() }}</div>
@@ -416,7 +416,7 @@
         <ng-template #noTips>
           <p class="tips-empty">
             Be the first. One line on the assessments, the pace, or what to start early.
-            <a *ngIf="!authService.isLoggedIn()" routerLink="/login" class="tips-empty-link">Log in to add one</a>
+            <a *ngIf="authService.showLoggedOut()" routerLink="/login" class="tips-empty-link">Log in to add one</a>
           </p>
         </ng-template>
       </div>
