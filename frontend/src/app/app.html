@@ -40,8 +40,8 @@
         @if (personalRecsEnabled) {
           <a routerLink="/for-you" (click)="closeMobileNav()">For you</a>
         }
-        <!-- Club member accounts (ROLE_CLUB) and admins manage their club's events at /club. -->
-        <a *ngIf="authService.isClubMember() || authService.isAdmin()" routerLink="/club" (click)="closeMobileNav()">My club</a>
+        <!-- Only accounts linked to a club (ROLE_CLUB) get this entry; admins reach /club by URL or use the admin portal. -->
+        <a *ngIf="authService.isClubMember()" routerLink="/club" (click)="closeMobileNav()">My club</a>
         <a routerLink="/my-reviews" (click)="closeMobileNav()">My Reviews</a>
         <a routerLink="/account" (click)="closeMobileNav()">My Account</a>
         <a href="javascript:void(0)" (click)="logout()">Logout</a>
