@@ -283,6 +283,10 @@ export class UnitListComponent implements OnInit, OnDestroy {
   forYouTop = computed(() => this.forYou()?.recommended.slice(0, this.FOR_YOU_LIMIT) ?? []);
 
   private loadForYou(): void {
+    // Personal recommendations are a build-time flag; without it the teaser never loads.
+    if (!environment.personalRecsEnabled) {
+      return;
+    }
     if (!this.authService.isLoggedIn()) {
       return;
     }

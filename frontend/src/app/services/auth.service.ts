@@ -257,7 +257,47 @@ export class AuthService {
     if (typeof localStorage === 'undefined') {
       return false;
     }
-    return !!localStorage.getItem('auth_token');
+    const token = localStorage.getItem('auth_token');
+    if (!token) {
+      return false;
+    }
+    // A token past its exp claim is not a session: every authenticated call
+    // would fail with 401 while the header still showed the account as signed
+    // in. Drop it here so the app starts signed out instead.
+    if (AuthService.isExpired(token)) {
+      this.clearStoredSession();
+      return false;
+    }
+    return true;
+  }
+
+  /** True when the JWT carries an exp claim that has passed (30 s of clock slack). */
+  private static isExpired(token: string): boolean {
+    try {
+      const payload = token.split('.')[1];
+      const json = atob(payload.replace(/-/g, '+').replace(/_/g, '/'));
+      const exp = JSON.parse(json).exp;
+      return typeof exp === 'number' && exp * 1000 < Date.now() - 30_000;
+    } catch {
+      return true;
+    }
+  }
+
+  private clearStoredSession(): void {
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('verified_student');
+    localStorage.removeItem('user_email');
+    localStorage.removeItem('user_roles');
+  }
+
+  /**
+   * Called by the HTTP interceptor when the API rejects the stored token (401).
+   * Ends the session locally so the header and guards agree with the server.
+   */
+  sessionRejected(): void {
+    if (this.isLoggedIn()) {
+      this.logout();
+    }
   }
 
   private getStoredVerifiedStudent(): boolean {

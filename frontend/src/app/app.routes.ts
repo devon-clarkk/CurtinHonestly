@@ -11,6 +11,7 @@ import { ResetPasswordComponent } from './components/reset-password/reset-passwo
 import { authGuard } from './guards/auth.guard';
 import { clubGuard } from './guards/club.guard';
 import { boardsGuard } from './guards/boards.guard';
+import { personalRecsGuard } from './guards/personal-recs.guard';
 
 export const routes: Routes = [
   { path: '', component: UnitListComponent },
@@ -56,6 +57,7 @@ export const routes: Routes = [
   {
     path: 'for-you',
     loadComponent: () => import('./components/recommendations/recommendations.component').then(m => m.RecommendationsComponent),
+    canMatch: [personalRecsGuard],
     canActivate: [authGuard]
   },
   // Community boards. Client-rendered and noindex for now, entered from the nav

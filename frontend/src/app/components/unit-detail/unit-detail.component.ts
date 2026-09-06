@@ -281,7 +281,8 @@ export class UnitDetailComponent implements OnInit {
 
   private loadUnitMatch(unitCode: string) {
     this.unitMatch.set(null);
-    if (!isPlatformBrowser(this.platformId) || !this.authService.isLoggedIn()) {
+    // Personal recommendations are a build-time flag; the unit-to-unit strip is not gated by it.
+    if (!environment.personalRecsEnabled || !isPlatformBrowser(this.platformId) || !this.authService.isLoggedIn()) {
       return;
     }
     this.recommendationService.getMatchForUnit(unitCode).subscribe({

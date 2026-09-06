@@ -37,7 +37,9 @@
         <a routerLink="/register" class="register-link" (click)="closeMobileNav()">Register</a>
       </ng-container>
       <ng-container *ngIf="authService.showLoggedIn()">
-        <a routerLink="/for-you" (click)="closeMobileNav()">For you</a>
+        @if (personalRecsEnabled) {
+          <a routerLink="/for-you" (click)="closeMobileNav()">For you</a>
+        }
         <!-- Club member accounts (ROLE_CLUB) and admins manage their club's events at /club. -->
         <a *ngIf="authService.isClubMember() || authService.isAdmin()" routerLink="/club" (click)="closeMobileNav()">My club</a>
         <a routerLink="/my-reviews" (click)="closeMobileNav()">My Reviews</a>

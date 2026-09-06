@@ -22,6 +22,8 @@ export class App {
   protected readonly title = signal('Curtin Honestly');
   /** Build-time flag (BOARDS_ENABLED): the Boards nav entry exists only in builds with boards. */
   readonly boardsEnabled = environment.boardsEnabled;
+  /** Build-time flag (PERSONAL_RECS_ENABLED): the For you nav entry exists only in builds with personal recommendations. */
+  readonly personalRecsEnabled = environment.personalRecsEnabled;
   /** True once the browser has confirmed there is at least one upcoming event; the Events nav entry follows it. */
   readonly hasEvents = signal(false);
   authService = inject(AuthService);

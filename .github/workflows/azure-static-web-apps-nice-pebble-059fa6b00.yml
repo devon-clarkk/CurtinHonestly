@@ -43,6 +43,7 @@ jobs:
           API_URL: ${{ secrets.API_URL }}
           # The dev site carries the community boards; prod builds leave this unset (off).
           BOARDS_ENABLED: 'true'
+          PERSONAL_RECS_ENABLED: 'true'
         with:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_NICE_PEBBLE_059FA6B00 }}
           action: upload

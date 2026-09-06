@@ -3,5 +3,6 @@ export const environment = {
   apiUrl: 'http://localhost:8080',
   siteUrl: 'http://localhost:4200',
   seoEnabled: false,
-  boardsEnabled: false
+  boardsEnabled: false,
+  personalRecsEnabled: false
 };
