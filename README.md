@@ -93,6 +93,8 @@ Reads `DATABASE_URL`, `DATABASE_USERNAME`, `DATABASE_PASSWORD`, `JWT_SECRET` (de
 
 > In Azure, the same settings are provided as lowercase-hyphen secrets (`database-url`, `database-username`, `database-password`, `jwt-secret`). `Application.java` reads either form.
 
+Admin email alerts (new signups, new reviews, and anything else ticked on the admin dashboard's Notifications page) go to `ADMIN_NOTIFICATION_EMAIL` until an address is saved on that page. `ADMIN_BASE_URL` sets the dashboard links inside those emails. Both have defaults in `application.yml`; alerts use the same `MAIL_*` relay as verification emails and are only logged when it is unset.
+
 ### Frontend
 ```bash
 cd frontend

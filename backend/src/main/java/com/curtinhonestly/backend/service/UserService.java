@@ -32,6 +32,7 @@ public class UserService {
     private final ReviewRepo reviewRepo;
     private final UnitAggregateService unitAggregateService;
     private final EmailService emailService;
+    private final AdminNotificationService adminNotificationService;
 
     public User createUser(String email, String password) {
         return createUser(email, password, null, null);
@@ -81,6 +82,9 @@ public class UserService {
         User savedUser = userRepo.saveAndFlush(user);
         log.info("User created successfully with ID: {}, verifiedStudent={}, campaigns={}",
                 savedUser.getId(), savedUser.isVerifiedStudent(), enrolments.size());
+        // Every ordinary account lands here (self-signup and admin-created alike);
+        // createAdminUser deliberately does not announce itself.
+        adminNotificationService.userRegistered(savedUser);
         return savedUser;
     }
 

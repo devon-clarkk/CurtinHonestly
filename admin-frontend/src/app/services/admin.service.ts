@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 import {
   AdminAnalytics,
+  AdminNotificationSettings,
   AdminOverview,
   AdminRecommendationStats,
   AdminReview,
@@ -153,5 +154,20 @@ export class AdminService {
 
   dismissReviewFlags(reviewId: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/review-flags/${reviewId}`);
+  }
+
+  // Email alerts to the site owner.
+
+  getNotificationSettings(): Observable<AdminNotificationSettings> {
+    return this.http.get<AdminNotificationSettings>(`${this.apiUrl}/notifications`);
+  }
+
+  // Whole-set replace: every event not listed is switched off.
+  updateNotificationSettings(payload: { recipientEmail: string; enabledEvents: string[] }): Observable<AdminNotificationSettings> {
+    return this.http.put<AdminNotificationSettings>(`${this.apiUrl}/notifications`, payload);
+  }
+
+  sendTestNotification(): Observable<{ sentTo: string }> {
+    return this.http.post<{ sentTo: string }>(`${this.apiUrl}/notifications/test`, {});
   }
 }

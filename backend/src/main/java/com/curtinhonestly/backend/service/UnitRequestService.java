@@ -18,6 +18,7 @@ public class UnitRequestService {
     private static final int MAX_NOTE_LENGTH = 500;
 
     private final UnitRequestRepo unitRequestRepo;
+    private final AdminNotificationService adminNotificationService;
 
     public UnitRequest create(String rawCode, String rawNote) {
         String code = rawCode == null ? "" : rawCode.trim();
@@ -38,6 +39,7 @@ public class UnitRequestService {
 
         UnitRequest saved = unitRequestRepo.save(request);
         log.info("Unit requested: {}", code);
+        adminNotificationService.unitRequested(saved);
         return saved;
     }
 
