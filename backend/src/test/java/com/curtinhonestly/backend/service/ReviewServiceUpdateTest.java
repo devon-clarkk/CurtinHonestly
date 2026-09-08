@@ -32,10 +32,12 @@ class ReviewServiceUpdateTest {
     @Mock UnitAggregateService unitAggregateService;
     @Mock CampaignService campaignService;
     @Mock RecommendationService recommendationService;
+    @Mock AdminNotificationService adminNotificationService;
 
     private ReviewService service() {
         return new ReviewService(reviewRepo, unitService, userRepo, unitRepo,
-                profanityFilterService, unitAggregateService, campaignService, recommendationService);
+                profanityFilterService, unitAggregateService, campaignService, recommendationService,
+                adminNotificationService);
     }
 
     private Review existingReview() {
@@ -80,6 +82,8 @@ class ReviewServiceUpdateTest {
         assertThat(result.isHasExam()).isTrue();
         assertThat(result.isWouldTakeAgain()).isTrue();
         verify(unitAggregateService).recalculateForUnit("unit-1");
+        // Only a new review is announced to the admin; an edit is not.
+        verifyNoInteractions(adminNotificationService);
     }
 
     @Test

@@ -81,6 +81,15 @@ app:
     from: ${MAIL_FROM:no-reply@curtinhonestly.com}
     verification-token-ttl-hours: ${VERIFICATION_TOKEN_TTL_HOURS:24}
     reset-token-ttl-hours: ${RESET_TOKEN_TTL_HOURS:1}
+  notifications:
+    # Email alerts to the site owner (new signups, new reviews, and whatever else is
+    # ticked on the admin dashboard's Notifications page). This address is the
+    # starting point; an address saved on that page takes precedence. Alerts go out
+    # through the same spring.mail.* relay as the verification emails, so with
+    # MAIL_HOST unset they are logged rather than sent.
+    admin-email: ${ADMIN_NOTIFICATION_EMAIL:DevonClark.contact@gmail.com}
+    # Base URL of the admin dashboard, used for the links inside those alerts.
+    admin-base-url: ${ADMIN_BASE_URL:http://localhost:4201}
   boards:
     # Boards ship dark until there is a user base to fill them. Off by default in every
     # environment; set BOARDS_ENABLED=true (dev Container App) to register the board

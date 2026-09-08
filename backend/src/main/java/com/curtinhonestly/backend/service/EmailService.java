@@ -36,6 +36,11 @@ public class EmailService {
         this.configured = mailHost != null && !mailHost.isBlank();
     }
 
+    /** True when {@code spring.mail.host} is set, so a send can actually leave the box. */
+    public boolean isConfigured() {
+        return configured;
+    }
+
     /** Plain-text only. Use {@link #send(String, String, String, String)} when the mail carries a link. */
     public void send(String to, String subject, String body) {
         JavaMailSender sender = configuredSender(to, subject, body);

@@ -19,11 +19,12 @@ import static org.mockito.Mockito.*;
 class UnitRequestServiceTest {
 
     @Mock UnitRequestRepo unitRequestRepo;
+    @Mock AdminNotificationService adminNotificationService;
 
     @Captor ArgumentCaptor<UnitRequest> requestCaptor;
 
     private UnitRequestService service() {
-        return new UnitRequestService(unitRequestRepo);
+        return new UnitRequestService(unitRequestRepo, adminNotificationService);
     }
 
     @Test
@@ -36,6 +37,7 @@ class UnitRequestServiceTest {
         UnitRequest saved = requestCaptor.getValue();
         assertThat(saved.getRequestedCode()).isEqualTo("ISYS2000");
         assertThat(saved.getNote()).isEqualTo("Not in the catalog yet.");
+        verify(adminNotificationService).unitRequested(saved);
     }
 
     @Test
@@ -63,6 +65,7 @@ class UnitRequestServiceTest {
         assertThatThrownBy(() -> service().create("   ", "note"))
                 .isInstanceOf(IllegalArgumentException.class);
         verify(unitRequestRepo, never()).save(any());
+        verifyNoInteractions(adminNotificationService);
     }
 
     @Test

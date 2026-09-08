@@ -10,3 +10,5 @@ logging:
 app:
   cors:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:https://curtinhonestly.com,https://www.curtinhonestly.com,https://admin.curtinhonestly.com}
+  notifications:
+    admin-base-url: ${ADMIN_BASE_URL:https://admin.curtinhonestly.com}
