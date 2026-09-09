@@ -1,0 +1,75 @@
+<h1 class="page-title">Notifications</h1>
+<p class="page-subtitle">Email alerts about activity on the site. Only admins can see or change these.</p>
+
+@if (errorMessage()) {
+  <div class="error-banner">{{ errorMessage() }}</div>
+}
+@if (successMessage()) {
+  <div class="success-banner">{{ successMessage() }}</div>
+}
+
+@if (loading()) {
+  <p class="section-hint">Loading...</p>
+} @else if (settings(); as current) {
+  @if (!current.mailConfigured) {
+    <div class="warning-banner">
+      This backend has no SMTP relay configured (MAIL_HOST is unset), so alerts are written to the backend log
+      instead of being delivered. The settings below still save and take effect once a relay is set.
+    </div>
+  }
+
+  <section class="card section">
+    <h2>Send alerts to</h2>
+    <p class="section-hint">
+      Every alert ticked below goes to this address.
+      @if (!current.customised) {
+        Showing the environment default; saving the page stores your own choice.
+      }
+    </p>
+    <div class="form-row">
+      <input
+        type="email"
+        placeholder="you@example.com"
+        aria-label="Alert recipient email"
+        [(ngModel)]="recipientEmail"
+        name="recipientEmail"
+      />
+    </div>
+  </section>
+
+  <section class="card section">
+    <div class="section-head">
+      <h2>Alerts</h2>
+      <span class="filter-count">{{ enabledCount() }} of {{ events().length }} on</span>
+    </div>
+    <p class="section-hint">Tick what you want to hear about. Each alert is one email per event, sent after the event is saved.</p>
+    <ul class="event-list">
+      @for (event of events(); track event.event) {
+        <li>
+          <label class="event">
+            <input
+              type="checkbox"
+              [checked]="event.enabled"
+              (change)="toggle(event)"
+              [name]="'event-' + event.event"
+            />
+            <span class="event-text">
+              <span class="event-label">{{ event.label }}</span>
+              <span class="event-description">{{ event.description }}</span>
+            </span>
+          </label>
+        </li>
+      }
+    </ul>
+  </section>
+
+  <div class="actions">
+    <button type="button" class="btn btn-primary" (click)="save()" [disabled]="saving()">
+      {{ saving() ? 'Saving...' : 'Save settings' }}
+    </button>
+    <button type="button" class="btn" (click)="sendTest()" [disabled]="testing()">
+      {{ testing() ? 'Sending...' : 'Send test email' }}
+    </button>
+    <span class="section-hint inline-hint">The test goes to the saved address, so save first if you changed it.</span>
+  </div>
+}

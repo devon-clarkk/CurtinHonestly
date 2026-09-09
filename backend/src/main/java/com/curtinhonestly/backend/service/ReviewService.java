@@ -44,6 +44,8 @@ public class ReviewService {
     // Recommendations are served from an in-memory snapshot of the reviews;
     // every write here drops it once the transaction commits.
     private final RecommendationService recommendationService;
+    // Emails the site owner about each new review, after commit, if that alert is on.
+    private final AdminNotificationService adminNotificationService;
 
     public List<Review> getReviewsByUnitCode(String unitCode) {
         Unit unit = unitService.getUnitByCode(unitCode);
@@ -105,6 +107,7 @@ public class ReviewService {
         Review saved = reviewRepo.save(review);
         unitAggregateService.recalculateForUnit(unit.getId());
         recommendationService.invalidateAfterCommit();
+        adminNotificationService.reviewCreated(saved);
         return saved;
     }
 

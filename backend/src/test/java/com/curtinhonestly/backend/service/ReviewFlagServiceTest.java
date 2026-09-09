@@ -32,11 +32,12 @@ class ReviewFlagServiceTest {
     @Mock ReviewFlagRepo flagRepo;
     @Mock ReviewRepo reviewRepo;
     @Mock UserRepo userRepo;
+    @Mock AdminNotificationService adminNotificationService;
 
     @Captor ArgumentCaptor<ReviewFlag> flagCaptor;
 
     private ReviewFlagService service() {
-        return new ReviewFlagService(flagRepo, reviewRepo, userRepo);
+        return new ReviewFlagService(flagRepo, reviewRepo, userRepo, adminNotificationService);
     }
 
     private void authenticateAs(String email) {
@@ -82,6 +83,8 @@ class ReviewFlagServiceTest {
         assertThat(saved.getReview().getId()).isEqualTo("review-1");
         assertThat(saved.getUser().getId()).isEqualTo("user-1");
         assertThat(saved.getReason()).isEqualTo("Contains a slur.");
+        // The admin alert carries the trimmed reason the flag was stored with.
+        verify(adminNotificationService).reviewFlagged(eq(review), any(User.class), eq("Contains a slur."));
     }
 
     @Test
@@ -107,6 +110,8 @@ class ReviewFlagServiceTest {
         service().flagReview("review-1", "again");
 
         verify(flagRepo, never()).save(any());
+        // No new flag, no alert: a repeat click must not re-email the admin.
+        verifyNoInteractions(adminNotificationService);
     }
 
     @Test

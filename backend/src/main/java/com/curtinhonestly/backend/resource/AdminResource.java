@@ -2,6 +2,7 @@ package com.curtinhonestly.backend.resource;
 
 import com.curtinhonestly.backend.dto.*;
 import com.curtinhonestly.backend.security.SecurityConstants;
+import com.curtinhonestly.backend.service.AdminNotificationService;
 import com.curtinhonestly.backend.service.AdminService;
 import com.curtinhonestly.backend.service.CampaignService;
 import com.curtinhonestly.backend.service.ReferralLinkService;
@@ -31,6 +32,7 @@ public class AdminResource {
     private final ReferralLinkService referralLinkService;
     private final UnitRequestService unitRequestService;
     private final ReviewFlagService reviewFlagService;
+    private final AdminNotificationService adminNotificationService;
 
     @GetMapping("/stats/overview")
     public ResponseEntity<AdminOverviewDTO> getOverview() {
@@ -214,7 +216,31 @@ public class AdminResource {
         return ResponseEntity.noContent().build();
     }
 
+    // Email alerts to the site owner. Admin-only by the class-level guard; nothing
+    // here (the recipient address included) is reachable from the public app.
+    @GetMapping("/notifications")
+    public ResponseEntity<AdminNotificationSettingsDTO> getNotificationSettings() {
+        return ResponseEntity.ok(adminNotificationService.settings());
+    }
+
+    // Whole-set replace: the body lists every event that should be on.
+    @PutMapping("/notifications")
+    public ResponseEntity<AdminNotificationSettingsDTO> updateNotificationSettings(
+            @RequestBody UpdateNotificationSettingsRequest request) {
+        return ResponseEntity.ok(adminNotificationService.updateSettings(
+                request.recipientEmail(), request.enabledEvents()));
+    }
+
+    @PostMapping("/notifications/test")
+    public ResponseEntity<TestNotificationResponse> sendTestNotification() {
+        return ResponseEntity.ok(new TestNotificationResponse(adminNotificationService.sendTest()));
+    }
+
     public record CreateUserRequest(String email, String password, boolean admin) {}
+
+    public record UpdateNotificationSettingsRequest(String recipientEmail, List<String> enabledEvents) {}
+
+    public record TestNotificationResponse(String sentTo) {}
 
     public record CreateCampaignRequest(
             String slug,

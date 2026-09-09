@@ -30,11 +30,13 @@ class UserServiceTest {
     @Mock ReviewRepo reviewRepo;
     @Mock UnitAggregateService unitAggregateService;
     @Mock EmailService emailService;
+    @Mock AdminNotificationService adminNotificationService;
 
     @Captor ArgumentCaptor<List<Review>> reviewsCaptor;
 
     private UserService service() {
-        return new UserService(userRepo, passwordEncoder, reviewRepo, unitAggregateService, emailService);
+        return new UserService(userRepo, passwordEncoder, reviewRepo, unitAggregateService, emailService,
+                adminNotificationService);
     }
 
     private User user() {
@@ -195,6 +197,39 @@ class UserServiceTest {
 
         assertThat(created.getEmail()).isEqualTo("newbie@gmail.com");
         verifyNoInteractions(emailService);
+    }
+
+    // ---- admin alerts ----
+
+    @Test
+    void createUser_announcesTheNewAccountToTheAdminAlerts() {
+        when(userRepo.findByEmail("newbie@gmail.com")).thenReturn(java.util.Optional.empty());
+        when(passwordEncoder.encode("password123")).thenReturn("hashed");
+        when(userRepo.saveAndFlush(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        User created = service().createUser("newbie@gmail.com", "password123");
+
+        verify(adminNotificationService).userRegistered(created);
+    }
+
+    @Test
+    void createUser_onDuplicateEmailAnnouncesNothingToTheAdminAlerts() {
+        when(userRepo.findByEmail("alice@gmail.com")).thenReturn(java.util.Optional.of(user()));
+
+        assertThatThrownBy(() -> service().createUser("alice@gmail.com", "password123"))
+                .isInstanceOf(EmailAlreadyRegisteredException.class);
+
+        verifyNoInteractions(adminNotificationService);
+    }
+
+    @Test
+    void createAdminUser_doesNotAnnounceItself() {
+        when(passwordEncoder.encode("password123")).thenReturn("hashed");
+        when(userRepo.saveAndFlush(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        service().createAdminUser("owner@curtinhonestly.com", "password123");
+
+        verifyNoInteractions(adminNotificationService);
     }
 
     // ---- session invalidation (security audit finding #4) ----
