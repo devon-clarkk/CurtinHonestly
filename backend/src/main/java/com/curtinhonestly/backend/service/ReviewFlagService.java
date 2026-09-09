@@ -25,6 +25,7 @@ public class ReviewFlagService {
     private final ReviewFlagRepo flagRepo;
     private final ReviewRepo reviewRepo;
     private final UserRepo userRepo;
+    private final AdminNotificationService adminNotificationService;
 
     /**
      * Idempotent: flagging a review you've already flagged is a no-op rather
@@ -45,6 +46,7 @@ public class ReviewFlagService {
         flag.setReason(reason != null && !reason.isBlank() ? reason.trim() : null);
         flagRepo.save(flag);
         log.info("User {} flagged review {}", user.getId(), reviewId);
+        adminNotificationService.reviewFlagged(review, user, flag.getReason());
     }
 
     public List<FlaggedReviewDTO> getFlaggedReviews() {

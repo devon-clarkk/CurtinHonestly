@@ -209,3 +209,22 @@ export interface FlaggedReviewAdmin {
   reviewText: string;
   flagCount: number;
 }
+
+// One tick box on the Notifications page. The backend's AdminNotificationEvent
+// enum is the source of truth for which events exist; the page renders whatever
+// it is sent.
+export interface AdminNotificationEventSetting {
+  event: string;
+  label: string;
+  description: string;
+  enabled: boolean;
+}
+
+export interface AdminNotificationSettings {
+  recipientEmail: string | null;
+  // False when the backend has no SMTP host: alerts are logged, not delivered.
+  mailConfigured: boolean;
+  // False while the environment defaults are still in force (never saved).
+  customised: boolean;
+  events: AdminNotificationEventSetting[];
+}

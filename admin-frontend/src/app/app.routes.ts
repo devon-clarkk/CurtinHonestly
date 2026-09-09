@@ -9,6 +9,7 @@ import { CampaignsComponent } from './pages/campaigns/campaigns.component';
 import { BoardsComponent } from './pages/boards/boards.component';
 import { ResourcesComponent } from './pages/resources/resources.component';
 import { ClubsComponent } from './pages/clubs/clubs.component';
+import { NotificationsComponent } from './pages/notifications/notifications.component';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -19,5 +20,6 @@ export const routes: Routes = [
   { path: 'boards', component: BoardsComponent, canMatch: [boardsGuard], canActivate: [adminGuard] },
   { path: 'resources', component: ResourcesComponent, canActivate: [adminGuard] },
   { path: 'clubs', component: ClubsComponent, canActivate: [adminGuard] },
+  { path: 'notifications', component: NotificationsComponent, canActivate: [adminGuard] },
   { path: '**', redirectTo: '' }
 ];
