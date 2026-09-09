@@ -70,9 +70,12 @@ A website where university students in Australia can leave honest reviews for th
 
 | Workflow | Trigger | Deploys |
 |---|---|---|
-| `.github/workflows/azure-static-web-apps-nice-pebble-059fa6b00.yml` | push/PR to `dev`, manual | Frontend → dev SWA |
-| `.github/workflows/azure-static-web-apps-icy-sand-081cc7100.yml` | push/PR to `main`, manual | Frontend → prod SWA |
+| `.github/workflows/azure-static-web-apps-nice-pebble-059fa6b00.yml` | push to `dev`, manual (PRs into `dev`: build check only) | Frontend → dev SWA |
+| `.github/workflows/azure-static-web-apps-icy-sand-081cc7100.yml` | push to `main`, manual | Frontend → prod SWA |
+| `.github/workflows/azure-static-web-apps-orange-mud-057f08200.yml` | push to `main`, manual (PRs into `main`: build check only) | Admin → prod SWA |
 | `.github/workflows/deploy-backend.yml` | push to `dev`/`main` (backend paths), manual | Backend → Container App |
+
+Pull requests never deploy. Each PR-triggered workflow only runs `npm ci && npm run build` for its app, so no Static Web App preview environment is created. The Free tier allows three previews per app, and a PR merged within a minute of opening left orphans behind that filled the cap.
 
 - Backend deploys authenticate to Azure with **OIDC** (no stored credentials), build the Docker image, push to ACR, then `az containerapp update`.
 - Frontend deploys bake `API_URL` into the Angular build so the SPA knows where the API lives.

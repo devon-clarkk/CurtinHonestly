@@ -1,20 +1,51 @@
 name: Azure Static Web Apps CI/CD (Dev)
 
+# Pull requests get a build check only. Deploying a preview environment per PR
+# hit the Free tier's cap of three, because a PR merged within a minute of
+# opening let the close job run before the build had uploaded, leaving an
+# orphan that nothing ever deleted. Previews are not used here (dev is its own
+# branch and site), so the Azure action now runs only on push and dispatch.
 on:
   push:
     branches:
       - dev
       - development
   pull_request:
-    types: [opened, synchronize, reopened, closed]
+    types: [opened, synchronize, reopened]
     branches:
       - dev
       - development
   workflow_dispatch:
 
 jobs:
+  build_check:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    name: Build Check
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install
+        working-directory: frontend
+        run: npm ci
+      - name: Build
+        working-directory: frontend
+        env:
+          # Same flags as the dev deploy below. A dev API URL keeps the SEO
+          # prerender off, so this compiles without touching the backend.
+          API_URL: https://be-curtinhonestly-dev.happyplant-9f34dec7.australiaeast.azurecontainerapps.io
+          BOARDS_ENABLED: 'true'
+          PERSONAL_RECS_ENABLED: 'true'
+        run: npm run build
+
   build_and_deploy_job:
-    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.action != 'closed')
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     name: Build and Deploy Job
     environment: dev
@@ -51,35 +82,4 @@ jobs:
           api_location: ''
           output_location: dist/frontend/browser
           app_build_command: npm run build
-          github_id_token: ${{ steps.idtoken.outputs.result }}
-
-  close_pull_request_job:
-    if: github.event_name == 'pull_request' && github.event.action == 'closed'
-    runs-on: ubuntu-latest
-    name: Close Pull Request Job
-    permissions:
-      id-token: write
-      contents: read
-    steps:
-      - uses: actions/checkout@v4
-      - name: Install OIDC Client from Core Package
-        run: npm install @actions/core@1.6.0 @actions/http-client
-      - name: Get Id Token
-        uses: actions/github-script@v6
-        id: idtoken
-        with:
-          script: |
-            const coredemo = require('@actions/core')
-            return await coredemo.getIDToken()
-          result-encoding: string
-      - name: Close Pull Request
-        id: closepullrequest
-        uses: Azure/static-web-apps-deploy@v1
-        with:
-          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_NICE_PEBBLE_059FA6B00 }}
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          action: close
-          app_location: frontend
-          api_location: ''
-          output_location: dist/frontend/browser
           github_id_token: ${{ steps.idtoken.outputs.result }}
