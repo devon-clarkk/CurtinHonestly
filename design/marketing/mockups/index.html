@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<title>CurtinHonestly marketing mockups</title>
+<link rel="stylesheet" href="brand.css">
+<style>
+  body { background: #f0f0f0; padding: 0 0 80px; }
+
+  .page { max-width: 1180px; margin: 0 auto; padding: 0 32px; }
+
+  .masthead {
+    background: var(--black);
+    border-bottom: 6px solid var(--gold);
+    padding: 44px 0 40px;
+    margin-bottom: 56px;
+  }
+  .masthead .page { display: flex; align-items: center; gap: 22px; }
+  .masthead img { height: 62px; width: auto; display: block; }
+  .masthead .word {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 36px;
+    line-height: 1;
+    color: #ffffff;
+  }
+  .masthead .word span { color: var(--gold); }
+  .masthead .sub {
+    margin-left: auto;
+    text-align: right;
+    font-family: var(--body);
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--on-dark-muted);
+  }
+
+  h1 {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 42px;
+    letter-spacing: -0.015em;
+    margin: 0 0 14px;
+    color: var(--ink);
+  }
+  .intro {
+    font-family: var(--body);
+    font-size: 16px;
+    line-height: 1.65;
+    color: var(--ink);
+    max-width: 760px;
+    margin: 0 0 12px;
+  }
+  .intro a { color: var(--gold-ink); }
+
+  .grid {
+    margin-top: 52px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 40px;
+  }
+
+  .item { background: #ffffff; border: 1px solid var(--hairline); }
+  .item .frame {
+    height: 470px;
+    overflow: hidden;
+    position: relative;
+    background: #d8d8d8;
+    border-bottom: 1px solid var(--hairline);
+  }
+  .item iframe {
+    border: 0;
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform-origin: top center;
+    pointer-events: none;
+  }
+  .item .frame--a3 iframe {
+    width: 1123px;
+    height: 1720px;
+    transform: translateX(-50%) scale(0.275);
+  }
+  .item .frame--a5 iframe {
+    width: 559px;
+    height: 860px;
+    transform: translateX(-50%) scale(0.55);
+  }
+  .item .frame--story iframe {
+    width: 1080px;
+    height: 1920px;
+    transform: translateX(-50%) scale(0.245);
+  }
+  .added {
+    grid-column: 1 / -1;
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 1px solid var(--hairline);
+    font-family: var(--display);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    font-size: 12px;
+    color: var(--gold-ink);
+  }
+  .item--wide { grid-column: 1 / -1; }
+  .item--wide .frame { height: 620px; }
+  .item .frame--slide iframe {
+    width: 1960px;
+    height: 1300px;
+    transform: translateX(-50%) scale(0.55);
+    top: -70px;
+  }
+
+  .item .meta { padding: 22px 24px 26px; }
+  .item .job {
+    font-family: var(--display);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    font-size: 11px;
+    color: var(--gold-ink);
+    display: block;
+    margin-bottom: 8px;
+  }
+  .item h2 {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 24px;
+    margin: 0 0 10px;
+    line-height: 1.15;
+    color: var(--ink);
+  }
+  .item p {
+    font-family: var(--body);
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--muted);
+    margin: 0 0 14px;
+  }
+  .item a.open {
+    font-family: var(--display);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    font-size: 12px;
+    color: var(--black);
+    background: var(--gold);
+    padding: 10px 16px;
+    display: inline-block;
+    text-decoration: none;
+  }
+  .item a.open:hover { background: var(--gold-hover); }
+</style>
+</head>
+<body>
+
+<div class="masthead">
+  <div class="page">
+    <img src="../assets/shield-gold.png" alt="">
+    <div class="word">Curtin<span>Honestly</span></div>
+    <div class="sub">Marketing mockups<br>August 2026</div>
+  </div>
+</div>
+
+<div class="page">
+  <h1>Print and screen mockups</h1>
+  <p class="intro">
+    Four rendered pieces from <a href="../launch-plan.md">launch-plan.md</a>. All built at true output
+    size on the real brand tokens, with real scannable QR codes carrying their own tracked referral
+    slug. Print any poster straight to PDF from the browser at 100% scale.
+  </p>
+  <p class="intro">
+    Previews below are scaled down and non-interactive. Open a piece to see it at full size.
+  </p>
+
+  <div class="grid">
+
+    <div class="item">
+      <div class="frame frame--a3"><iframe src="poster-01-two-descriptions.html" title="Poster 01"></iframe></div>
+      <div class="meta">
+        <span class="job">Demand &middot; A3 &middot; ref poster-a3-enrol</span>
+        <h2>Same unit. Two descriptions.</h2>
+        <p>
+          Handbook register on the left, a real student review on the right, split by a hairline.
+          Aimed at the student choosing units. Enrolment walls, Curtin Connect queue, library entry.
+        </p>
+        <a class="open" href="poster-01-two-descriptions.html">Open</a>
+      </div>
+    </div>
+
+    <div class="item">
+      <div class="frame frame--a3"><iframe src="poster-02-zero-reviews.html" title="Poster 02"></iframe></div>
+      <div class="meta">
+        <span class="job">Supply &middot; A3 &middot; ref poster-a3-zero</span>
+        <h2>0 reviews.</h2>
+        <p>
+          The site's real empty state, printed. The only poster in the set that is completely true
+          today. Asking someone to fix a visible problem beats asking them to join something.
+          Lecture exits and study spaces during exam and results weeks.
+        </p>
+        <a class="open" href="poster-02-zero-reviews.html">Open</a>
+      </div>
+    </div>
+
+    <div class="item">
+      <div class="frame frame--a3"><iframe src="poster-03-not-affiliated.html" title="Poster 03"></iframe></div>
+      <div class="meta">
+        <span class="job">Objection &middot; A3 &middot; ref poster-a3-someone</span>
+        <h2>Not affiliated with Curtin University.</h2>
+        <p>
+          Inverted to black so three posters on one wall read as a campaign. Turns the header
+          disclaimer into the argument, then answers the four questions everyone actually has.
+        </p>
+        <a class="open" href="poster-03-not-affiliated.html">Open</a>
+      </div>
+    </div>
+
+    <div class="item item--wide">
+      <div class="frame frame--slide"><iframe src="slide-lecture-16x9.html" title="Lecture slide"></iframe></div>
+      <div class="meta">
+        <span class="job">Supply &middot; 1920 x 1080 &middot; ref slide-lecture</span>
+        <h2>Just finished this unit?</h2>
+        <p>
+          The highest-yield asset in the plan and it costs one email. Runs on the projector before a
+          lecture, or as a coordinator's final slide. Export to PNG and send it as a single image.
+        </p>
+        <a class="open" href="slide-lecture-16x9.html">Open</a>
+      </div>
+    </div>
+
+    <div class="added">October 2026 additions &middot; Semester 2 campaign</div>
+
+    <div class="item">
+      <div class="frame frame--a3"><iframe src="poster-04-results-day.html" title="Poster 04"></iframe></div>
+      <div class="meta">
+        <span class="job">Supply, phase 2 &middot; A3 &middot; ref poster-a3-results</span>
+        <h2>Results are out.</h2>
+        <p>
+          For Wednesday 2 December, when the grade field becomes answerable. Shows the real review
+          form with every field empty, so it invents nothing. Library, Guild, housing, the Hub.
+        </p>
+        <a class="open" href="poster-04-results-day.html">Open</a>
+      </div>
+    </div>
+
+    <div class="item">
+      <div class="frame frame--a5"><iframe src="flyer-a5-supply.html" title="Flyer A"></iframe></div>
+      <div class="meta">
+        <span class="job">Supply &middot; A5 &middot; ref flyer-a5-stall</span>
+        <h2>You know something the handbook doesn't.</h2>
+        <p>
+          Flyer A from the plan (section 4.2, P6), rendered. Poster 02's argument at arm's length,
+          for the results-week stall and for clubs to hand out.
+        </p>
+        <a class="open" href="flyer-a5-supply.html">Open</a>
+      </div>
+    </div>
+
+    <div class="item">
+      <div class="frame frame--story"><iframe src="story-zero-reviews.html" title="Story: 0 reviews"></iframe></div>
+      <div class="meta">
+        <span class="job">Story &middot; 1080 x 1920 &middot; ref story-zero</span>
+        <h2>0 reviews. (9:16)</h2>
+        <p>Poster 02 cut for Instagram stories and Discord.</p>
+        <a class="open" href="story-zero-reviews.html">Open</a>
+      </div>
+    </div>
+
+    <div class="item">
+      <div class="frame frame--story"><iframe src="story-not-affiliated.html" title="Story: not affiliated"></iframe></div>
+      <div class="meta">
+        <span class="job">Story &middot; 1080 x 1920 &middot; ref story-someone</span>
+        <h2>Not affiliated. (9:16)</h2>
+        <p>Poster 03 cut, for the first reply whenever someone asks whether it is official.</p>
+        <a class="open" href="story-not-affiliated.html">Open</a>
+      </div>
+    </div>
+
+    <div class="item">
+      <div class="frame frame--story"><iframe src="story-results-day.html" title="Story: results are out"></iframe></div>
+      <div class="meta">
+        <span class="job">Story &middot; 1080 x 1920 &middot; ref story-results</span>
+        <h2>Results are out. (9:16)</h2>
+        <p>Poster 04 cut, for 2 December and the last call on 10 December.</p>
+        <a class="open" href="story-results-day.html">Open</a>
+      </div>
+    </div>
+
+    <div class="item">
+      <div class="frame frame--story"><iframe src="story-rant-or-rave.html" title="Story: rant or rave"></iframe></div>
+      <div class="meta">
+        <span class="job">Story &middot; 1080 x 1920 &middot; ref story-rant</span>
+        <h2>Semester's done. (9:16)</h2>
+        <p>The end-of-semester social piece with fill-in-the-blank prompts instead of a review. For society Discords from 14 November.</p>
+        <a class="open" href="story-rant-or-rave.html">Open</a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>

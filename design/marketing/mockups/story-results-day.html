@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<title>CurtinHonestly story: Results are out. (1080 x 1920)</title>
+<link rel="stylesheet" href="brand.css">
+<link rel="stylesheet" href="story.css">
+<style>
+  .st-head .headline { font-size: 160px; }
+  .ask { font-family: var(--display); font-weight: 700; font-size: 66px; line-height: 1; letter-spacing: -0.015em; color: var(--gold-ink); margin: 22px 0 0; }
+  .card { padding: 36px 40px 34px; }
+  .card .label { font-size: 19px; display: block; margin-bottom: 24px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 26px 32px; }
+  .k { font-family: var(--display); font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em; font-size: 17px; color: var(--muted); display: block; margin-bottom: 10px; }
+  .stars { font-size: 44px; color: #cfcfcf; letter-spacing: 0.08em; line-height: 1; }
+  .v { font-family: var(--display); font-weight: 700; font-size: 44px; line-height: 1; color: var(--ink); }
+  .blank { display: inline-block; width: 60px; border-bottom: 6px solid var(--gold); height: 30px; vertical-align: -4px; margin-right: 8px; }
+  .pills { display: flex; flex-wrap: wrap; gap: 10px; }
+  .pills .pill { font-size: 19px; padding: 9px 16px; }
+  .grades { grid-column: 1 / -1; }
+  .grades .pill { font-size: 24px; padding: 11px 20px; min-width: 62px; text-align: center; }
+</style>
+</head>
+<body>
+<div class="spec">
+  <b>Story &middot; 1080 &times; 1920 &middot; Results are out.</b><br>
+  The 9:16 cut of poster 04. Post on Wednesday 2 December 2026 and in the last-call push on 10 December.
+  QR carries <code>?ref=story-results</code>. Append <code>&amp;noprize</code> to export without the prize line.
+</div>
+
+<div class="sheet sheet--story">
+  <div class="st-top">
+    <div class="st-lockup"><img src="../assets/shield-gold.png" alt=""><div class="word">Curtin<span>Honestly</span></div></div>
+    <div class="st-meta">Results day<br>2 December 2026</div>
+  </div>
+
+  <div class="st-head">
+    <h1 class="headline">Results<br>are out.</h1>
+    <p class="ask">Which units earned it?</p>
+    <p class="lead st-sub">Your grade is in. The unit does not have one yet. This is the week you still remember why.</p>
+  </div>
+
+  <div class="st-body">
+    <div class="unit-card card">
+      <span class="label label--gold">What a review asks you</span>
+      <div class="grid">
+        <div><span class="k">Rating</span><span class="stars">&#9734;&#9734;&#9734;&#9734;&#9734;</span></div>
+        <div><span class="k">Workload</span><span class="v"><span class="blank"></span>/ 10</span></div>
+        <div><span class="k">Would you take it again</span><div class="pills"><span class="pill pill--ghost">Yes</span><span class="pill pill--ghost">No</span></div></div>
+        <div><span class="k">Was there an exam</span><div class="pills"><span class="pill pill--ghost">Yes</span><span class="pill pill--ghost">No</span></div></div>
+        <div class="grades"><span class="k">Grade you got (optional)</span><div class="pills"><span class="pill pill--ghost">HD</span><span class="pill pill--ghost">D</span><span class="pill pill--ghost">C</span><span class="pill pill--ghost">P</span><span class="pill pill--ghost">F</span></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="st-payoff">
+    <div class="bar"></div>
+    <p><span class="dim">You just found out what the semester was worth.</span><br>Now tell the next person what the unit was worth.</p>
+  </div>
+
+  <div class="footband st-foot">
+    <img class="qr" src="../assets/qr-story-results.png" alt="QR code to curtinhonestly.com">
+    <div>
+      <span class="cta">Written while you still remember</span>
+      <span class="url">curtinhonestly.com</span>
+      <p class="disclaimer">Independent student platform. Not affiliated with Curtin University. <span class="prize">Prize draw for verified students closes 12 December. Terms on the site.</span></p>
+    </div>
+  </div>
+</div>
+
+<script>
+if (location.search.indexOf('clean') > -1) {
+  document.querySelectorAll('.spec').forEach(function (n) { n.remove(); });
+  document.body.style.background = '#ffffff';
+  document.querySelectorAll('.sheet').forEach(function (n) { n.style.margin = '0 auto'; n.style.boxShadow = 'none'; });
+}
+if (location.search.indexOf('noprize') > -1) { document.documentElement.classList.add('noprize'); }
+</script>
+</body>
+</html>

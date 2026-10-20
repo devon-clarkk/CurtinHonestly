@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<title>CurtinHonestly LinkedIn pairing preview (reference only)</title>
+<link rel="stylesheet" href="brand.css">
+<style>
+  body { background: #ffffff; }
+
+  .board { width: 1200px; padding: 0 0 34px; background: #ffffff; }
+
+  .warn {
+    background: #1f1f1f;
+    color: #ffffff;
+    font-family: var(--display);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    font-size: 12px;
+    padding: 13px 36px;
+    border-bottom: 4px solid var(--gold);
+  }
+  .warn span { color: var(--gold); }
+
+  .caption {
+    font-family: var(--body);
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--muted);
+    padding: 18px 36px 8px;
+    max-width: 900px;
+  }
+  .caption b { color: var(--ink); }
+
+  /* Approximation of a LinkedIn company header. Proportions are close enough to
+     judge the pairing. It is not a pixel copy of LinkedIn's interface. */
+  .card {
+    margin: 10px 36px 0;
+    width: 1128px;
+    background: #ffffff;
+    border: 1px solid #e0dfdc;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .card .cover img { display: block; width: 1128px; height: 191px; }
+
+  .card .body { position: relative; padding: 0 24px 26px; }
+
+  .card .tile {
+    position: absolute;
+    left: 24px;
+    top: -46px;
+    width: 132px;
+    height: 132px;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 0 0 3px #ffffff;
+  }
+  .card .tile img { display: block; width: 132px; height: 132px; }
+
+  .card .text { padding-top: 100px; }
+  .card h2 {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 30px;
+    letter-spacing: -0.01em;
+    margin: 0 0 6px;
+    color: var(--ink);
+  }
+  .card .tag {
+    font-family: var(--body);
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--ink);
+    margin: 0 0 8px;
+    max-width: 700px;
+  }
+  .card .meta {
+    font-family: var(--body);
+    font-size: 13.5px;
+    color: var(--muted);
+    margin: 0;
+  }
+
+  .swatchrow { display: flex; gap: 26px; padding: 30px 36px 0; align-items: flex-start; }
+  .swatch { width: 96px; }
+  .swatch img { width: 96px; height: 96px; display: block; border: 1px solid #e0dfdc; }
+  .swatch .lab {
+    font-family: var(--display);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-size: 10px;
+    color: var(--muted);
+    margin-top: 8px;
+    line-height: 1.4;
+  }
+  .swatch .lab b { color: var(--gold-ink); display: block; }
+</style>
+</head>
+<body>
+<div class="board">
+
+  <div class="warn">Reference mockup <span>&middot;</span> not for upload <span>&middot;</span> not a screenshot of a live page</div>
+
+  <p class="caption">
+    <b>Recommended pairing:</b> the dark logo tile against the light cover. The black tile
+    keeps a hard edge on both the off-white cover and LinkedIn's own light page surface,
+    and it matches how the site already sets its black header lockup on an off-white page.
+    Pairing the light tile with the light cover leaves the tile with no edge at all.
+  </p>
+
+  <div class="card">
+    <div class="cover"><img src="../exports/cover-1128x191-light.png" alt="Cover"></div>
+    <div class="body">
+      <div class="tile"><img src="../exports/logo-300x300-dark.png" alt="Logo"></div>
+      <div class="text">
+        <h2>CurtinHonestly</h2>
+        <p class="tag">Honest, anonymous unit reviews written by Curtin students. Independent, and not affiliated with Curtin University.</p>
+        <p class="meta">Higher Education &middot; Perth, Western Australia &middot; curtinhonestly.com</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="swatchrow">
+    <div class="swatch">
+      <img src="../exports/logo-300x300-dark.png" alt="">
+      <div class="lab"><b>Use this</b>Dark tile, light cover</div>
+    </div>
+    <div class="swatch">
+      <img src="../exports/logo-300x300-light.png" alt="">
+      <div class="lab"><b>Only on dark</b>Light tile, dark cover</div>
+    </div>
+    <div class="swatch">
+      <img src="../exports/logo-300x300-stacked-dark.png" alt="">
+      <div class="lab"><b>Alternate</b>80px and larger only</div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
