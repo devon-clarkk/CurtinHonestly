@@ -91,3 +91,21 @@ with nowhere to land.
    Curtin University."
 4. Never invent statistics about a real named unit. Either use live numbers with the
    review count shown, or leave the slot blank on purpose.
+
+## October 2026 additions
+
+Added 20 October 2026 for the Semester 2 campaign (exams 2 to 13 November,
+results 2 December). Everything below builds on `launch-plan.md`; nothing above
+this heading changed.
+
+| File | What it is |
+| --- | --- |
+| `executive-summary-2026-s2.md` | One page: what changed since August, goal, timing, channels, budget |
+| `launch-runbook-2026-s2.md` | Dated steps from now to 16 December, blockers first, campaign terms draft in Appendix A |
+| `giveaway-plan-2026-s2.md` | G1 and G2 configured for the window, itemised costs, the Western Australian check as a table |
+| `poster-ab-test.md` | How to compare poster designs fairly by hand |
+| `copy-additions-2026-s2.md` | Society email, Discord posts, Instagram captions, press note, share captions, site copy |
+| `mockups/poster-04-results-day.html` | A3 poster for results day, `?ref=poster-a3-results` |
+| `mockups/flyer-a5-supply.html` | Flyer A from plan 4.2 (P6), rendered, `?ref=flyer-a5-stall` |
+| `mockups/story-*.html` and `mockups/story.css` | Four 9:16 (1080 x 1920) cuts for stories and Discord, `?ref=story-zero`, `story-someone`, `story-results`, `story-rant` |
+| `export.py` | Renders the mockups to `exports/` over `file://` and generates any missing `assets/qr-*.png`. `python export.py` does the additions; `--all` re-renders the August pieces; `--noprize` hides the prize line |

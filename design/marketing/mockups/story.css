@@ -1,0 +1,101 @@
+/* 9:16 story cuts (1080 x 1920) of the poster set, for Instagram stories, Reels
+   covers and Discord. Loads after brand.css and reuses its tokens. */
+
+.sheet--story {
+  width: 1080px;
+  height: 1920px;
+  display: flex;
+  flex-direction: column;
+}
+
+.st-top {
+  padding: 72px 64px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.st-lockup { display: flex; align-items: center; gap: 18px; }
+.st-lockup img { height: 72px; width: auto; display: block; }
+.st-lockup .word {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 44px;
+  letter-spacing: -0.01em;
+  line-height: 1;
+  color: var(--ink);
+}
+.st-lockup .word span { color: var(--gold-ink); }
+.st-meta {
+  font-family: var(--display);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  font-size: 20px;
+  color: var(--muted);
+  text-align: right;
+  line-height: 1.5;
+}
+
+.st-head { padding: 96px 64px 0; }
+.st-head .headline { font-size: 150px; letter-spacing: -0.025em; }
+.st-sub {
+  margin: 40px 0 0;
+  font-size: 36px;
+  line-height: 1.4;
+}
+
+.st-body { padding: 56px 64px 0; }
+
+.st-payoff {
+  flex: 1;
+  margin: 0 64px;
+  padding: 48px 0 56px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+.st-payoff .bar { width: 160px; height: 8px; background: var(--gold); margin-bottom: 28px; }
+.st-payoff p {
+  margin: 0;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 54px;
+  line-height: 1.12;
+}
+.st-payoff .dim { color: var(--muted); }
+
+.st-foot { padding: 56px 64px; gap: 44px; }
+.st-foot .qr { width: 260px; height: 260px; padding: 18px; flex: 0 0 auto; }
+.st-foot .cta {
+  font-family: var(--display);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-size: 22px;
+  color: var(--gold);
+  display: block;
+  margin-bottom: 14px;
+}
+.st-foot .url { font-size: 58px; line-height: 1; display: block; }
+.st-foot .disclaimer { font-size: 21px; margin-top: 18px; }
+
+/* Dark variant (mirrors poster 03) */
+.sheet--dark { background: var(--black); color: #ffffff; border-top: 16px solid var(--gold); }
+.sheet--dark .st-lockup .word { color: #ffffff; }
+.sheet--dark .st-lockup .word span { color: var(--gold); }
+.sheet--dark .st-meta { color: var(--on-dark-muted); }
+.sheet--dark .st-head .headline { color: #ffffff; }
+.sheet--dark .st-head .headline em { color: var(--gold); }
+.sheet--dark .st-sub { color: var(--on-dark-muted); }
+.sheet--dark .st-payoff p { color: #ffffff; }
+.sheet--dark .st-payoff .dim { color: var(--on-dark-muted); }
+.sheet--dark .st-foot {
+  background: var(--paper);
+  border-top: 10px solid var(--gold);
+  color: var(--ink);
+}
+.sheet--dark .st-foot .cta { color: var(--gold-ink); }
+.sheet--dark .st-foot .url { color: var(--ink); }
+.sheet--dark .st-foot .disclaimer { color: var(--muted); }
+
+html.noprize .prize { display: none; }
