@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<title>CurtinHonestly poster A: Rant or rave</title>
+<link rel="stylesheet" href="poster-base.css">
+<script src="size.js"></script>
+<style>
+  body { background: var(--black); }
+  .sheet { background: var(--black); color: #ffffff; }
+  .topbar .season { color: var(--gold); }
+  .hl { margin-top: 40px; }
+  .hl .line1 { font-size: 156px; color: #ffffff; }
+  .hl .line2 { font-size: 100px; color: var(--gold); margin-top: 22px; }
+  .card {
+    margin-top: 40px;
+    background: var(--paper);
+    color: var(--ink);
+    border-radius: 12px;
+    padding: 26px 40px 18px;
+    box-sizing: border-box;
+  }
+  .card .label {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 26px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--gold-ink);
+    margin: 0 0 16px;
+  }
+  .blank {
+    display: flex;
+    align-items: baseline;
+    gap: 22px;
+    font-size: 40px;
+    font-weight: 500;
+    margin: 0 0 20px;
+    line-height: 1.1;
+  }
+  .blank span.q { white-space: nowrap; }
+  .blank span.u { flex: 1; border-bottom: 7px solid var(--gold); height: 40px; }
+  .card .hint { font-family: var(--small); font-size: 20px; color: var(--grey); margin: 2px 0 0; }
+  .prize-strip { background: #161616; color: var(--on-dark-muted); margin-top: 20px; }
+  .prize-strip b { color: #ffffff; font-weight: 600; }
+  .cta { display: flex; align-items: center; gap: 44px; padding-top: 24px; }
+  .cta .qr-tile { width: 280px; flex: none; }
+  .cta .text h2 {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 50px;
+    line-height: 1;
+    margin: 0 0 14px;
+    text-transform: uppercase;
+    color: #ffffff;
+  }
+  .cta .text .url { font-size: 56px; color: var(--gold); margin: 0 0 14px; }
+  .cta .text .proof { font-size: 27px; color: var(--on-dark-muted); margin: 0; line-height: 1.35; }
+  .footer { color: var(--on-dark-muted); }
+</style>
+</head>
+<body>
+<div class="sheet">
+  <div class="topbar">
+    <img class="lockup" src="assets/logo-lockup.png" alt="CurtinHonestly">
+    <div class="season">Semester 2, 2026</div>
+  </div>
+
+  <div class="hl">
+    <h1 class="display line1">Semester's<br>done.</h1>
+    <h1 class="display line2">Say what it was<br>actually like.</h1>
+  </div>
+
+  <div class="card">
+    <p class="label">Rant or rave. Your call.</p>
+    <p class="blank"><span class="q">The lectures were</span><span class="u"></span></p>
+    <p class="blank"><span class="q">The workload was</span><span class="u"></span></p>
+    <p class="blank"><span class="q">Would I take it again?</span><span class="u"></span></p>
+    <p class="hint">Anonymous. Rate the unit, the workload and the grade you got. Keep it about the unit.</p>
+  </div>
+
+  <div class="prize-strip"><b>Prize draw:</b> every qualifying review you write before 12 December 2026 is an entry. Verified Curtin students only. Full terms on the site.</div>
+
+  <div class="cta">
+    <div class="qr-tile"><img src="qr/poster-rant.svg" alt="QR code to www.curtinhonestly.com"></div>
+    <div class="text">
+      <h2>Scan to review your units</h2>
+      <p class="url">www.curtinhonestly.com</p>
+      <p class="proof">1,761 Curtin units across five faculties.<br>Built by a Curtin student. Free. No ads.</p>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div>Independent student platform. Not affiliated with Curtin University.<br>https://www.curtinhonestly.com</div>
+    <div class="variant">A</div>
+  </div>
+</div>
+</body>
+</html>

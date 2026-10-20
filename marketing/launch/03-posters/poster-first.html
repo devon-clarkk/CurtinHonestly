@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<title>CurtinHonestly poster B: Be the first</title>
+<link rel="stylesheet" href="poster-base.css">
+<script src="size.js"></script>
+<style>
+  body { background: var(--paper); }
+  .sheet { background: var(--paper); color: var(--ink); }
+  .topbar .season { color: var(--gold-ink); }
+  .hl { margin-top: 40px; }
+  .hl .line1 { font-size: 76px; color: var(--ink); }
+  .hl .zero { font-size: 206px; color: var(--black); line-height: 0.84; margin-top: 14px; }
+  .hl .zero .bar { display: inline-block; background: var(--gold); color: var(--black); padding: 0 22px; }
+  .hl .reviews { font-size: 136px; color: var(--black); margin-top: 10px; }
+  .hl .line3 { font-size: 76px; color: var(--ink); margin-top: 18px; }
+  .sub { font-size: 31px; font-weight: 500; margin: 18px 0 0; line-height: 1.2; color: var(--ink); }
+  .rows { margin-top: 28px; border-top: 3px solid var(--ink); }
+  .row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 9px 0;
+    border-bottom: 2px solid #D9D9D9;
+    font-size: 28px;
+  }
+  .row .fac { font-weight: 500; }
+  .row .stars { display: flex; gap: 8px; }
+  .row .stars svg { width: 32px; height: 32px; }
+  .row .none { font-family: var(--small); color: var(--grey); font-size: 22px; width: 200px; text-align: right; }
+  .prize-strip { background: var(--black); color: var(--on-dark-muted); margin-top: 20px; }
+  .prize-strip b { color: var(--gold); font-weight: 600; }
+  .cta { display: flex; align-items: center; gap: 44px; padding-top: 24px; }
+  .cta .qr-tile { width: 280px; flex: none; border: 4px solid var(--black); }
+  .cta .text h2 {
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: 70px;
+    line-height: 0.95;
+    margin: 0 0 16px;
+    text-transform: uppercase;
+    color: var(--black);
+  }
+  .cta .text .url { font-size: 56px; color: var(--black); margin: 0 0 12px; }
+  .cta .text .proof { font-size: 26px; color: var(--grey); margin: 0; line-height: 1.35; }
+  .footer { color: var(--ink); }
+</style>
+</head>
+<body>
+<div class="sheet">
+  <div class="topbar">
+    <img class="lockup" src="assets/logo-lockup.png" alt="CurtinHonestly">
+    <div class="season">Semester 2, 2026</div>
+  </div>
+
+  <div class="hl">
+    <h1 class="display line1">Most Curtin units have</h1>
+    <h1 class="display zero"><span class="bar">zero</span></h1>
+    <h1 class="display reviews">reviews.</h1>
+    <h1 class="display line3">Yours is probably one.</h1>
+  </div>
+
+  <p class="sub">You just finished it. Nobody has written down what it was actually like. Yet.</p>
+
+  <div class="rows" id="rows"></div>
+
+  <div class="prize-strip"><b>Prize draw:</b> every qualifying review you write before 12 December 2026 is an entry. Verified Curtin students only. Full terms on the site.</div>
+
+  <div class="cta">
+    <div class="qr-tile"><img src="qr/poster-first.svg" alt="QR code to www.curtinhonestly.com"></div>
+    <div class="text">
+      <h2>Be the first<br>to review it.</h2>
+      <p class="url">www.curtinhonestly.com</p>
+      <p class="proof">1,761 Curtin units. Anonymous. Free.<br>Rows are illustrative. Check your unit on the site.</p>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div>Independent student platform. Not affiliated with Curtin University.<br>https://www.curtinhonestly.com</div>
+    <div class="variant">B</div>
+  </div>
+</div>
+<script>
+  // Five faculty rows with empty outline stars. Illustrative, not live data.
+  var faculties = ['Science and Engineering', 'Business and Law', 'Health Sciences', 'Humanities', 'Aboriginal Studies'];
+  var star = '<svg viewBox="0 0 24 24"><path d="M12 2.5l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.7l-6.1 3.4 1.4-6.8L2.2 9.6l6.9-.8z" fill="none" stroke="#C09711" stroke-width="1.8"/></svg>';
+  var stars = star + star + star + star + star;
+  document.getElementById('rows').innerHTML = faculties.map(function (f) {
+    return '<div class="row"><span class="fac">' + f + '</span><span class="stars">' + stars + '</span><span class="none">No reviews yet</span></div>';
+  }).join('');
+</script>
+</body>
+</html>

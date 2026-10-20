@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<title>CurtinHonestly poster C: Results are out</title>
+<link rel="stylesheet" href="poster-base.css">
+<script src="size.js"></script>
+<style>
+  body { background: var(--gold); }
+  .sheet { background: var(--gold); color: var(--black); }
+  .topbar .season { color: var(--black); }
+  .hl { margin-top: 40px; }
+  .hl .line1 { font-size: 220px; color: var(--black); }
+  .hl .line2 { font-size: 80px; color: var(--black); margin-top: 26px; }
+  .grades { margin-top: 36px; display: flex; gap: 18px; }
+  .grades .g {
+    flex: 1;
+    background: var(--black);
+    color: var(--gold);
+    border-radius: 10px;
+    height: 150px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: 96px;
+    line-height: 1;
+  }
+  .grades .g small {
+    font-family: var(--small);
+    font-weight: 400;
+    font-size: 17px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--on-dark-muted);
+    margin-top: 10px;
+  }
+  .sub { font-size: 42px; font-weight: 600; margin: 30px 0 0; line-height: 1.15; color: var(--black); }
+  .sub2 { font-size: 29px; font-weight: 400; margin: 14px 0 0; line-height: 1.35; color: var(--black); }
+  .prize-strip { background: var(--black); color: var(--on-dark-muted); margin-top: 20px; }
+  .prize-strip b { color: var(--gold); font-weight: 600; }
+  .cta { display: flex; align-items: center; gap: 44px; padding-top: 24px; }
+  .cta .qr-tile { width: 280px; flex: none; border: 4px solid var(--black); }
+  .cta .text h2 {
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: 66px;
+    line-height: 0.95;
+    margin: 0 0 16px;
+    text-transform: uppercase;
+    color: var(--black);
+  }
+  .cta .text .url { font-size: 56px; color: var(--black); margin: 0 0 12px; }
+  .cta .text .proof { font-size: 26px; color: var(--black); margin: 0; line-height: 1.35; opacity: 0.85; }
+  .footer { color: var(--black); }
+</style>
+</head>
+<body>
+<div class="sheet">
+  <div class="topbar">
+    <img class="lockup" src="assets/logo-lockup.png" alt="CurtinHonestly">
+    <div class="season">Results day, 2 December 2026</div>
+  </div>
+
+  <div class="hl">
+    <h1 class="display line1">Results<br>are out.</h1>
+    <h1 class="display line2">Which units earned it?</h1>
+  </div>
+
+  <div class="grades">
+    <div class="g">HD<small>your grade</small></div>
+    <div class="g">D<small>your grade</small></div>
+    <div class="g">C<small>your grade</small></div>
+    <div class="g">P<small>your grade</small></div>
+    <div class="g">?<small>the unit's</small></div>
+  </div>
+
+  <p class="sub">Your grade is in. Now give the unit one.</p>
+  <p class="sub2">Rating, workload, grade received, would you take it again. Written anonymously by students who just finished it.</p>
+
+  <div class="prize-strip"><b>Prize draw:</b> every qualifying review you write before 12 December 2026 is an entry. Verified Curtin students only. Full terms on the site.</div>
+
+  <div class="cta">
+    <div class="qr-tile"><img src="qr/poster-results.svg" alt="QR code to www.curtinhonestly.com"></div>
+    <div class="text">
+      <h2>Rate the units<br>you just finished</h2>
+      <p class="url">www.curtinhonestly.com</p>
+      <p class="proof">1,761 Curtin units across five faculties.<br>Built by a Curtin student. Free. No ads.</p>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div>Independent student platform. Not affiliated with Curtin University.<br>https://www.curtinhonestly.com</div>
+    <div class="variant">C</div>
+  </div>
+</div>
+</body>
+</html>
