@@ -53,10 +53,9 @@ For each Container App (`be-curtinhonestly-dev`, `be-curtinhonestly-prod`):
 1. **Ingress → Target port = 8080** (not 80 quickstart default).
 2. Copy **Application URL**.
 
-### ACR pull (if deploy fails on image pull)
-1. Container App → **Identity** → enable **System assigned**.
-2. ACR → **Access control (IAM)** → add role **AcrPull** for the container app's identity.
-3. Container App → **Containers** → set image source to your ACR image after first push.
+### Image pull (if deploy fails on image pull)
+1. GitHub → profile → **Packages** → `curtinhonestly-backend` → **Package settings**.
+2. Set **Change visibility** to **Public**. The Container Apps pull the image anonymously.
 
 ### Record URLs
 
@@ -80,8 +79,6 @@ Frontend `API_URL` at build time must match backend URLs (no trailing slash).
 | `AZURE_CLIENT_ID` | Entra app registration (OIDC) |
 | `AZURE_TENANT_ID` | Entra overview |
 | `AZURE_SUBSCRIPTION_ID` | `486c3faf-48e3-4822-bc00-08126fb5ff6a` |
-| `ACR_NAME` | ACR resource name |
-| `ACR_LOGIN_SERVER` | ACR → Login server |
 
 ### OIDC setup (one-time)
 
@@ -91,7 +88,6 @@ Frontend `API_URL` at build time must match backend URLs (no trailing slash).
    - `repo:<org>/CurtinHonestly:environment:prod`
 3. Assign roles:
    - **Contributor** on `rg-curtinhonestly-dev` and `rg-curtinhonestly-prod`
-   - **AcrPush** on ACR
 
 ### GitHub Environment: `dev`
 
@@ -151,5 +147,5 @@ Azure auto-injects `AZURE_STATIC_WEB_APPS_API_TOKEN_*` secrets — no manual dep
 
 - **One Container Apps Environment** in Australia East (quota limit).
 - **Dev + prod container apps** share that environment.
-- **One ACR** in `rg-curtinhonestly-shared`.
+- **Backend image** on GitHub Container Registry, public, no Azure registry.
 - **One Log Analytics workspace** per environment (filter logs by app name).

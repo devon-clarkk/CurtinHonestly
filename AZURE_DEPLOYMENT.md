@@ -18,11 +18,11 @@ Stack:
 | Static Web App | `curtinhonestly-fe-dev` | `curtinhonestly-fe-prod` |
 | Container App | `curtinhonestly-be-dev` | `curtinhonestly-be-prod` |
 | Container Apps environment | `cae-curtinhonestly-dev` | `cae-curtinhonestly-prod` |
-| Container registry (shared) | `acrcurtinhonestly` (one ACR for both) | same |
+| Container image (shared) | `ghcr.io/devon-clarkk/curtinhonestly-backend` (public GHCR package) | same |
 
 Region:
 
-- **Backend / ACR / Container Apps**: **Australia East**
+- **Backend / Container Apps**: **Australia East**
 - **Static Web Apps**: **East Asia** (only option closest to AU)
 
 Tags (all resources):
@@ -45,20 +45,16 @@ Create:
 1. `rg-curtinhonestly-dev` — region **Australia East**
 2. `rg-curtinhonestly-prod` — region **Australia East**
 
-### Step 2: Azure Container Registry (ACR)
+### Step 2: Container image on GitHub Container Registry
 
-One registry shared by dev + prod (cheaper than two).
+The backend image lives at `ghcr.io/devon-clarkk/curtinhonestly-backend`, shared by
+dev and prod. The deploy workflow pushes it with the built-in `GITHUB_TOKEN`, so
+there is no registry to create in Azure and no registry fee.
 
-1. **Create a resource** → **Container Registry**
-2. Settings:
-   - Resource group: `rg-curtinhonestly-dev` (or a shared `rg-curtinhonestly-shared`)
-   - Registry name: `acrcurtinhonestly` *(must be globally unique — add digits if taken)*
-   - Location: **Australia East**
-   - SKU: **Basic** (~$5/month, uses student credit)
-3. After creation, note:
-   - **Login server**: e.g. `acrcurtinhonestly.azurecr.io`
-   - Enable **Admin user** (Settings → Access keys) for initial setup  
-     *(OIDC deploy workflow uses `az acr login`, not admin user — admin is for manual first push if needed)*
+The package must be **public**, because the Container Apps pull it anonymously.
+After the first workflow run, open the package on GitHub (profile → **Packages** →
+`curtinhonestly-backend` → **Package settings**) and set **Change visibility** to
+**Public**. This is a one-time step.
 
 ### Step 3: Container Apps environment (dev)
 
@@ -101,9 +97,7 @@ Repeat for prod:
    | `DATABASE_PASSWORD` | Supabase password |
    | `JWT_SECRET` | Long random string (not the default in `application.yml`) |
 
-6. Registry (after first image push, or configure now):
-   - Server: `acrcurtinhonestly.azurecr.io`
-   - Auth: ACR admin or managed identity *(workflow uses OIDC + `az acr login`)*
+6. Registry: none. The image is a public GHCR package and is pulled anonymously.
 
 ### Step 5: Create backend Container App (prod)
 
@@ -178,7 +172,6 @@ In GitHub repo → **Settings → Environments**:
 4. **Subscriptions** → your subscription ID
 5. Assign roles to the app on resource groups:
    - **Contributor** on `rg-curtinhonestly-dev` and `rg-curtinhonestly-prod`
-   - **AcrPush** on the ACR resource
 
 ### Step C: GitHub secrets
 
@@ -189,8 +182,6 @@ In GitHub repo → **Settings → Environments**:
 | `AZURE_CLIENT_ID` | App registration client ID |
 | `AZURE_TENANT_ID` | Tenant ID |
 | `AZURE_SUBSCRIPTION_ID` | Subscription ID |
-| `ACR_NAME` | `acrcurtinhonestly` |
-| `ACR_LOGIN_SERVER` | `acrcurtinhonestly.azurecr.io` |
 
 **Environment `dev` secrets**:
 
@@ -259,7 +250,7 @@ API_URL=${{ secrets.API_URL }} npm run build
 |---|---|
 | Static Web Apps Free | $0 (100 GB bandwidth cap) |
 | Container Apps | Free monthly grant, then pay-as-you-go from **$100 credit** |
-| ACR Basic | ~$5/month from credit |
+| GitHub Container Registry | $0 (public package) |
 | Supabase | Free tier |
 
 Dev + prod **share** the Container Apps free grant (per subscription/month).
@@ -273,5 +264,5 @@ Dev + prod **share** the Container Apps free grant (per subscription/month).
 | 502 / container not listening | Ingress target port must be **8080** |
 | DB connection refused | Check Supabase URL, `sslmode=require`, network restrictions |
 | CORS errors | Backend `SecurityConfig` reads `app.cors.allowed-origins` (env `CORS_ALLOWED_ORIGINS`) — confirm the requesting origin is in the allowlist |
-| ACR pull failed | Confirm OIDC app has **AcrPush** and `az acr login` works in workflow logs |
+| Image pull failed | Confirm the `curtinhonestly-backend` package on GitHub is **Public** |
 | App scales to zero cold start | First request after idle may take 5–15s — normal on Consumption |

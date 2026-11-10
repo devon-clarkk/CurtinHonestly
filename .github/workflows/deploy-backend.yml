@@ -22,6 +22,7 @@ on:
 permissions:
   id-token: write
   contents: read
+  packages: write
 
 jobs:
   resolve-environment:
@@ -46,7 +47,7 @@ jobs:
     environment: ${{ needs.resolve-environment.outputs.environment }}
     env:
       DEPLOY_ENV: ${{ needs.resolve-environment.outputs.environment }}
-      IMAGE_TAG: ${{ github.sha }}
+      IMAGE: ghcr.io/${{ github.repository_owner }}/curtinhonestly-backend:${{ github.sha }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -58,13 +59,16 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      - name: Build and push image to ACR
+      # The image is a public GHCR package, so the Container App pulls it
+      # anonymously and needs no registry credentials of its own.
+      - name: Build and push image to GHCR
         shell: bash
         run: |
           set -euo pipefail
-          az acr login --name "${{ secrets.ACR_NAME }}"
-          IMAGE="${{ secrets.ACR_LOGIN_SERVER }}/curtinhonestly-backend:${IMAGE_TAG}"
-          docker build -t "$IMAGE" ./backend
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+          docker build \
+            --label "org.opencontainers.image.source=https://github.com/${{ github.repository }}" \
+            -t "$IMAGE" ./backend
           docker push "$IMAGE"
 
       - name: Deploy to Container App
@@ -84,12 +88,6 @@ jobs:
           FRONTEND_BASE_URL: ${{ secrets.FRONTEND_BASE_URL }}
         run: |
           set -euo pipefail
-          IMAGE="${{ secrets.ACR_LOGIN_SERVER }}/curtinhonestly-backend:${IMAGE_TAG}"
-          az containerapp registry set \
-            --name "${{ secrets.CONTAINER_APP_NAME }}" \
-            --resource-group "${{ secrets.RESOURCE_GROUP }}" \
-            --server "${{ secrets.ACR_LOGIN_SERVER }}" \
-            --identity system
           az containerapp update \
             --name "${{ secrets.CONTAINER_APP_NAME }}" \
             --resource-group "${{ secrets.RESOURCE_GROUP }}" \
@@ -115,3 +113,16 @@ jobs:
             --name "${{ secrets.CONTAINER_APP_NAME }}" \
             --resource-group "${{ secrets.RESOURCE_GROUP }}" \
             --target-port 8080
+          # The app pulls from GHCR anonymously. Drop any Azure Container
+          # Registry entry so the app config carries no stale credentials.
+          # This runs after the image update, so the live revision never
+          # loses access to the image it is running.
+          for server in $(az containerapp registry list \
+              --name "${{ secrets.CONTAINER_APP_NAME }}" \
+              --resource-group "${{ secrets.RESOURCE_GROUP }}" \
+              --query "[?ends_with(server, '.azurecr.io')].server" -o tsv); do
+            az containerapp registry remove \
+              --name "${{ secrets.CONTAINER_APP_NAME }}" \
+              --resource-group "${{ secrets.RESOURCE_GROUP }}" \
+              --server "$server"
+          done
