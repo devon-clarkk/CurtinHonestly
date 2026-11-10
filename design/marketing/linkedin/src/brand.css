@@ -1,0 +1,49 @@
+/* CurtinHonestly LinkedIn asset brand sheet.
+   Tokens mirror frontend/src/theme.css and design/marketing/mockups/brand.css.
+   Gold #C09711 is a FILL only. Gold as text on a light surface is #8A6D0C. */
+
+@font-face {
+  font-family: 'CHCondensed';
+  src: url('fonts/RobotoCondensed-VariableFont_wght.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'CHBody';
+  src: url('fonts/Rubik-VariableFont_wght.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: normal;
+}
+
+:root {
+  --gold: #c09711;
+  --gold-ink: #8a6d0c;
+  --ink: #1f1f1f;
+  --black: #000000;
+  --paper: #fafafa;
+  --muted: #666666;
+  --on-dark-muted: #cfcfcf;
+  --display: 'CHCondensed', 'Arial Narrow', sans-serif;
+  --body: 'CHBody', 'Segoe UI', sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: #d8d8d8;
+  font-family: var(--body);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* The canvas is the exact pixel artboard that gets screenshotted. */
+.canvas {
+  position: relative;
+  overflow: hidden;
+  margin: 0;
+}
+
+.canvas--dark { background: var(--black); }
+.canvas--light { background: var(--paper); }

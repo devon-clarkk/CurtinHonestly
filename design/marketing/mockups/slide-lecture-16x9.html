@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<title>CurtinHonestly lecture-theatre slide (1920 x 1080)</title>
+<link rel="stylesheet" href="brand.css">
+<style>
+  .sl {
+    display: grid;
+    grid-template-columns: 1fr 560px;
+    background: var(--paper);
+  }
+
+  .sl-left {
+    padding: 84px 72px 72px 96px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .sl-lockup { display: flex; align-items: center; gap: 20px; margin-bottom: 76px; }
+  .sl-lockup img { height: 76px; width: auto; display: block; }
+  .sl-lockup .word {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 46px;
+    line-height: 1;
+    color: var(--ink);
+  }
+  .sl-lockup .word span { color: var(--gold-ink); }
+
+  .sl h1 {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 118px;
+    line-height: 0.94;
+    letter-spacing: -0.02em;
+    margin: 0;
+    color: var(--ink);
+  }
+  .sl h1 em { font-style: normal; color: var(--gold-ink); }
+
+  .sl-lead {
+    margin: 40px 0 0;
+    font-family: var(--body);
+    font-size: 32px;
+    line-height: 1.42;
+    color: var(--ink);
+    max-width: 900px;
+  }
+
+  .sl-steps {
+    margin-top: auto;
+    display: flex;
+    gap: 56px;
+    padding-top: 56px;
+    border-top: 1px solid var(--hairline);
+  }
+  .sl-step { display: flex; gap: 16px; align-items: baseline; }
+  .sl-step .n {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 30px;
+    color: var(--gold);
+    line-height: 1;
+  }
+  .sl-step .t {
+    font-family: var(--body);
+    font-size: 23px;
+    line-height: 1.35;
+    color: var(--ink);
+    max-width: 250px;
+  }
+
+  .sl-right {
+    background: var(--black);
+    border-left: 10px solid var(--gold);
+    padding: 72px 56px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+  /* Sized for a lecture-theatre scan. A projected QR is read from 10 to 20 metres,
+     so this is deliberately larger than a poster QR relative to its canvas. */
+  .sl-right .qr {
+    width: 430px;
+    height: 430px;
+    /* Generous quiet zone. The code sits on a black panel, and a thin light
+       margin there is the one thing that reliably breaks a scan. */
+    padding: 46px;
+    background: var(--paper);
+    display: block;
+  }
+  .sl-right .scan {
+    font-family: var(--display);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.24em;
+    font-size: 20px;
+    color: var(--gold);
+    margin-bottom: 34px;
+  }
+  .sl-right .url {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 44px;
+    color: #ffffff;
+    margin-top: 40px;
+    line-height: 1;
+  }
+  .sl-right .fine {
+    font-family: var(--body);
+    font-size: 17px;
+    font-style: italic;
+    line-height: 1.4;
+    color: var(--on-dark-muted);
+    margin: 26px 0 0;
+    max-width: 380px;
+  }
+</style>
+</head>
+<body>
+
+<div class="spec">
+  <b>Lecture-theatre slide &middot; 1920 &times; 1080 &middot; Just finished this unit?</b><br>
+  Job: supply, at the exact moment it is easiest to say yes. Runs on the projector for the five minutes
+  before a lecture starts, or on the last slide of a unit coordinator's final lecture. Export to PNG at
+  1920 &times; 1080 and hand it to the coordinator as a single image file, not a deck.
+  QR carries <code>?ref=slide-lecture</code>; make a per-unit variant
+  (<code>?ref=slide-comp2004</code>) when a coordinator agrees to run it, so you can see which
+  lectures actually convert.<br>
+  Ask the coordinator, do not ambush them. One paragraph, one image, no attachment chain.
+</div>
+
+<div class="sheet sheet--slide sl">
+
+  <div class="sl-left">
+    <div class="sl-lockup">
+      <img src="../assets/shield-gold.png" alt="">
+      <div class="word">Curtin<span>Honestly</span></div>
+    </div>
+
+    <h1>Just finished<br>this unit?<br><em>Say what it was<br>actually like.</em></h1>
+
+    <p class="sl-lead">
+      The next group picks their units knowing none of what you just learned
+      the hard way.
+    </p>
+
+    <div class="sl-steps">
+      <div class="sl-step"><span class="n">1</span><span class="t">Scan. Sign up with your student email.</span></div>
+      <div class="sl-step"><span class="n">2</span><span class="t">Rate it, score the workload, say if you would take it again.</span></div>
+      <div class="sl-step"><span class="n">3</span><span class="t">Done in about ninety seconds. Your name never appears.</span></div>
+    </div>
+  </div>
+
+  <div class="sl-right">
+    <div class="scan">Scan with your camera</div>
+    <img class="qr" src="../assets/qr-slide-lecture.png" alt="QR code to curtinhonestly.com">
+    <div class="url">curtinhonestly.com</div>
+    <p class="fine">
+      Independent student platform. Not affiliated with Curtin University.
+      Reviews are posted anonymously.
+    </p>
+  </div>
+
+</div>
+
+<script>
+/* ?clean strips the yellow spec note so the sheet can be exported on its own. */
+if (location.search.indexOf('clean') > -1) {
+  document.querySelectorAll('.spec').forEach(function (n) { n.remove(); });
+  document.body.style.background = '#ffffff';
+  document.querySelectorAll('.sheet').forEach(function (n) { n.style.margin = '0 auto'; n.style.boxShadow = 'none'; });
+}
+</script>
+</body>
+</html>

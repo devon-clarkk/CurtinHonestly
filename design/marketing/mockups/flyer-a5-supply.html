@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<title>CurtinHonestly flyer A: You know something the handbook doesn't.</title>
+<link rel="stylesheet" href="brand.css">
+<style>
+  .f1 { display: flex; flex-direction: column; }
+
+  .f1-top {
+    padding: 11mm 12mm 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .lockup { display: flex; align-items: center; gap: 3mm; }
+  .lockup img { height: 12mm; width: auto; display: block; }
+  .lockup .word {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 14pt;
+    letter-spacing: -0.01em;
+    line-height: 1;
+    color: var(--ink);
+  }
+  .lockup .word span { color: var(--gold-ink); }
+  .f1-meta {
+    font-family: var(--display);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-size: 6.5pt;
+    color: var(--muted);
+    text-align: right;
+    line-height: 1.6;
+  }
+
+  .f1-head { padding: 10mm 12mm 0; }
+  .f1-head .headline { font-size: 40pt; }
+  .f1-body {
+    margin: 6mm 0 0;
+    font-size: 11pt;
+    line-height: 1.45;
+  }
+  .f1-body p { margin: 0 0 3.5mm; }
+
+  .f1-steps {
+    margin: 7mm 12mm 0;
+    padding-top: 5mm;
+    border-top: 1px solid var(--hairline);
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 5mm;
+  }
+  .f1-step { display: flex; gap: 2.5mm; align-items: baseline; }
+  .f1-step .n { font-family: var(--display); font-weight: 700; font-size: 15pt; color: var(--gold); line-height: 1; }
+  .f1-step .t { font-size: 8.5pt; line-height: 1.35; color: var(--ink); }
+
+  .f1-foot {
+    margin-top: auto;
+    padding: 8mm 12mm;
+    gap: 8mm;
+    min-height: 66mm;
+  }
+  .f1-foot .qr { width: 46mm; height: 46mm; padding: 3mm; flex: 0 0 auto; }
+  .f1-foot .cta {
+    font-family: var(--display);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    font-size: 7.5pt;
+    color: var(--gold);
+    display: block;
+    margin-bottom: 2mm;
+  }
+  .f1-foot .url { font-size: 20pt; line-height: 1; display: block; }
+  .f1-foot .disclaimer { font-size: 6.8pt; margin-top: 3mm; }
+
+  @media print { @page { size: A5 portrait; margin: 0; } }
+</style>
+</head>
+<body>
+
+<div class="spec">
+  <b>Flyer A &middot; A5 portrait (148 &times; 210 mm) &middot; You know something the handbook doesn't.</b><br>
+  Job: supply, in the hand. The handout for the results-week stall and for clubs to give out. Copy is
+  Flyer A from launch-plan.md section 4.2 (P6), rendered. Layout is poster 02 cut down: the same
+  argument at arm's length. QR carries <code>?ref=flyer-a5-stall</code>, the code already in
+  <code>assets/</code>. Print two-up on A4 and cut, or ask for A5 directly.
+</div>
+
+<div class="sheet sheet--a5 f1">
+
+  <div class="f1-top">
+    <div class="lockup">
+      <img src="../assets/shield-gold.png" alt="">
+      <div class="word">Curtin<span>Honestly</span></div>
+    </div>
+    <div class="f1-meta">Independent<br>student platform</div>
+  </div>
+
+  <div class="f1-head">
+    <h1 class="headline">You know something the handbook <em>doesn't.</em></h1>
+    <div class="lead f1-body">
+      <p>You just finished a unit. Say what it was actually like: rating, workload out of 10, the grade you got, whether you would take it again. About ninety seconds, posted anonymously, your name never appears next to it.</p>
+      <p>Scan. Write one. Someone picking units in February gets to know what you know.</p>
+    </div>
+  </div>
+
+  <div class="f1-steps">
+    <div class="f1-step"><span class="n">1</span><span class="t">Scan. Sign up with your student email.</span></div>
+    <div class="f1-step"><span class="n">2</span><span class="t">Rate it, score the workload, say if you would take it again.</span></div>
+    <div class="f1-step"><span class="n">3</span><span class="t">Done in about ninety seconds. Your name never appears.</span></div>
+  </div>
+
+  <div class="footband f1-foot">
+    <img class="qr" src="../assets/qr-flyer-a5-stall.png" alt="QR code to curtinhonestly.com">
+    <div>
+      <span class="cta">Scan with your camera</span>
+      <span class="url">curtinhonestly.com</span>
+      <p class="disclaimer">Independent student platform. Not affiliated with Curtin University. Reviews are written by students and posted anonymously.</p>
+    </div>
+  </div>
+
+</div>
+
+<script>
+if (location.search.indexOf('clean') > -1) {
+  document.querySelectorAll('.spec').forEach(function (n) { n.remove(); });
+  document.body.style.background = '#ffffff';
+  document.querySelectorAll('.sheet').forEach(function (n) { n.style.margin = '0 auto'; n.style.boxShadow = 'none'; });
+}
+</script>
+</body>
+</html>

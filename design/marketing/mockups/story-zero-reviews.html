@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<title>CurtinHonestly story: 0 reviews. (1080 x 1920)</title>
+<link rel="stylesheet" href="brand.css">
+<link rel="stylesheet" href="story.css">
+<style>
+  .st-head .headline { font-size: 200px; letter-spacing: -0.03em; }
+  .card { padding: 40px 40px 36px; }
+  .card-top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 24px; }
+  .tags { display: flex; gap: 12px; }
+  .tags span {
+    font-family: var(--display); font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em;
+    font-size: 18px; color: var(--muted); border: 1px solid var(--hairline); padding: 8px 14px;
+  }
+  .code { font-family: var(--display); font-weight: 700; font-size: 26px; letter-spacing: 0.06em; color: var(--gold-ink); }
+  .name { font-family: var(--display); font-weight: 700; font-size: 52px; line-height: 1.08; margin: 0 0 20px; color: var(--ink); }
+  .stars { font-size: 52px; color: #cfcfcf; letter-spacing: 0.08em; }
+  .empty { margin-top: 28px; padding: 22px 26px; background: #f7f7f7; border-left: 8px solid var(--gold); font-size: 28px; color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="spec">
+  <b>Story &middot; 1080 &times; 1920 &middot; 0 reviews.</b><br>
+  The 9:16 cut of poster 02 for Instagram stories and Discord. QR carries <code>?ref=story-zero</code>.
+  On Instagram, add a link sticker as well; nobody scans a QR on their own phone.
+</div>
+
+<div class="sheet sheet--story">
+  <div class="st-top">
+    <div class="st-lockup"><img src="../assets/shield-gold.png" alt=""><div class="word">Curtin<span>Honestly</span></div></div>
+    <div class="st-meta">Independent<br>student platform</div>
+  </div>
+
+  <div class="st-head">
+    <h1 class="headline"><em>0</em> reviews.</h1>
+    <p class="lead st-sub">That is what the page for the unit you just finished says right now. Every unit on the site says it.</p>
+  </div>
+
+  <div class="st-body">
+    <div class="unit-card card">
+      <div class="card-top">
+        <div class="tags"><span>Your faculty</span><span>Your year</span></div>
+        <div class="code">The unit you just finished</div>
+      </div>
+      <h2 class="name">Nobody has said a word about it.</h2>
+      <div class="stars">&#9734;&#9734;&#9734;&#9734;&#9734;</div>
+      <p class="empty">No reviews yet. Be the first to write one!</p>
+    </div>
+  </div>
+
+  <div class="st-payoff">
+    <div class="bar"></div>
+    <p><span class="dim">The site is new, and it shows.</span><br>Ninety seconds from you and one of these pages is worth reading.</p>
+  </div>
+
+  <div class="footband st-foot">
+    <img class="qr" src="../assets/qr-story-zero.png" alt="QR code to curtinhonestly.com">
+    <div>
+      <span class="cta">Posted anonymously. Always.</span>
+      <span class="url">curtinhonestly.com</span>
+      <p class="disclaimer">Independent student platform. Not affiliated with Curtin University. Your name and email are never shown next to a review.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+if (location.search.indexOf('clean') > -1) {
+  document.querySelectorAll('.spec').forEach(function (n) { n.remove(); });
+  document.body.style.background = '#ffffff';
+  document.querySelectorAll('.sheet').forEach(function (n) { n.style.margin = '0 auto'; n.style.boxShadow = 'none'; });
+}
+</script>
+</body>
+</html>

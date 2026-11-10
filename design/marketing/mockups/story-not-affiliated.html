@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<title>CurtinHonestly story: Not affiliated with Curtin University. (1080 x 1920)</title>
+<link rel="stylesheet" href="brand.css">
+<link rel="stylesheet" href="story.css">
+<style>
+  .st-head .headline { font-size: 108px; line-height: 0.96; letter-spacing: -0.02em; }
+  .st-head .strike { color: var(--on-dark-muted); font-weight: 400; }
+  .st-head .punch { color: var(--gold); display: block; margin-top: 22px; }
+  .list { margin: 0; padding: 0; list-style: none; border-top: 1px solid #2a2a2a; }
+  .list li { display: flex; gap: 28px; padding: 26px 0; border-bottom: 1px solid #2a2a2a; align-items: baseline; }
+  .list .k { font-family: var(--display); font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em; font-size: 21px; color: var(--gold); flex: 0 0 250px; }
+  .list .v { font-family: var(--body); font-size: 27px; line-height: 1.4; color: #ffffff; }
+</style>
+</head>
+<body>
+<div class="spec">
+  <b>Story &middot; 1080 &times; 1920 &middot; Not affiliated with Curtin University.</b><br>
+  The 9:16 cut of poster 03, for the first reply whenever someone asks whether this is official.
+  QR carries <code>?ref=story-someone</code>.
+</div>
+
+<div class="sheet sheet--story sheet--dark">
+  <div class="st-top">
+    <div class="st-lockup"><img src="../assets/shield-gold.png" alt=""><div class="word">Curtin<span>Honestly</span></div></div>
+    <div class="st-meta">Reviews by<br>students only</div>
+  </div>
+
+  <div class="st-head">
+    <h1 class="headline"><span class="strike">Not affiliated with<br>Curtin University.</span><span class="punch">That is the point.</span></h1>
+    <p class="lead st-sub">Nobody at Curtin approves what goes on this site, and nobody at Curtin can take a review down because it makes a unit look bad.</p>
+  </div>
+
+  <div class="st-body">
+    <ul class="list">
+      <li><span class="k">Who writes it</span><span class="v">Students who did the unit. Verify with your student email and your review carries a verified badge.</span></li>
+      <li><span class="k">Who sees your name</span><span class="v">Nobody. Your name and email are never shown next to a review.</span></li>
+      <li><span class="k">What gets removed</span><span class="v">Abuse, and anything that breaks the terms. Not bad ratings.</span></li>
+      <li><span class="k">Who pays for it</span><span class="v">A Curtin student, out of pocket. No sponsor telling it what to say.</span></li>
+    </ul>
+  </div>
+
+  <div class="st-payoff">
+    <div class="bar"></div>
+    <p>Written by students who gain nothing from telling you it was fine.</p>
+  </div>
+
+  <div class="footband st-foot">
+    <img class="qr" src="../assets/qr-story-someone.png" alt="QR code to curtinhonestly.com">
+    <div>
+      <span class="cta">Authentic anonymous reviews from Curtin students</span>
+      <span class="url">curtinhonestly.com</span>
+      <p class="disclaimer">Independent student platform. Not affiliated with, endorsed by, or operated by Curtin University.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+if (location.search.indexOf('clean') > -1) {
+  document.querySelectorAll('.spec').forEach(function (n) { n.remove(); });
+  document.body.style.background = '#ffffff';
+  document.querySelectorAll('.sheet').forEach(function (n) { n.style.margin = '0 auto'; n.style.boxShadow = 'none'; });
+}
+</script>
+</body>
+</html>

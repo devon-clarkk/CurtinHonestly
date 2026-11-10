@@ -1,0 +1,194 @@
+/* CurtinHonestly print/mockup brand sheet.
+   Tokens mirror frontend/src/theme.css exactly. Do not invent new hues.
+   Gold #C09711 is a FILL only. Gold as text on light uses #8A6D0C (--primary-ink). */
+
+@font-face {
+  font-family: 'CHCondensed';
+  src: url('../assets/fonts/RobotoCondensed-VariableFont_wght.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'CHBody';
+  src: url('../assets/fonts/Rubik-VariableFont_wght.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: normal;
+}
+
+:root {
+  --gold: #c09711;
+  --gold-ink: #8a6d0c;
+  --gold-hover: #a8840f;
+  --ink: #1f1f1f;
+  --black: #000000;
+  --paper: #fafafa;
+  --card: #ffffff;
+  --muted: #666666;
+  --hairline: #e8e8e8;
+  --on-dark-muted: #cfcfcf;
+  --display: 'CHCondensed', 'Arial Narrow', sans-serif;
+  --body: 'CHBody', 'Segoe UI', sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: #d8d8d8;
+  font-family: var(--body);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---- Sheet primitives -------------------------------------------------- */
+
+.sheet {
+  background: var(--paper);
+  color: var(--ink);
+  position: relative;
+  overflow: hidden;
+  margin: 24px auto;
+  box-shadow: 0 2px 24px rgba(0, 0, 0, 0.14);
+}
+
+.sheet--a3 { width: 297mm; height: 420mm; }
+.sheet--a5 { width: 148mm; height: 210mm; }
+.sheet--slide { width: 1920px; height: 1080px; }
+
+/* ---- Type scale -------------------------------------------------------- */
+
+.kicker {
+  font-family: var(--display);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  color: var(--gold-ink);
+}
+
+.headline {
+  font-family: var(--display);
+  font-weight: 700;
+  line-height: 0.92;
+  letter-spacing: -0.015em;
+  margin: 0;
+  color: var(--ink);
+}
+
+.headline em {
+  font-style: normal;
+  color: var(--gold-ink);
+}
+
+.lead {
+  font-family: var(--body);
+  font-weight: 400;
+  line-height: 1.45;
+  color: var(--ink);
+  margin: 0;
+}
+
+.rule-gold {
+  height: 6px;
+  background: var(--gold);
+  border: 0;
+  margin: 0;
+}
+
+.hair {
+  height: 1px;
+  background: var(--hairline);
+  border: 0;
+  margin: 0;
+}
+
+/* ---- Handbook-style label ---------------------------------------------- */
+
+.label {
+  font-family: var(--display);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--muted);
+}
+
+.label--gold { color: var(--gold-ink); }
+
+/* ---- Product-true card (mirrors the real unit card) --------------------- */
+
+.unit-card {
+  background: var(--card);
+  border: 1px solid var(--hairline);
+  border-top: 4px solid var(--gold);
+  border-radius: 0;
+}
+
+.pill {
+  display: inline-block;
+  font-family: var(--display);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  background: var(--gold);
+  color: var(--black);
+  border-radius: 0;
+}
+
+.pill--ghost {
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid var(--hairline);
+}
+
+.stars { color: var(--gold); letter-spacing: 0.06em; }
+
+/* ---- Foot band (black, matches the site footer) ------------------------- */
+
+.footband {
+  background: var(--black);
+  color: #ffffff;
+  border-top: 4px solid var(--gold);
+  display: flex;
+  align-items: center;
+}
+
+.footband .url {
+  font-family: var(--display);
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.footband .disclaimer {
+  font-family: var(--body);
+  color: var(--on-dark-muted);
+  font-style: italic;
+  line-height: 1.35;
+}
+
+.qr {
+  background: var(--paper);
+  display: block;
+}
+
+/* ---- Screen-only helpers ----------------------------------------------- */
+
+.spec {
+  max-width: 297mm;
+  margin: 0 auto 40px;
+  padding: 16px 20px;
+  background: #ffffff;
+  border-left: 4px solid var(--gold);
+  font-family: var(--body);
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink);
+}
+
+.spec b { font-family: var(--display); letter-spacing: 0.04em; text-transform: uppercase; font-size: 12px; }
+
+@media print {
+  html, body { background: #ffffff; }
+  .spec { display: none; }
+  .sheet { margin: 0; box-shadow: none; }
+  @page { size: A3 portrait; margin: 0; }
+}
