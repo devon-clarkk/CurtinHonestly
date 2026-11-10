@@ -44,7 +44,7 @@ An independent student review platform for Curtin University units. Source publi
                  │  Azure Container Apps (BE)   │   Azure for Students subscription
                  │  be-curtinhonestly-dev       │   Australia East
                  │  be-curtinhonestly-prod      │   (shared environment:
-                 │  image from ACR              │    cae-curtinhonestly-shared)
+                 │  image from GHCR             │    cae-curtinhonestly-shared)
                  └──────────────┬──────────────┘
                                 │ JDBC (sslmode=require)
                                 ▼
@@ -57,7 +57,7 @@ An independent student review platform for Curtin University units. Source publi
 |---|---|---|
 | Frontend | Azure Static Web Apps (Free) | One app per environment, served via global CDN |
 | Backend | Azure Container Apps (Consumption) | Australia East, dev + prod share one environment |
-| Image registry | Azure Container Registry `acrcurtinhonestly` | `rg-curtinhonestly-shared`, OIDC/managed-identity auth |
+| Image registry | GitHub Container Registry `ghcr.io/devon-clarkk/curtinhonestly-backend` | Public package, pushed with `GITHUB_TOKEN`, pulled anonymously |
 | Database | Supabase PostgreSQL | JDBC direct (Data API not used) |
 | CI/CD | GitHub Actions | OIDC to Azure, per-environment secrets |
 | Tickets | Azure DevOps | Issue tracking only |
@@ -77,7 +77,7 @@ An independent student review platform for Curtin University units. Source publi
 
 Pull requests never deploy. Each PR-triggered workflow only runs `npm ci && npm run build` for its app, so no Static Web App preview environment is created. The Free tier allows three previews per app, and a PR merged within a minute of opening left orphans behind that filled the cap.
 
-- Backend deploys authenticate to Azure with **OIDC** (no stored credentials), build the Docker image, push to ACR, then `az containerapp update`.
+- Backend deploys authenticate to Azure with **OIDC** (no stored credentials), build the Docker image, push it to GHCR, then `az containerapp update`.
 - Frontend deploys bake `API_URL` into the Angular build so the SPA knows where the API lives.
 - Both use GitHub **Environments** (`dev`, `prod`) to scope secrets; `prod` can require manual approval.
 
