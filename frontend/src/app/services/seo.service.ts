@@ -9,6 +9,7 @@ import {
   shareCardMeta,
   unitShareImagePath,
 } from '../utils/share-image';
+import { unitRobotsDirective } from '../utils/unit-indexability';
 import { environment } from '../../environments/environment';
 import {
   UnitLink,
@@ -71,7 +72,9 @@ export class SeoService {
     const url = `${this.siteUrl}${unitPagePath(unit.code)}`;
 
     this.title.setTitle(title);
-    this.setIndexable();
+    // Reviews are what earn a unit page its place in the index. The sitemap
+    // applies the same rule, from the same module, so the two never disagree.
+    this.meta.updateTag({ name: 'robots', content: unitRobotsDirective(unit.numberOfReviews) });
     this.setDescription(description);
     this.setCanonical(url);
     this.setOpenGraph({
@@ -153,8 +156,8 @@ export class SeoService {
    * index.html ships `noindex, nofollow` so the static shell is never indexable.
    * That shell is what Azure Static Web Apps serves for every URL it has no
    * prerendered file behind.
-   * The two route families that are genuinely worth indexing say so themselves,
-   * here, and both of them are prerendered, so the opt-in is in the HTML a
+   * The route families that are genuinely worth indexing say so themselves,
+   * here (unit pages through unitRobotsDirective), and all of them are prerendered, so the opt-in is in the HTML a
    * crawler receives rather than something it has to run JavaScript to discover.
    */
   private setIndexable(): void {

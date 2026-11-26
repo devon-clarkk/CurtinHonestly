@@ -1,10 +1,12 @@
 /**
  * Generates robots.txt and sitemap.xml into public/ before ng build.
- * Prod: Allow indexing + full sitemap. Dev/local: block crawlers.
+ * Prod: Allow indexing + a sitemap of the hubs and the reviewed units.
+ * Dev/local: block crawlers.
  */
 const fs = require('fs');
 const path = require('path');
 const { resolveSeoBuildConfig } = require('./seo-build-config');
+const { isUnitIndexable } = require('../src/app/utils/unit-indexability');
 
 const indexHtmlPath = path.resolve(__dirname, '../src/index.html');
 const faculties = require('../src/app/faculties.json');
@@ -59,6 +61,16 @@ if (fs.existsSync(sitemapMetaPath)) {
 
 const sitemapMetaByCode = Object.fromEntries(sitemapMeta.map((e) => [e.code, e]));
 
+/**
+ * The sitemap lists the unit pages that carry reviews, which are the same pages
+ * whose markup says `index`: both read the rule from unit-indexability.js.
+ * Every other unit stays one link from its faculty hub and joins the sitemap
+ * with the build that follows its first review.
+ */
+const indexableUnitCodes = unitCodes.filter((code) =>
+  isUnitIndexable(sitemapMetaByCode[code]?.reviews)
+);
+
 fs.mkdirSync(publicDir, { recursive: true });
 
 if (!seoEnabled) {
@@ -111,7 +123,7 @@ const urlEntries = [
     <priority>0.7</priority>
   </url>`
   ),
-  ...unitCodes.map((code) => {
+  ...indexableUnitCodes.map((code) => {
     const lastmod = sitemapMetaByCode[code]?.lastmod || today;
     return `  <url>
     <loc>${siteUrl}/units/${encodeURIComponent(code)}</loc>
@@ -133,5 +145,6 @@ fs.writeFileSync(path.join(publicDir, 'sitemap.xml'), sitemapXml);
 
 console.log(
   `SEO enabled: generated robots.txt and sitemap.xml for ${siteUrl} ` +
-    `(${faculties.length} faculty hubs, ${unitCodes.length} unit URLs)`
+    `(${faculties.length} faculty hubs, ${indexableUnitCodes.length} reviewed unit URLs ` +
+    `of ${unitCodes.length} units)`
 );
