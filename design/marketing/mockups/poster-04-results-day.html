@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<title>CurtinHonestly poster 04: Results are out.</title>
+<link rel="stylesheet" href="brand.css">
+<style>
+  .p4 { display: flex; flex-direction: column; }
+
+  .p4-top {
+    padding: 18mm 20mm 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .p4-meta {
+    font-family: var(--display);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-size: 9pt;
+    color: var(--muted);
+    text-align: right;
+    line-height: 1.6;
+  }
+
+  .lockup { display: flex; align-items: center; gap: 5mm; }
+  .lockup img { height: 20mm; width: auto; display: block; }
+  .lockup .word {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 22pt;
+    letter-spacing: -0.01em;
+    line-height: 1;
+    color: var(--ink);
+  }
+  .lockup .word span { color: var(--gold-ink); }
+
+  .p4-head { padding: 14mm 20mm 0; }
+  .p4-head .headline { font-size: 118pt; letter-spacing: -0.025em; }
+  .p4-head .ask {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 50pt;
+    line-height: 1;
+    letter-spacing: -0.015em;
+    color: var(--gold-ink);
+    margin: 7mm 0 0;
+  }
+  .p4-sub {
+    margin: 9mm 0 0;
+    font-size: 16pt;
+    line-height: 1.42;
+    max-width: 215mm;
+  }
+
+  /* Product-true review form. Every field below exists on the live review form.
+     Nothing is filled in, so nothing is invented. */
+  .p4-cardwrap { margin: 13mm 20mm 0; }
+  .p4-card { padding: 9mm 9mm 8mm; }
+  .p4-card .label { font-size: 9.5pt; display: block; margin-bottom: 6mm; }
+  .p4-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6mm 12mm;
+  }
+  .p4-field .k {
+    font-family: var(--display);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    font-size: 8.5pt;
+    color: var(--muted);
+    display: block;
+    margin-bottom: 2.5mm;
+  }
+  .p4-field .v {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 22pt;
+    line-height: 1;
+    color: var(--ink);
+  }
+  .p4-stars { font-size: 24pt; color: #cfcfcf; letter-spacing: 0.08em; line-height: 1; }
+  .p4-blank {
+    display: inline-block;
+    width: 16mm;
+    border-bottom: 3px solid var(--gold);
+    height: 7mm;
+    vertical-align: -1mm;
+    margin-right: 2mm;
+  }
+  .p4-pills { display: flex; flex-wrap: wrap; gap: 2.5mm; }
+  .p4-pills .pill { font-size: 9pt; padding: 2.2mm 3.8mm; }
+  .p4-grades { grid-column: 1 / -1; }
+  .p4-grades .pill { font-size: 11pt; padding: 2.8mm 5mm; min-width: 15mm; text-align: center; }
+  .p4-note {
+    margin: 7mm 0 0;
+    font-size: 10.5pt;
+    color: var(--muted);
+    font-style: italic;
+  }
+
+  .p4-payoff {
+    flex: 1;
+    margin: 0 20mm;
+    padding: 12mm 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+  }
+  .p4-payoff .bar { width: 46mm; height: 6px; background: var(--gold); margin-bottom: 8mm; }
+  .p4-payoff p {
+    margin: 0;
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 29pt;
+    line-height: 1.14;
+    max-width: 240mm;
+  }
+  .p4-payoff .dim { color: var(--muted); }
+
+  .p4-foot { padding: 12mm 20mm; gap: 12mm; }
+  .p4-foot .qr { width: 42mm; height: 42mm; padding: 3mm; flex: 0 0 auto; }
+  .p4-foot-copy { flex: 1; }
+  .p4-foot .url { font-size: 31pt; line-height: 1; display: block; }
+  .p4-foot .cta {
+    font-family: var(--display);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    font-size: 10.5pt;
+    color: var(--gold);
+    display: block;
+    margin-bottom: 3mm;
+  }
+  .p4-foot .disclaimer { font-size: 9pt; margin-top: 4.5mm; max-width: 165mm; }
+  .p4-foot .prize { color: #ffffff; font-style: normal; }
+  html.noprize .prize { display: none; }
+</style>
+</head>
+<body>
+
+<div class="spec">
+  <b>Poster 04 &middot; A3 portrait (297 &times; 420 mm) &middot; Results are out.</b><br>
+  Job: supply, phase 2. Goes up on Wednesday 2 December 2026 (Semester 2 results) and comes down
+  by 16 December. The card shows the real review form with every field empty, so the poster
+  invents nothing. The grade field is the reason this poster exists: on results day it is the one
+  question students can finally answer.<br>
+  Placement: library floors, the Guild building, student housing boards, the Hub. Campus is quiet
+  after exams, so pick the spots that keep traffic in December. QR carries
+  <code>?ref=poster-a3-results</code>. Append <code>&amp;noprize</code> to the URL to export without the
+  prize line.
+</div>
+
+<div class="sheet sheet--a3 p4">
+
+  <div class="p4-top">
+    <div class="lockup">
+      <img src="../assets/shield-gold.png" alt="">
+      <div class="word">Curtin<span>Honestly</span></div>
+    </div>
+    <div class="p4-meta">Results day<br>2 December 2026</div>
+  </div>
+
+  <div class="p4-head">
+    <h1 class="headline">Results<br>are out.</h1>
+    <p class="ask">Which units earned it?</p>
+    <p class="lead p4-sub">
+      Your grade is in. The unit does not have one yet. You are the only person who can
+      give it one, and this is the week you still remember why.
+    </p>
+  </div>
+
+  <div class="p4-cardwrap">
+    <div class="unit-card p4-card">
+      <span class="label label--gold">What a review asks you</span>
+      <div class="p4-grid">
+        <div class="p4-field"><span class="k">Rating</span><span class="p4-stars">&#9734;&#9734;&#9734;&#9734;&#9734;</span></div>
+        <div class="p4-field"><span class="k">Workload</span><span class="v"><span class="p4-blank"></span>/ 10</span></div>
+        <div class="p4-field"><span class="k">Was there an exam</span><div class="p4-pills"><span class="pill pill--ghost">Yes</span><span class="pill pill--ghost">No</span></div></div>
+        <div class="p4-field"><span class="k">Would you take it again</span><div class="p4-pills"><span class="pill pill--ghost">Yes</span><span class="pill pill--ghost">No</span></div></div>
+        <div class="p4-field p4-grades"><span class="k">Grade you got (optional)</span><div class="p4-pills"><span class="pill pill--ghost">HD</span><span class="pill pill--ghost">D</span><span class="pill pill--ghost">C</span><span class="pill pill--ghost">P</span><span class="pill pill--ghost">F</span></div></div>
+      </div>
+      <p class="p4-note">Then a few sentences on what it was actually like. About ninety seconds. Posted anonymously.</p>
+    </div>
+  </div>
+
+  <div class="p4-payoff">
+    <div class="bar"></div>
+    <p><span class="dim">You just found out what the semester was worth.</span><br>
+       Now tell the next person what the unit was worth.</p>
+  </div>
+
+  <div class="footband p4-foot">
+    <img class="qr" src="../assets/qr-poster-a3-results.png" alt="QR code to curtinhonestly.com">
+    <div class="p4-foot-copy">
+      <span class="cta">Written while you still remember</span>
+      <span class="url">curtinhonestly.com</span>
+      <p class="disclaimer">
+        Independent student platform. Not affiliated with Curtin University.
+        Your name and email are never shown next to a review.
+        <span class="prize">Prize draw for verified students closes 12 December. Terms on the site.</span>
+      </p>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* ?clean strips the yellow spec note so the sheet can be exported on its own.
+   ?noprize hides the prize sentence in the foot band. */
+if (location.search.indexOf('clean') > -1) {
+  document.querySelectorAll('.spec').forEach(function (n) { n.remove(); });
+  document.body.style.background = '#ffffff';
+  document.querySelectorAll('.sheet').forEach(function (n) { n.style.margin = '0 auto'; n.style.boxShadow = 'none'; });
+}
+if (location.search.indexOf('noprize') > -1) { document.documentElement.classList.add('noprize'); }
+</script>
+</body>
+</html>

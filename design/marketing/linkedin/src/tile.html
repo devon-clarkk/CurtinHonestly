@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<title>CurtinHonestly LinkedIn logo tile</title>
+<link rel="stylesheet" href="brand.css">
+<style>
+  /* Square artboard. Solid background, square corners. LinkedIn applies its own
+     rounding at display time, so the file must not be pre-rounded or transparent. */
+  .tile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Shield-only mark. Sized at 58% of the tile height, which keeps clear space on
+     all four sides well outside anything LinkedIn's corner rounding can reach, and
+     still reads as a silhouette at a 48px feed avatar. */
+  .tile--shield img { height: 58%; width: auto; display: block; }
+
+  /* Stacked alternate: mark plus wordmark. Only for surfaces rendered at 80px or
+     larger. The wordmark turns to mush in a feed avatar. */
+  .tile--stacked img { height: 37%; width: auto; display: block; }
+  .tile--stacked .word {
+    font-family: var(--display);
+    font-weight: 700;
+    text-align: center;
+    line-height: 1.0;
+    letter-spacing: -0.01em;
+    margin-top: 7%;
+  }
+  .canvas--light .word { color: var(--ink); }
+  .canvas--dark .word { color: #ffffff; }
+  .tile--stacked .word .b { color: var(--gold); display: block; }
+  .canvas--light .word .b { color: var(--gold-ink); }
+</style>
+</head>
+<body>
+<div class="canvas tile" id="art"><img src="shield-gold-hires.png" alt=""><div class="word" id="word" hidden>Curtin<span class="b">Honestly</span></div></div>
+<script>
+  var q = new URLSearchParams(location.search);
+  var size = parseInt(q.get('size') || '300', 10);
+  var bg = q.get('bg') === 'light' ? 'light' : 'dark';
+  var style = q.get('style') === 'stacked' ? 'stacked' : 'shield';
+
+  var art = document.getElementById('art');
+  art.style.width = size + 'px';
+  art.style.height = size + 'px';
+  art.classList.add('canvas--' + bg, 'tile--' + style);
+
+  if (style === 'stacked') {
+    var word = document.getElementById('word');
+    word.hidden = false;
+    word.style.fontSize = (size * 0.165) + 'px';
+  }
+  document.body.style.background = '#ffffff';
+</script>
+</body>
+</html>

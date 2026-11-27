@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<title>CurtinHonestly LinkedIn company cover</title>
+<link rel="stylesheet" href="brand.css">
+<style>
+  /* Artboard is exactly 1128 x 191, the size LinkedIn recommends for a company page
+     cover. Render it at device scale 2 for the 2256 x 382 high-DPI file. */
+  .cover { position: relative; }
+
+  /* Reserved dead zone. The company logo tile overlaps the lower left of the cover,
+     and LinkedIn's own guidance is to treat the bottom-left 250 x 250 as unusable.
+     The canvas is only 191 tall, so that is the left 250px of the full height. This
+     build reserves 300px for margin of error. Nothing is drawn inside it. */
+  .cover .content {
+    position: absolute;
+    left: 316px;
+    right: 44px;
+    top: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    gap: 30px;
+  }
+
+  .cover .bar {
+    width: 6px;
+    height: 126px;
+    background: var(--gold);
+    flex: 0 0 auto;
+  }
+
+  .cover h1 {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 34px;
+    line-height: 1.08;
+    letter-spacing: -0.012em;
+    margin: 0;
+    /* Wraps to two lines on purpose. It keeps the whole block inside the middle of
+       the canvas, well clear of the edges LinkedIn clips on narrow viewports. */
+    max-width: 470px;
+  }
+  .canvas--light h1 { color: var(--ink); }
+  .canvas--dark h1 { color: #ffffff; }
+
+  .cover .metrics {
+    font-family: var(--display);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.17em;
+    font-size: 12.5px;
+    margin: 13px 0 0;
+  }
+  .canvas--light .metrics { color: var(--gold-ink); }
+  .canvas--dark .metrics { color: var(--gold); }
+
+  .cover .fine {
+    font-family: var(--body);
+    font-size: 13px;
+    line-height: 1.35;
+    margin: 11px 0 0;
+  }
+  .canvas--light .fine { color: var(--muted); }
+  .canvas--dark .fine { color: var(--on-dark-muted); }
+</style>
+</head>
+<body>
+<div class="canvas cover" id="art">
+  <div class="content">
+    <div class="bar"></div>
+    <div>
+      <h1>Authentic anonymous reviews from Curtin students.</h1>
+      <p class="metrics">Ratings &middot; Workload &middot; Would take again</p>
+      <p class="fine">Independent student platform. Not affiliated with Curtin University.</p>
+    </div>
+  </div>
+</div>
+<script>
+  /* Background variant only. The 2x export is produced by rendering this same
+     1128 x 191 artboard with Chrome's --force-device-scale-factor=2, so the high-DPI
+     file is a pixel-exact enlargement and nothing reflows. */
+  var q = new URLSearchParams(location.search);
+  var bg = q.get('bg') === 'dark' ? 'dark' : 'light';
+
+  var art = document.getElementById('art');
+  art.classList.add('canvas--' + bg);
+  art.style.width = '1128px';
+  art.style.height = '191px';
+  document.body.style.background = '#ffffff';
+</script>
+</body>
+</html>
