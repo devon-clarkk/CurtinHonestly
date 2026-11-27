@@ -17,9 +17,11 @@ const path = require('path');
 const { resolveSeoBuildConfig } = require('./seo-build-config');
 const faculties = require('../src/app/faculties.json');
 const { FALLBACK_IMAGE_PATH } = require('../src/app/utils/share-image');
+const { isUnitIndexable } = require('../src/app/utils/unit-indexability');
 
 const outputDir = path.resolve(__dirname, '../dist/frontend/browser');
 const requiredForPath = path.resolve(__dirname, '../src/generated/required-for.json');
+const sitemapMetaPath = path.resolve(__dirname, '../src/generated/unit-sitemap-meta.json');
 
 // The smallest faculty holds 79 units, so any hub below this lost its list
 // rather than simply being small.
@@ -140,9 +142,55 @@ if (seoEnabled) {
     );
   }
 
-  const sample = `units/${unitPages[0].name}/index.html`;
-  assertIndexable(read(sample), `The prerendered unit page (${sample})`);
+  // Which unit pages are indexable is decided by review count, in
+  // unit-indexability.js, and stated twice: by the robots tag on each page and
+  // by the sitemap's list. Hold every prerendered unit page and the sitemap to
+  // that one rule, so the two can never tell a search engine different things.
+  const sitemapMeta = fs.existsSync(sitemapMetaPath)
+    ? JSON.parse(fs.readFileSync(sitemapMetaPath, 'utf8'))
+    : [];
+  const reviewsByCode = Object.fromEntries(sitemapMeta.map((e) => [e.code, e.reviews]));
+  const prerenderedCodes = new Set(unitPages.map((e) => e.name));
+  const reviewedCodes = [...prerenderedCodes].filter((code) => isUnitIndexable(reviewsByCode[code]));
+
+  if (reviewedCodes.length === 0) {
+    throw new Error(
+      'No prerendered unit carries a review, so no unit page would be indexable. The units ' +
+        'listing came back without review counts: check that fetch-unit-codes.js reached the API.'
+    );
+  }
+
+  for (const code of prerenderedCodes) {
+    const page = `units/${code}/index.html`;
+    const html = read(page);
+    const robots = robotsOf(html, `The prerendered unit page (${page})`);
+
+    if (isUnitIndexable(reviewsByCode[code])) {
+      assertIndexable(html, `The reviewed unit page (${page})`);
+    } else if (!robots.includes('noindex') || robots.includes('nofollow')) {
+      throw new Error(
+        `The unit page ${page} has no reviews and says robots "${robots}". It must say ` +
+          '"noindex, follow": out of the index, with its hub and prerequisite links still followed.'
+      );
+    }
+  }
+
+  const sample = `units/${reviewedCodes[0]}/index.html`;
   assertShareCardResolves(read(sample), `The prerendered unit page (${sample})`);
+
+  const sitemapUnitCodes = [...read('sitemap.xml').matchAll(/<loc>[^<]*\/units\/([^<]+)<\/loc>/g)].map(
+    (m) => decodeURIComponent(m[1])
+  );
+  const unlisted = reviewedCodes.filter((code) => !sitemapUnitCodes.includes(code));
+  const unearned = sitemapUnitCodes.filter((code) => !isUnitIndexable(reviewsByCode[code]));
+
+  if (unlisted.length > 0 || unearned.length > 0) {
+    throw new Error(
+      `The sitemap and the unit pages disagree about what is indexable. Reviewed units missing ` +
+        `from the sitemap: ${unlisted.slice(0, 10).join(', ') || 'none'}. Sitemap entries for units ` +
+        `without reviews: ${unearned.slice(0, 10).join(', ') || 'none'}.`
+    );
+  }
 
   // The reverse prerequisite graph. It is the only content on the 1,729 units
   // with no reviews, and fetch-unit-codes.js writes an empty map rather than
@@ -185,8 +233,9 @@ if (seoEnabled) {
   }
 
   console.log(
-    `SEO output verified: fallback ${fallback} is noindex; home page, ${unitPages.length} unit pages ` +
-      `and ${faculties.length} faculty hubs indexable; hubs link ${hubLinks} units; ` +
+    `SEO output verified: fallback ${fallback} is noindex; home page, ${reviewedCodes.length} reviewed ` +
+      `unit pages of ${unitPages.length} and ${faculties.length} faculty hubs indexable, matching the ` +
+      `sitemap; hubs link ${hubLinks} units; ` +
       `${unitsWithDependents} units name what depends on them.`
   );
 } else {

@@ -51,6 +51,9 @@ async function fetchAllUnits(apiUrl) {
         sitemapMeta.push({
           code: unit.code,
           lastmod: unit.latestReviewAt ? unit.latestReviewAt.slice(0, 10) : null,
+          // What decides whether the sitemap lists the unit at all; see
+          // src/app/utils/unit-indexability.js.
+          reviews: unit.numberOfReviews ?? 0,
         });
         // Everything a share card draws, taken from the listing this loop
         // already reads. The card needs no request of its own: the summary
