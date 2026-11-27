@@ -106,9 +106,11 @@ things shape every finding:
 - Unmatched URLs are served by `navigationFallback` with a **200**, not a 404.
   See [`AUDIT-2026-08-31.md`](AUDIT-2026-08-31.md) for why that matters and what
   was done about it.
-- 1,761 units are indexable and 32 of them have a review. That ratio shapes
-  almost every recommendation worth making, so read the audit's first ranked item
-  before acting on tool output.
+- A unit page is indexable once it carries a review. The rule lives in
+  `frontend/src/app/utils/unit-indexability.js`, and both the sitemap and each
+  page's robots tag read it from there. Every other unit page is
+  `noindex, follow`, stays linked from its faculty hub, and joins the index with
+  the build that follows its first review.
 
 Point tooling at `https://www.curtinhonestly.com`: the apex 301s to `www`, and
 `www` is what canonicals and the sitemap declare.
